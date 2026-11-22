@@ -32,6 +32,10 @@ object UnsupportedBrowserExtension : BrowserExtensionHost, BrowserExtensionStrea
 
     override suspend fun confirmIdentity(id: String, verify: suspend () -> Boolean): Boolean = false
 
+    override fun selectPasskey(id: String, choice: Int): Boolean = false
+
+    override fun useAnotherDevice(id: String): Boolean = false
+
     override fun onSaveShown(id: String) = Unit
 
     override fun closeSave(id: String) = Unit

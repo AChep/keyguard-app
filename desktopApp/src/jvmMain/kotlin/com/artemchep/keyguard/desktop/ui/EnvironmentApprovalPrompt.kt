@@ -19,18 +19,20 @@ internal fun EnvironmentApprovalPrompt(
 ) {
     ApprovalPrompt(
         requestId = request.id,
+        requiresIdentity = request.requiresIdentity,
+        expiresAt = request.expiresAt,
         confirm = { verify ->
             access.ensureElevatedAccess(request, verify)
         },
         onDecision = onDecision,
-    ) { busy, onDeny, onAllow ->
+    ) { controls ->
         val state by repository.state.collectAsState()
         EnvironmentApprovalContent(
             request = request,
             state = state,
-            busy = busy,
-            onDeny = onDeny,
-            onAllow = onAllow,
+            busy = controls.busy,
+            onDeny = controls.onDeny,
+            onAllow = controls.onAllow,
         )
     }
 }

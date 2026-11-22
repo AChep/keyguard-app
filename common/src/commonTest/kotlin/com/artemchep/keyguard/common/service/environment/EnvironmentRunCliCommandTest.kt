@@ -52,6 +52,7 @@ class EnvironmentRunCliCommandTest {
         assertEquals("/project", operation.workingDirectory)
         assertEquals("keyguard", request.caller.processName)
         assertFalse(request.terminalSession)
+        assertFalse(request.requiresIdentity)
         fixture.cli.respondToApproval(request.id, true)
         val response = pending.await()
         assertEquals(SECRET, response.token())
@@ -225,6 +226,7 @@ class EnvironmentRunCliCommandTest {
         val handler = fixture.agent()
         val pending = async { handler.respond(run()) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
+        assertTrue(request.requiresIdentity)
         assertFalse(fixture.cli.confirmIdentity(request.id) { false })
         assertTrue(fixture.cli.confirmIdentity(request.id) { true })
         fixture.cli.respondToApproval(request.id, true)

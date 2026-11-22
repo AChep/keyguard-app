@@ -14,16 +14,18 @@ internal fun CliApprovalPrompt(
 ) {
     ApprovalPrompt(
         requestId = request.id,
+        requiresIdentity = request.requiresIdentity,
+        expiresAt = request.expiresAt,
         confirm = { verify ->
             service.confirmIdentity(request.id, verify)
         },
         onDecision = onDecision,
-    ) { busy, onDeny, onAllow ->
+    ) { controls ->
         CliApprovalContent(
             request = request,
-            busy = busy,
-            onDeny = onDeny,
-            onAllow = onAllow,
+            busy = controls.busy,
+            onDeny = controls.onDeny,
+            onAllow = controls.onAllow,
         )
     }
 }

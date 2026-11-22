@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.browser
 
+import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -48,6 +49,7 @@ import com.artemchep.keyguard.util.webauthn.parseWebAuthnPrfAssertionInputs
 import com.artemchep.keyguard.util.webauthn.requireWebAuthnPrfRegistrationInputs
 import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.currentCoroutineContext
@@ -63,9 +65,9 @@ import kotlinx.serialization.json.jsonObject
 /**
  * The passkey requests of one session, README section 5: `passkey_get` and
  * `passkey_create`. Serves them like the Windows passkey ceremony: waits for
- * an unlocked vault, keeps it unlocked meanwhile, lets the user pick an item
- * in a vault window, verifies the user unless the page discourages it, checks
- * the vault again, and signs.
+ * an unlocked vault, keeps it unlocked meanwhile, lets the user pick a passkey
+ * in a prompt, or the login that stores a new one in a vault window, verifies
+ * the user unless the page discourages it, checks the vault again, and signs.
  */
 @Suppress("TooManyFunctions", "LongParameterList") // One function per step of the requests, one dependency per concern.
 internal class BrowserPasskeyCeremony(
@@ -106,11 +108,14 @@ internal class BrowserPasskeyCeremony(
             val otherSiteRpId = findOtherSiteRpId(page, site, rpId)
             serve(page) { vault ->
                 val target = PasskeyTarget(rpId = rpId, allowed = options.allowed)
-                val pick = request.handle
-                    ?.let { handle -> picked(vault, handle, target) }
-                    ?: pickPasskey(vault, page, target)
+                val (pick, identityConfirmed) = request.handle
+                    ?.let { handle ->
+                        val pick = picked(vault, handle, target)
+                        usage.cipherId = pick.cipherId
+                        pick to approveGet(vault, page, site, pick, options.userVerification, otherSiteRpId)
+                    }
+                    ?: pickPasskey(vault, page, site, target, options.userVerification, otherSiteRpId)
                 usage.cipherId = pick.cipherId
-                val identityConfirmed = approveGet(vault, page, site, pick, options.userVerification, otherSiteRpId)
                 // The item as it is now: it may have changed while the user was asked.
                 vault.requireCurrent(page)
                 val (cipher, credential) = vault.answering(pick, target)
@@ -211,46 +216,78 @@ internal class BrowserPasskeyCeremony(
         return pick
     }
 
-    /** Lets the user of the [page] pick one of the passkeys that can answer the [target]. */
+    /**
+     * Lets the user of the [page] pick one of the passkeys that can answer
+     * the [target], the most recently used first, and approve it in one
+     * prompt, see [BrowserApprovals.approvePasskeyPick].
+     *
+     * @param otherSiteRpId The relying party, if it is of another site, see [BrowserRelease.otherSiteRpId].
+     * @return The pick, and whether the user's identity was confirmed for it.
+     */
+    @Suppress("LongParameterList") // The page, the request and its options.
     private suspend fun pickPasskey(
         vault: Vault,
         page: BrowserPage,
+        site: String,
         target: PasskeyTarget,
-    ): Pick {
-        val candidates = vault.dependencies.logins()
+        userVerification: String?,
+        otherSiteRpId: String?,
+    ): Pair<Pick, Boolean> {
+        val pairing = pairing()
+            ?: fail(BrowserError.UNPAIRED)
+        val found = vault.dependencies.logins()
             .availablePasskeys()
             .filter { (_, credential) -> credential.toWebAuthnCredential().canAnswer(target.rpId, target.allowed) }
         // The browser offers its own passkeys and devices.
-        if (candidates.isEmpty()) fail(BrowserError.NOT_SUPPORTED)
-        val pick = pick(page, target.rpId, create = false) { select ->
-            AppMode.PickPasskey(target) { cipher, credential ->
-                select(
-                    Pick(
-                        accountId = cipher.accountId,
-                        cipherId = cipher.id,
-                        credentialId = credential.credentialId,
-                        // The window asks for the master password of an item with re-prompt before the pick.
-                        identityConfirmed = cipher.reprompt,
-                    ),
-                )
-            }
+        if (found.isEmpty()) fail(BrowserError.NOT_SUPPORTED)
+        val lastUsed = vault.dependencies.lastUsed(found.mapTo(mutableSetOf()) { (cipher, _) -> cipher.id })
+        // Most recently used first. The sort is stable: the passkeys never
+        // used follow in the order of the vault.
+        val candidates = found.sortedByDescending { (cipher, _) -> lastUsed[cipher.id] }
+        val verify = vault.verifies(userVerification)
+        val accountNames = vault.dependencies.accountNames()
+        val session = session()
+        // A page may ask without the user: one prompt at a time.
+        if (!passkeys.acquire(session)) fail(BrowserError.BUSY)
+        val approval = try {
+            approvals.approvePasskeyPick(
+                key = vault.key,
+                session = session,
+                pairing = pairing,
+                verify = verify,
+            ) { approvalWindow ->
+                candidates.map { (cipher, credential) ->
+                    cipher.toRelease(
+                        page = page,
+                        site = site,
+                        username = credential.userName,
+                        accountName = accountNames[cipher.accountId],
+                        approvalWindow = approvalWindow,
+                        userVerification = verify,
+                    ).copy(otherSiteRpId = otherSiteRpId)
+                }
+            }.getOrElse { fail(it) }
+        } finally {
+            passkeys.release(session)
         }
-        // Before the pick approves anything.
-        vault.answering(pick, target)
-        return pick
+        val (cipher, credential) = candidates[approval.choice]
+        val pick = Pick(cipher.accountId, cipher.id, credential.credentialId)
+        // An approval that required the user's identity confirmed it, or a recent check did.
+        return pick to (cipher.reprompt || verify)
     }
 
     /**
-     * Approves signing in with the [pick]: a pick in the vault window
-     * approves it, a pick in the inline menu asks unless an approval
-     * covers it. Asks again, and requires the user's identity, for an item
-     * with master-password re-prompt or a page that doesn't discourage user
-     * verification, unless the window confirmed the user's identity.
+     * Approves signing in with the [pick] of the inline menu: asks unless
+     * an approval covers it. Asks again, and requires the user's identity,
+     * for an item with master-password re-prompt or a page that doesn't
+     * discourage user verification. For a page that wants user
+     * verification, a [recent identity check][BrowserApprovals.isIdentityCovered]
+     * stands in for the identity, never for re-prompt.
      *
      * @param otherSiteRpId The relying party, if it is of another site, see [BrowserRelease.otherSiteRpId].
      * @return Whether the approval confirmed the user's identity.
      */
-    @Suppress("LongParameterList", "ReturnCount") // Each way to approve answers on its own.
+    @Suppress("LongParameterList") // The page, the pick and the options of the request.
     private suspend fun approveGet(
         vault: Vault,
         page: BrowserPage,
@@ -263,8 +300,6 @@ internal class BrowserPasskeyCeremony(
             ?: fail(BrowserError.UNPAIRED)
         val (cipher, credential) = vault.passkey(pick)
             ?: fail(BrowserError.INVALID_REQUEST)
-        // The pick approved it, and verified the user; never remembered, as for re-prompt.
-        if (pick.fromWindow && pick.identityConfirmed) return true
         val verify = vault.verifies(userVerification)
         val grant = BrowserGrant(
             pairingId = pairing.id,
@@ -272,11 +307,6 @@ internal class BrowserPasskeyCeremony(
             accountId = cipher.accountId,
             cipherId = cipher.id,
         )
-        if (pick.fromWindow && !cipher.reprompt && !verify) {
-            // The pick approved it, as approving a prompt does.
-            approvals.rememberRelease(vault.key, vault.grantsEpoch, grant)
-            return false
-        }
         val accountName = vault.dependencies.accountNames()[cipher.accountId]
         approvals.approveRelease(
             key = vault.key,
@@ -296,12 +326,15 @@ internal class BrowserPasskeyCeremony(
             ).copy(otherSiteRpId = otherSiteRpId)
             BrowserOperation.PasskeyGet(release)
         }.onLeft(::fail)
-        // An approval that required the user's identity confirmed it.
+        // An approval that required the user's identity confirmed it, or a recent check did.
         return cipher.reprompt || verify
     }
 
     /**
      * Asks the user to confirm their identity to save the passkey in the [pick].
+     * A [recent identity check][BrowserApprovals.isIdentityCovered]
+     * stands in for the identity, except for an item with master-password
+     * re-prompt; the prompt asks anyway, as a save is never remembered.
      *
      * @param otherSiteRpId The relying party, if it is of another site, see [BrowserRelease.otherSiteRpId].
      */
@@ -324,18 +357,23 @@ internal class BrowserPasskeyCeremony(
             approvalWindow = Duration.ZERO,
             userVerification = true,
         ).copy(otherSiteRpId = otherSiteRpId)
+        val pairing = pairing()
+        val verified = pairing != null &&
+            approvals.isIdentityCovered(vault.key, pairing.id, cipher.reprompt, verify = true)
         val approval = approvals.ask(
             session = session(),
-            pairingName = pairing()?.name,
+            pairingName = pairing?.name,
             operation = BrowserOperation.PasskeyCreate(release),
-            requiresIdentity = true,
+            requiresIdentity = !verified,
         )
         if (approval is BrowserApproval.Refused) fail(approval.error)
+        if (!verified && pairing != null) approvals.rememberIdentityCheck(vault.key, pairing.id, vault.grantsEpoch)
     }
 
     /**
      * Opens the vault window of a request of the [page] for [rpId], in the
-     * [mode] built around its selection callback, and waits for the user's pick.
+     * [mode] built around its selection callback, and waits for the user's
+     * pick. One passkey prompt or window per session: `busy` while it has one.
      */
     private suspend fun pick(
         page: BrowserPage,
@@ -357,15 +395,17 @@ internal class BrowserPasskeyCeremony(
             onAnotherDevice = { answer.complete(PickAnswer.AnotherDevice) },
             onDismiss = { answer.complete(PickAnswer.Dismissed) },
         )
-        if (!passkeys.open(picker)) fail(BrowserError.BUSY)
+        if (!passkeys.acquire(picker.session)) fail(BrowserError.BUSY)
+        passkeys.open(picker)
         val result = try {
             withTimeoutOrNull(timeout) { answer.await() }
         } finally {
             // Ending the session closes the window as well.
             passkeys.close(picker.id)
+            passkeys.release(picker.session)
         }
         return when (result) {
-            is PickAnswer.Picked -> result.pick.copy(fromWindow = true)
+            is PickAnswer.Picked -> result.pick
             PickAnswer.AnotherDevice -> fail(BrowserError.NOT_SUPPORTED)
             PickAnswer.Dismissed -> fail(BrowserError.USER_DENIED)
             null -> fail(BrowserError.APPROVAL_TIMEOUT)
@@ -399,6 +439,9 @@ internal class BrowserPasskeyCeremony(
             freshUnlock = locked && key.origin == MasterSession.Key.Authenticated,
             grantsEpoch = approvals.grantsEpoch(),
         )
+        if (vault.freshUnlock) {
+            pairing()?.let { approvals.rememberIdentityCheck(key, it.id, vault.grantsEpoch) }
+        }
         return try {
             passkeys.vaultSessionLocker.withSessionLease(key) { block(vault) }
         } catch (_: CancellationException) {
@@ -513,10 +556,6 @@ internal class BrowserPasskeyCeremony(
         val accountId: String,
         val cipherId: String,
         val credentialId: String? = null,
-        /** Picked in the vault window, which approves it; not in the inline menu. */
-        val fromWindow: Boolean = false,
-        /** The vault window confirmed the user's identity before the pick: an item with master-password re-prompt. */
-        val identityConfirmed: Boolean = false,
     ) {
         fun matches(cipher: DSecret): Boolean = cipher.accountId == accountId && cipher.id == cipherId
     }
@@ -528,6 +567,16 @@ internal class BrowserPasskeyCeremony(
 
         data object Dismissed : PickAnswer
     }
+
+    /**
+     * When each of the [cipherIds] was last used on this device, by a fill
+     * or a passkey sign-in; none if the history can't be read.
+     */
+    private suspend fun BrowserExtensionSessionDependencies.lastUsed(cipherIds: Set<String>): Map<String, Instant> =
+        getCipherLastUsed(cipherIds)
+            .attempt()
+            .bind()
+            .getOrElse { emptyMap() }
 
     /** The `mediation` of a `passkey_get` in version 1. */
     private enum class Mediation(val wireName: String) {

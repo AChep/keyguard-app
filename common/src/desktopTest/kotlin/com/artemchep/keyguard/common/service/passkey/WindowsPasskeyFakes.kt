@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.session.testVaultSessionLocker
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -31,6 +32,7 @@ import java.security.KeyFactory
 import java.security.Signature
 import java.security.spec.X509EncodedKeySpec
 import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -215,6 +217,12 @@ internal class FakeVault(vararg ciphers: DSecret) {
     val added = mutableListOf<AddCredentialCipherRequest>()
     val used = mutableListOf<AddCipherUsedPasskeyHistoryRequest>()
 
+    /** When each item was last used, by item id. */
+    val lastUsed = MutableStateFlow(emptyMap<String, Instant>())
+
+    /** The history of last uses cannot be read. */
+    var lastUsedFails = false
+
     val access = WindowsPasskeyVaultAccess {
         WindowsPasskeyVault(
             getCiphers = object : GetCiphers {
@@ -240,6 +248,12 @@ internal class FakeVault(vararg ciphers: DSecret) {
             recordUsage = object : AddCipherUsedPasskeyHistory {
                 override fun invoke(request: AddCipherUsedPasskeyHistoryRequest): IO<Unit> = {
                     used += request
+                }
+            },
+            getCipherLastUsed = object : GetCipherLastUsed {
+                override fun invoke(ids: Set<String>): IO<Map<String, Instant>> = {
+                    check(!lastUsedFails) { "The history cannot be read" }
+                    lastUsed.value.filterKeys { it in ids }
                 }
             },
         )

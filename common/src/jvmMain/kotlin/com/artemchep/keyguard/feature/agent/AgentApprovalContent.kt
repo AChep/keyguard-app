@@ -174,6 +174,10 @@ fun AgentApprovalContent(
  * button counts down to [expiresAt]. Both stay disabled until the
  * [AgentApprovalInputGuard] arms them; the first time it does, the
  * confirm button takes focus.
+ *
+ * @param nextStep `true` for the buttons of a later step of the prompt,
+ *   which the user reached with its armed buttons: they keep the guard
+ *   as it is, and leave the focus to the step's own content.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -184,10 +188,11 @@ fun AgentApprovalButtons(
     confirmEnabled: Boolean = true,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
+    nextStep: Boolean = false,
 ) {
     // Restarts the wait when the buttons appear, for example after an unlock.
-    val armed = rememberAgentApprovalArmed()
-    val focusRequester = rememberFirstArmedFocusRequester(armed)
+    val armed = rememberAgentApprovalArmed(restart = !nextStep)
+    val focusRequester = rememberFirstArmedFocusRequester(armed && !nextStep)
 
     Row(
         modifier = Modifier

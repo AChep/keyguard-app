@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.environment.EnvironmentApprovalRequest
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalRequest
+import com.artemchep.keyguard.common.service.passkey.PasskeyApprovalRequest
+import com.artemchep.keyguard.common.service.passkey.PasskeyApprovals
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -44,6 +46,11 @@ sealed interface AgentPrompt {
         override val id: String get() = request.id
         override val expiresAt: Instant get() = request.expiresAt
     }
+
+    data class Passkey(val request: PasskeyApprovalRequest) : AgentPrompt {
+        override val id: String get() = request.id
+        override val expiresAt: Instant get() = request.expiresAt
+    }
 }
 
 /**
@@ -57,24 +64,32 @@ class AgentApprovalCenter(
     private val environments: EnvironmentAccess,
     private val cli: CliService,
     private val browser: BrowserExtensionService,
+    private val passkeys: PasskeyApprovals,
     scope: CoroutineScope,
 ) {
     /** The pending prompts, oldest first. */
     val pending: StateFlow<List<AgentPrompt>> = combine(
-        ssh.pending,
-        gpg.pending,
-        environments.approvals,
+        // The typed combine takes at most five flows.
+        combine(ssh.pending, gpg.pending, environments.approvals) { sshPrompts, gpgPrompts, environmentPrompts ->
+            sshPrompts.map(AgentPrompt::Ssh) +
+                gpgPrompts.map(AgentPrompt::Gpg) +
+                environmentPrompts.map(AgentPrompt::Environment)
+        },
         cli.approvals,
         browser.approvals,
-    ) { sshPrompts, gpgPrompts, environmentPrompts, cliPrompts, browserPrompts ->
-        val prompts = sshPrompts.map(AgentPrompt::Ssh) +
-            gpgPrompts.map(AgentPrompt::Gpg) +
-            environmentPrompts.map(AgentPrompt::Environment) +
+        passkeys.approvals,
+    ) { agentPrompts, cliPrompts, browserPrompts, passkeyPrompts ->
+        val prompts = agentPrompts +
             cliPrompts.map(AgentPrompt::Cli) +
-            browserPrompts.map(AgentPrompt::Browser)
+            browserPrompts.map(AgentPrompt::Browser) +
+            passkeyPrompts.map(AgentPrompt::Passkey)
         // The prompt that expires first is shown first.
         prompts.sortedBy { it.expiresAt }
     }.stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    /** True while the operating system verifies the user: the approval window stays off screen. */
+    val suspended: StateFlow<Boolean> = passkeys.verifying
+        .stateIn(scope, SharingStarted.Eagerly, false)
 
     /** Answers the prompt [id] of whichever agent owns it; `false` if it is no longer pending. */
     fun respond(id: String, approved: Boolean): Boolean =
@@ -82,5 +97,6 @@ class AgentApprovalCenter(
             gpg.respond(id, approved) ||
             environments.respondToApproval(id, approved) ||
             cli.respondToApproval(id, approved) ||
-            browser.respondToApproval(id, approved)
+            browser.respondToApproval(id, approved) ||
+            passkeys.respondToApproval(id, approved)
 }

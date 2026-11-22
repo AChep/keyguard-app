@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.UrlBlockScope
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import java.security.KeyFactory
@@ -20,12 +21,17 @@ import java.security.spec.X509EncodedKeySpec
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlin.time.TestTimeSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -116,6 +122,7 @@ class BrowserPasskeyTest {
         assertEquals("Login a", operation.release.name)
         assertEquals("alice", operation.release.username)
         assertEquals(false, operation.release.userVerification)
+        assertEquals(false, prompt.requiresIdentity)
         fixture.service.respondToApproval(prompt.id, approved = true)
         val credential = checkNotNull(client.receive()).credential()
         assertEquals("public-key", credential.string("type"))
@@ -174,17 +181,23 @@ class BrowserPasskeyTest {
         val client = paired(fixture)
 
         client.send(passkeyGet(10))
-        val picker = fixture.picker()
-        assertEquals("example.com", picker.rpId)
-        // The pick approves the request: the window names who asks.
-        assertEquals(ORIGIN, picker.origin)
-        assertEquals("Google Chrome", picker.pairingName)
-        assertEquals(false, picker.create)
-        val mode = assertIs<AppMode.PickPasskey>(picker.mode)
-        assertEquals("example.com", mode.target.rpId)
-        mode.onComplete(fixture.cipher("b"), bob.credential)
+        val prompt = fixture.pickPrompt()
+        assertEquals("Google Chrome", prompt.pairingName)
+        // Neither was used: in the order of the vault.
+        val choices = prompt.choices()
+        assertEquals(listOf("a", "b"), choices.map { it.release.cipherId })
+        val release = choices[1].release
+        assertEquals(ORIGIN, release.origin)
+        assertEquals("https://example.com", release.site)
+        assertNull(release.otherSiteRpId)
+        assertEquals("Login b", release.name)
+        assertEquals("bob", release.username)
+        assertEquals(false, release.userVerification)
+        assertTrue(choices.none { it.requiresIdentity })
+        assertEquals(false, prompt.requiresIdentity)
+        assertTrue(fixture.service.selectPasskey(prompt.id, 1))
+        fixture.service.respondToApproval(prompt.id, approved = true)
         assertTrue(bob.signed(checkNotNull(client.receive()).credential()))
-        // The pick approved it: no prompt.
         assertTrue(fixture.service.approvals.value.isEmpty())
         assertTrue(fixture.passkeys.passkeyPickers.value.isEmpty())
 
@@ -194,24 +207,60 @@ class BrowserPasskeyTest {
     }
 
     @Test
+    fun `a pick asks despite an approval of the only passkey`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val passkey = fixture.passkeyLogin("a")
+        val client = paired(fixture)
+        fixture.approve(client, passkeyGet(10, handle = client.passkeyHandle(11)))
+
+        // The pick is the user's gesture of the sign-in.
+        client.send(passkeyGet(12))
+        val prompt = fixture.pickPrompt()
+        assertEquals(listOf("a"), prompt.choices().map { it.release.cipherId })
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertTrue(passkey.signed(checkNotNull(client.receive()).credential()))
+    }
+
+    @Test
+    fun `a pick lists the most recently used passkey first`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.passkeyLogin("a")
+        val bob = fixture.passkeyLogin("b", userName = "bob")
+        fixture.passkeyLogin("c", userName = "carol")
+        val client = paired(fixture)
+        fixture.approve(client, passkeyGet(10, handle = client.passkeyHandle(11, userName = "bob")))
+
+        client.send(passkeyGet(12))
+        var prompt = fixture.pickPrompt()
+        assertEquals(listOf("b", "a", "c"), prompt.choices().map { it.release.cipherId })
+        // The first one is selected.
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertTrue(bob.signed(checkNotNull(client.receive()).credential()))
+
+        // Without the history, in the order of the vault.
+        fixture.lastUsedFails = true
+        client.send(passkeyGet(13))
+        prompt = fixture.pickPrompt()
+        assertEquals(listOf("a", "b", "c"), prompt.choices().map { it.release.cipherId })
+        fixture.service.respondToApproval(prompt.id, approved = false)
+        assertEquals("user_denied", client.receive()?.string("error"))
+    }
+
+    @Test
     fun `get offers only the passkeys that allowCredentials names`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
-        val alice = fixture.passkeyLogin("a")
+        fixture.passkeyLogin("a")
         val bob = fixture.passkeyLogin("b", userName = "bob", discoverable = false)
         val client = paired(fixture)
         val allowBob = getOptions(allow = listOf(bob.wireId()))
 
-        client.send(passkeyGet(10, options = allowBob))
-        val mode = assertIs<AppMode.PickPasskey>(fixture.picker().mode)
-        assertEquals(true, mode.target.allowed.isAllowCredentialsSupplied)
-        // A passkey the page doesn't allow.
-        mode.onComplete(fixture.cipher("a"), alice.credential)
-        assertEquals("not_allowed", client.receive()?.string("error"))
-        assertTrue(fixture.passkeyHistory.isEmpty())
-
-        // The page names a passkey that isn't discoverable.
+        // The page names a passkey that isn't discoverable; the others aren't offered.
         client.send(passkeyGet(11, options = allowBob))
-        assertIs<AppMode.PickPasskey>(fixture.picker().mode).onComplete(fixture.cipher("b"), bob.credential)
+        val prompt = fixture.pickPrompt()
+        assertEquals(listOf("b"), prompt.choices().map { it.release.cipherId })
+        assertFalse(fixture.service.selectPasskey(prompt.id, 1))
+        assertFalse(fixture.service.selectPasskey(prompt.id, -1))
+        fixture.service.respondToApproval(prompt.id, approved = true)
         assertTrue(bob.signed(checkNotNull(client.receive()).credential()))
 
         val handle = client.passkeyHandle(12)
@@ -229,19 +278,31 @@ class BrowserPasskeyTest {
         assertEquals("not_supported", client.call(passkeyGet(10)).string("error"))
 
         fixture.passkeyLogin("a")
+        fixture.login("b")
         client.send(passkeyGet(11))
-        fixture.picker().onAnotherDevice()
+        var prompt = fixture.pickPrompt()
+        assertTrue(fixture.service.useAnotherDevice(prompt.id))
+        fixture.service.respondToApproval(prompt.id, approved = false)
         assertEquals("not_supported", client.receive()?.string("error"))
         client.send(passkeyGet(12))
+        prompt = fixture.pickPrompt()
+        // One passkey prompt or window per session.
+        assertEquals("busy", client.call(passkeyGet(13)).string("error"))
+        assertEquals("busy", client.call(passkeyCreate(14)).string("error"))
+        fixture.service.respondToApproval(prompt.id, approved = false)
+        assertEquals("user_denied", client.receive()?.string("error"))
+        assertFalse(fixture.service.useAnotherDevice(prompt.id))
+
+        client.send(passkeyCreate(15))
         val picker = fixture.picker()
-        // One window per session.
-        assertEquals("busy", client.call(passkeyCreate(13)).string("error"))
+        assertEquals("busy", client.call(passkeyGet(16)).string("error"))
         picker.onDismiss()
         assertEquals("user_denied", client.receive()?.string("error"))
 
         // A page that matches a blocked URI.
         fixture.urlBlocks.value = listOf(block("https://example.com"))
-        assertEquals("not_supported", client.call(passkeyGet(14)).string("error"))
+        assertEquals("not_supported", client.call(passkeyGet(17)).string("error"))
+        assertTrue(fixture.service.approvals.value.isEmpty())
         assertTrue(fixture.passkeys.passkeyPickers.value.isEmpty())
     }
 
@@ -267,13 +328,15 @@ class BrowserPasskeyTest {
     }
 
     @Test
-    fun `a picker that the user leaves times out`() = browserTest { scope ->
+    fun `a pick that the user leaves times out`() = browserTest { scope ->
         val fixture = BrowserFixture(scope, approvalTimeout = 300.milliseconds)
         fixture.passkeyLogin("a")
         val client = paired(fixture)
 
         assertEquals("approval_timeout", client.call(passkeyGet(10)).string("error"))
-        assertTrue(fixture.passkeys.passkeyPickers.value.isEmpty())
+        assertTrue(fixture.service.approvals.value.isEmpty())
+        // The session may ask again.
+        assertEquals("approval_timeout", client.call(passkeyGet(11)).string("error"))
     }
 
     @Test
@@ -288,6 +351,7 @@ class BrowserPasskeyTest {
         client.send(passkeyGet(12, handle = handle, options = required))
         var prompt = fixture.prompt()
         assertEquals(true, assertIs<BrowserOperation.PasskeyGet>(prompt.operation).release.userVerification)
+        assertTrue(prompt.requiresIdentity)
         // Approving without confirming the identity denies it.
         assertEquals(false, fixture.service.confirmIdentity(prompt.id) { false })
         fixture.service.respondToApproval(prompt.id, approved = true)
@@ -308,25 +372,35 @@ class BrowserPasskeyTest {
 
     @Test
     fun `preferred user verification asks for the identity`() = browserTest { scope ->
-        val fixture = BrowserFixture(scope)
+        val time = TestTimeSource()
+        val fixture = BrowserFixture(scope, timeSource = time)
         val passkey = fixture.passkeyLogin("a")
         fixture.login("b")
         val client = paired(fixture)
         // Without `userVerification`, WebAuthn prefers it.
         val preferred = getOptions(userVerification = null)
 
-        // A pick in the window approves the item, but doesn't verify the user.
+        // The pick asks for the identity in the same prompt.
+        client.send(passkeyGet(9, options = preferred))
+        var prompt = fixture.pickPrompt()
+        val choice = prompt.choices().single()
+        assertEquals(true, choice.release.userVerification)
+        assertTrue(choice.requiresIdentity)
+        assertTrue(prompt.requiresIdentity)
+        // Approving without confirming the identity denies it.
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("user_denied", client.receive()?.string("error"))
+
         client.send(passkeyGet(10, options = preferred))
-        assertIs<AppMode.PickPasskey>(fixture.picker().mode).onComplete(fixture.cipher("a"), passkey.credential)
-        var prompt = fixture.prompt()
-        assertEquals(true, assertIs<BrowserOperation.PasskeyGet>(prompt.operation).release.userVerification)
+        prompt = fixture.pickPrompt()
         assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
         fixture.service.respondToApproval(prompt.id, approved = true)
         val verified = checkNotNull(client.receive()).credential()
         assertTrue(passkey.signed(verified))
         assertEquals(FLAG_UP or FLAG_UV, verified.flags() and (FLAG_UP or FLAG_UV))
 
-        // The approval of the item doesn't cover the identity.
+        // Once the identity check expires, the approval of the item doesn't cover the identity.
+        time += BROWSER_IDENTITY_CHECK_MAX_WINDOW
         val handle = client.passkeyHandle(11)
         client.send(passkeyGet(12, handle = handle, options = getOptions(userVerification = "preferred")))
         prompt = fixture.prompt()
@@ -346,14 +420,17 @@ class BrowserPasskeyTest {
     }
 
     @Test
-    fun `a pick in the window of an item with re-prompt asks nothing more`() = browserTest { scope ->
+    fun `a pick of an item with re-prompt asks for the identity in the same prompt`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         val passkey = fixture.passkeyLogin("a", reprompt = true)
         val client = paired(fixture)
 
-        // The window asked for the master password before the pick.
         client.send(passkeyGet(10, options = getOptions(userVerification = "required")))
-        assertIs<AppMode.PickPasskey>(fixture.picker().mode).onComplete(fixture.cipher("a"), passkey.credential)
+        val pick = fixture.pickPrompt()
+        assertEquals(true, pick.choices().single().release.reprompt)
+        assertTrue(pick.requiresIdentity)
+        assertTrue(fixture.service.confirmIdentity(pick.id) { true })
+        fixture.service.respondToApproval(pick.id, approved = true)
         val credential = checkNotNull(client.receive()).credential()
         assertTrue(passkey.signed(credential))
         assertEquals(FLAG_UP or FLAG_UV, credential.flags() and (FLAG_UP or FLAG_UV))
@@ -396,6 +473,10 @@ class BrowserPasskeyTest {
         fixture.service.respondToApproval(prompt.id, approved = true)
         val credential = client.receiveResponse(12).credential()
         assertEquals(FLAG_UP or FLAG_UV, credential.flags() and (FLAG_UP or FLAG_UV))
+        // The unlock started an identity check: the approval covers the next request.
+        val covered = client.call(passkeyGet(20, handle = handle, options = required)).credential()
+        assertEquals(FLAG_UP or FLAG_UV, covered.flags() and (FLAG_UP or FLAG_UV))
+        assertTrue(fixture.service.approvals.value.isEmpty())
 
         // A page that discourages user verification never learns of it.
         fixture.lock()
@@ -408,6 +489,182 @@ class BrowserPasskeyTest {
         fixture.service.respondToApproval(again.id, approved = true)
         val discouraged = client.receiveResponse(13).credential()
         assertEquals(FLAG_UP, discouraged.flags() and (FLAG_UP or FLAG_UV))
+    }
+
+    @Test
+    fun `a recent identity check stands in for user verification`() = browserTest { scope ->
+        val time = TestTimeSource()
+        val fixture = BrowserFixture(scope, timeSource = time)
+        val alice = fixture.passkeyLogin("a")
+        val bob = fixture.passkeyLogin("b", userName = "bob")
+        fixture.login("c")
+        val dave = fixture.passkeyLogin("d", userName = "dave")
+        val client = paired(fixture)
+        val aliceHandle = client.passkeyHandle(10)
+        val bobHandle = client.passkeyHandle(11, userName = "bob")
+        val required = getOptions(userVerification = "required")
+        fixture.approve(client, passkeyGet(12, handle = aliceHandle))
+
+        // No check yet: the prompt asks for the identity despite the approval, which starts a check.
+        val verified = fixture.verify(client, passkeyGet(13, handle = aliceHandle, options = required))
+        assertEquals(FLAG_UP or FLAG_UV, verified.flags() and (FLAG_UP or FLAG_UV))
+
+        // The check and an approval of the item: no prompt, and the user is verified.
+        time += 20.seconds
+        val covered = client.call(passkeyGet(14, handle = aliceHandle, options = required)).credential()
+        assertTrue(alice.signed(covered))
+        assertEquals(FLAG_UP or FLAG_UV, covered.flags() and (FLAG_UP or FLAG_UV))
+        assertTrue(fixture.service.approvals.value.isEmpty())
+
+        // The check without an approval of the item: the prompt asks only for the approval.
+        client.send(passkeyGet(15, handle = bobHandle, options = required))
+        var prompt = fixture.prompt()
+        assertEquals(true, assertIs<BrowserOperation.PasskeyGet>(prompt.operation).release.userVerification)
+        assertEquals(false, prompt.requiresIdentity)
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        val approved = checkNotNull(client.receive()).credential()
+        assertTrue(bob.signed(approved))
+        assertEquals(FLAG_UP or FLAG_UV, approved.flags() and (FLAG_UP or FLAG_UV))
+
+        // A pick asks, but the check verifies the user.
+        time += 9.seconds
+        client.send(passkeyGet(16, options = required))
+        prompt = fixture.pickPrompt()
+        val choices = prompt.choices()
+        assertTrue(choices.none { it.requiresIdentity })
+        assertTrue(fixture.service.selectPasskey(prompt.id, choices.indexOfFirst { it.release.cipherId == "d" }))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        val picked = checkNotNull(client.receive()).credential()
+        assertTrue(dave.signed(picked))
+        assertEquals(FLAG_UP or FLAG_UV, picked.flags() and (FLAG_UP or FLAG_UV))
+        assertTrue(fixture.service.approvals.value.isEmpty())
+
+        // Saving a passkey prompts, but doesn't ask for the identity.
+        client.send(passkeyCreate(17, options = createOptions(userVerification = "required")))
+        assertIs<AppMode.SavePasskey>(fixture.picker().mode).onComplete(fixture.cipher("c"))
+        prompt = fixture.prompt()
+        assertEquals(false, prompt.requiresIdentity)
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        val created = checkNotNull(client.receive()).credential()
+        assertEquals(FLAG_UP or FLAG_UV, created.flags() and (FLAG_UP or FLAG_UV))
+
+        // Approving without the identity started no check: it expires 30 seconds after the first one.
+        time += 2.seconds
+        client.send(passkeyGet(18, handle = aliceHandle, options = required))
+        prompt = fixture.prompt()
+        assertTrue(prompt.requiresIdentity)
+        fixture.service.respondToApproval(prompt.id, approved = false)
+        assertEquals("user_denied", client.receive()?.string("error"))
+    }
+
+    @Test
+    fun `an identity check lasts for a shorter approval window`() = browserTest { scope ->
+        val time = TestTimeSource()
+        val fixture = BrowserFixture(scope, approvalWindow = 10.seconds, timeSource = time)
+        fixture.passkeyLogin("a")
+        val client = paired(fixture)
+        val handle = client.passkeyHandle(10)
+        val required = getOptions(userVerification = "required")
+        fixture.verify(client, passkeyGet(11, handle = handle, options = required))
+
+        time += 9.seconds
+        val covered = client.call(passkeyGet(12, handle = handle, options = required)).credential()
+        assertEquals(FLAG_UP or FLAG_UV, covered.flags() and (FLAG_UP or FLAG_UV))
+
+        time += 2.seconds
+        client.send(passkeyGet(13, handle = handle, options = required))
+        assertTrue(fixture.prompt().requiresIdentity)
+    }
+
+    @Test
+    fun `an identity check lasts at most 30 seconds, also for never ask`() = browserTest { scope ->
+        for (approvalWindow in listOf(1.hours, AGENT_APPROVAL_WINDOW_NEVER_ASK)) {
+            val time = TestTimeSource()
+            val fixture = BrowserFixture(scope, approvalWindow = approvalWindow, timeSource = time)
+            fixture.passkeyLogin("a")
+            val client = paired(fixture)
+            val handle = client.passkeyHandle(10)
+            val required = getOptions(userVerification = "required")
+            // "Never ask" covers the item, but not the identity.
+            fixture.verify(client, passkeyGet(11, handle = handle, options = required))
+
+            time += BROWSER_IDENTITY_CHECK_MAX_WINDOW - 1.seconds
+            val covered = client.call(passkeyGet(12, handle = handle, options = required)).credential()
+            assertEquals(FLAG_UP or FLAG_UV, covered.flags() and (FLAG_UP or FLAG_UV), "$approvalWindow")
+
+            time += 2.seconds
+            client.send(passkeyGet(13, handle = handle, options = required))
+            val prompt = fixture.prompt()
+            assertTrue(prompt.requiresIdentity, "$approvalWindow")
+            fixture.service.respondToApproval(prompt.id, approved = false)
+            assertEquals("user_denied", client.receive()?.string("error"))
+            client.pipe.client.close()
+        }
+    }
+
+    @Test
+    fun `an approval window of zero remembers no identity check`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope, approvalWindow = Duration.ZERO)
+        fixture.passkeyLogin("a")
+        val client = paired(fixture)
+        val handle = client.passkeyHandle(10)
+        val required = getOptions(userVerification = "required")
+
+        fixture.verify(client, passkeyGet(11, handle = handle, options = required))
+        val again = fixture.verify(client, passkeyGet(12, handle = handle, options = required))
+        assertEquals(FLAG_UP or FLAG_UV, again.flags() and (FLAG_UP or FLAG_UV))
+    }
+
+    @Test
+    fun `locking the vault or turning the integration off ends the identity check`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.passkeyLogin("a")
+        fixture.passkeyLogin("b", userName = "bob")
+        val original = paired(fixture)
+        val required = getOptions(userVerification = "required")
+        fixture.verify(original, passkeyGet(10, handle = original.passkeyHandle(11), options = required))
+
+        // Another vault session: the prompt of an item without an approval asks for the identity.
+        fixture.lock()
+        fixture.unlock()
+        val bobHandle = original.passkeyHandle(13, userName = "bob")
+        fixture.verify(original, passkeyGet(12, handle = bobHandle, options = required))
+
+        // The same pairing, after the integration was off.
+        fixture.service.setEnabled(false)
+        fixture.service.setEnabled(true)
+        val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
+        assertEquals(true, client.hello().bool("paired"))
+        fixture.verify(client, passkeyGet(14, handle = client.passkeyHandle(15), options = required))
+    }
+
+    @Test
+    fun `an identity check never covers an item with re-prompt`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val alice = fixture.passkeyLogin("a", reprompt = true)
+        val bob = fixture.passkeyLogin("b", userName = "bob")
+        val client = paired(fixture)
+        val aliceHandle = client.passkeyHandle(10)
+        val bobHandle = client.passkeyHandle(11, userName = "bob")
+        val required = getOptions(userVerification = "required")
+
+        // The master password that the pick asks for starts a check.
+        client.send(passkeyGet(12, options = required))
+        val pick = fixture.pickPrompt()
+        assertEquals("a", pick.choices().first().release.cipherId)
+        assertTrue(fixture.service.confirmIdentity(pick.id) { true })
+        fixture.service.respondToApproval(pick.id, approved = true)
+        assertTrue(alice.signed(checkNotNull(client.receive()).credential()))
+        client.send(passkeyGet(13, handle = bobHandle, options = required))
+        val prompt = fixture.prompt()
+        assertEquals(false, prompt.requiresIdentity)
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertTrue(bob.signed(checkNotNull(client.receive()).credential()))
+
+        // The item with re-prompt asks for the identity, whatever the page wants.
+        val verified = fixture.verify(client, passkeyGet(14, handle = aliceHandle, options = required))
+        assertEquals(FLAG_UP or FLAG_UV, verified.flags() and (FLAG_UP or FLAG_UV))
+        fixture.verify(client, passkeyGet(15, handle = aliceHandle))
     }
 
     @Test
@@ -572,6 +829,7 @@ class BrowserPasskeyTest {
         assertEquals("Login a", operation.release.name)
         assertEquals("bob", operation.release.username)
         assertEquals(true, operation.release.userVerification)
+        assertTrue(prompt.requiresIdentity)
         assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
         fixture.service.respondToApproval(prompt.id, approved = true)
         val credential = checkNotNull(client.receive()).credential()
@@ -630,16 +888,16 @@ class BrowserPasskeyTest {
     }
 
     @Test
-    fun `ending the session closes the picker and the prompt`() = browserTest { scope ->
+    fun `ending the session closes the prompts`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         fixture.passkeyLogin("a")
         val client = paired(fixture)
         client.send(passkeyGet(10))
-        fixture.picker()
+        fixture.pickPrompt()
 
         client.pipe.client.close()
         withTimeout(TIMEOUT) {
-            fixture.passkeys.passkeyPickers.first { it.isEmpty() }
+            fixture.service.approvals.first { it.isEmpty() }
         }
         val log = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET).single()
         assertEquals(CliAgentUsageHistoryResponseType.CANCELLED, log.response)
@@ -660,10 +918,10 @@ class BrowserPasskeyTest {
         val client = paired(fixture)
 
         client.send(passkeyGet(10))
-        fixture.picker()
+        fixture.pickPrompt()
         fixture.lock()
         assertEquals("vault_locked", client.receiveResponse(10).string("error"))
-        assertTrue(fixture.passkeys.passkeyPickers.value.isEmpty())
+        assertTrue(fixture.service.approvals.value.isEmpty())
     }
 
     @Test
@@ -678,7 +936,7 @@ class BrowserPasskeyTest {
     @Test
     fun `a page blocked while the user is asked gets not_supported`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
-        val passkey = fixture.passkeyLogin("a")
+        fixture.passkeyLogin("a")
         fixture.login("b")
         val client = paired(fixture)
         val handle = client.passkeyHandle(10)
@@ -691,12 +949,12 @@ class BrowserPasskeyTest {
         fixture.service.respondToApproval(prompt.id, approved = true)
         assertEquals("not_supported", client.receive()?.string("error"))
 
-        // A pick in the window.
+        // The prompt of a pick.
         fixture.urlBlocks.value = emptyList()
         client.send(passkeyGet(12))
-        val pick = assertIs<AppMode.PickPasskey>(fixture.picker().mode)
+        prompt = fixture.pickPrompt()
         fixture.urlBlocks.value = blocked
-        pick.onComplete(fixture.cipher("a"), passkey.credential)
+        fixture.service.respondToApproval(prompt.id, approved = true)
         assertEquals("not_supported", client.receive()?.string("error"))
         assertTrue(fixture.passkeyHistory.isEmpty())
 
@@ -746,6 +1004,16 @@ class BrowserPasskeyTest {
         fixture.service.respondToApproval(prompt.id, approved = true)
         assertTrue(passkey.signed(checkNotNull(client.receive()).credential()))
         assertEquals(listOf("a"), fixture.passkeyHistory.map { it.cipherId })
+
+        // The prompt of a pick, which didn't ask for the identity.
+        fixture.ciphers.value = listOf(login)
+        client.send(passkeyGet(13))
+        prompt = fixture.pickPrompt()
+        assertEquals(false, prompt.requiresIdentity)
+        fixture.ciphers.value = listOf(login.copy(reprompt = true))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("not_allowed", client.receive()?.string("error"))
+        assertEquals(listOf("a"), fixture.passkeyHistory.map { it.cipherId })
     }
 
     @Test
@@ -778,6 +1046,73 @@ class BrowserPasskeyTest {
     }
 
     @Test
+    fun `a pick binds the identity to the selected passkey`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.passkeyLogin("a")
+        fixture.passkeyLogin("b", userName = "bob", reprompt = true)
+        fixture.passkeyLogin("c", userName = "carol", reprompt = true)
+        val client = paired(fixture)
+
+        // Selecting an item with re-prompt requires the identity.
+        client.send(passkeyGet(10))
+        var prompt = fixture.pickPrompt()
+        assertEquals(listOf(false, true, true), prompt.choices().map { it.requiresIdentity })
+        assertTrue(fixture.service.confirmIdentity(prompt.id) { error("Not required") })
+        assertTrue(fixture.service.selectPasskey(prompt.id, 1))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("user_denied", client.receive()?.string("error"))
+
+        // The identity confirmed for one passkey doesn't hold for another one, nor once it is selected again.
+        client.send(passkeyGet(11))
+        prompt = fixture.pickPrompt()
+        assertTrue(fixture.service.selectPasskey(prompt.id, 1))
+        assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
+        assertTrue(fixture.service.selectPasskey(prompt.id, 2))
+        assertTrue(fixture.service.selectPasskey(prompt.id, 1))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("user_denied", client.receive()?.string("error"))
+
+        // A selection that changes while the user confirms their identity.
+        client.send(passkeyGet(12))
+        prompt = fixture.pickPrompt()
+        assertTrue(fixture.service.selectPasskey(prompt.id, 1))
+        val id = prompt.id
+        assertFalse(fixture.service.confirmIdentity(id) { fixture.service.selectPasskey(id, 2) })
+        fixture.service.respondToApproval(id, approved = true)
+        assertEquals("user_denied", client.receive()?.string("error"))
+        assertTrue(fixture.passkeyHistory.isEmpty())
+    }
+
+    @Test
+    fun `a recent identity check covers user verification of a pick, never re-prompt`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val alice = fixture.passkeyLogin("a")
+        fixture.passkeyLogin("b", userName = "bob", reprompt = true)
+        val client = paired(fixture)
+        val required = getOptions(userVerification = "required")
+
+        // No check yet: both require the identity.
+        client.send(passkeyGet(10, options = required))
+        var prompt = fixture.pickPrompt()
+        assertEquals(mapOf("a" to true, "b" to true), prompt.requiresIdentityById())
+        assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        val verified = checkNotNull(client.receive()).credential()
+        assertTrue(alice.signed(verified))
+        assertEquals(FLAG_UP or FLAG_UV, verified.flags() and (FLAG_UP or FLAG_UV))
+
+        // The check that the pick started covers user verification only.
+        client.send(passkeyGet(11, options = required))
+        prompt = fixture.pickPrompt()
+        assertEquals(mapOf("a" to false, "b" to true), prompt.requiresIdentityById())
+        assertEquals("a", prompt.choices().first().release.cipherId)
+        assertEquals(false, prompt.requiresIdentity)
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        val covered = checkNotNull(client.receive()).credential()
+        assertEquals(FLAG_UP or FLAG_UV, covered.flags() and (FLAG_UP or FLAG_UV))
+    }
+
+    @Test
     fun `the origin must be serialized as a browser serializes it`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         val passkey = fixture.passkeyLogin("a")
@@ -799,7 +1134,9 @@ class BrowserPasskeyTest {
         // Another port is part of the origin, which `clientDataJSON` names.
         val withPort = "https://login.example.com:8443"
         client.send(passkeyGet(20, origin = withPort))
-        assertIs<AppMode.PickPasskey>(fixture.picker().mode).onComplete(fixture.cipher("a"), passkey.credential)
+        val prompt = fixture.pickPrompt()
+        assertEquals(withPort, prompt.choices().single().release.origin)
+        fixture.service.respondToApproval(prompt.id, approved = true)
         val credential = checkNotNull(client.receive()).credential()
         assertEquals(withPort, credential.clientData().string("origin"))
         assertTrue(passkey.signed(credential))
@@ -1001,8 +1338,31 @@ private fun BrowserFixture.cipher(id: String): DSecret = ciphers.value.single { 
 private suspend fun BrowserFixture.prompt(): BrowserApprovalRequest =
     withTimeout(TIMEOUT) { service.approvals.first { it.isNotEmpty() }.single() }
 
+/** The pending prompt of a pick, see [BrowserOperation.PasskeyPick]. */
+private suspend fun BrowserFixture.pickPrompt(): BrowserApprovalRequest {
+    val prompt = prompt()
+    assertIs<BrowserOperation.PasskeyPick>(prompt.operation)
+    return prompt
+}
+
+private fun BrowserApprovalRequest.choices(): List<BrowserPasskeyChoice> =
+    assertIs<BrowserOperation.PasskeyPick>(operation).choices
+
+private fun BrowserApprovalRequest.requiresIdentityById(): Map<String, Boolean> =
+    choices().associate { it.release.cipherId to it.requiresIdentity }
+
 private suspend fun BrowserFixture.picker(): BrowserPasskeyPicker =
     withTimeout(TIMEOUT) { passkeys.passkeyPickers.first { it.isNotEmpty() }.single() }
+
+/** Sends [request], which asks for the identity; confirms it, approves the prompt and returns the credential. */
+private suspend fun BrowserFixture.verify(client: BrowserClient, request: String): JsonObject {
+    client.send(request)
+    val prompt = prompt()
+    assertTrue(prompt.requiresIdentity)
+    assertTrue(service.confirmIdentity(prompt.id) { true })
+    service.respondToApproval(prompt.id, approved = true)
+    return checkNotNull(client.receive()).credential()
+}
 
 /** Sends [request], which prompts; approves the prompt and returns the credential. */
 private suspend fun BrowserFixture.approve(client: BrowserClient, request: String): JsonObject {

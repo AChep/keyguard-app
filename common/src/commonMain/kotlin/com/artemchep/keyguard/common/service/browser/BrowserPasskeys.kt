@@ -69,8 +69,30 @@ class BrowserPasskeys(
         runCatchingUnlessCancelled { rpIdValidator.resolveAndValidateRpId(rpId, origin) }
             .getOrNull()
 
-    /** Shows the window of [picker]; `false` while its session has one open. */
-    internal fun open(picker: BrowserPasskeyPicker): Boolean = mutablePickers.addOnePerSession(picker) { it.session }
+    /** The sessions that have a passkey prompt or window open, by session id. */
+    private val busySessions = MutableStateFlow<Set<String>>(emptySet())
+
+    /**
+     * Takes the passkey slot of [session] for one prompt or window, until
+     * [release]; `false` while the session holds it.
+     */
+    internal fun acquire(session: BrowserExtensionSession): Boolean {
+        var acquired = false
+        busySessions.update { ids ->
+            acquired = session.id !in ids
+            ids + session.id
+        }
+        return acquired
+    }
+
+    internal fun release(session: BrowserExtensionSession) {
+        busySessions.update { it - session.id }
+    }
+
+    /** Shows the window of [picker], whose session holds the [slot][acquire]. */
+    internal fun open(picker: BrowserPasskeyPicker) {
+        mutablePickers.update { it + picker }
+    }
 
     internal fun close(id: String) {
         mutablePickers.update { list -> list.filterNot { it.id == id } }

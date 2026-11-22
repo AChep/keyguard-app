@@ -130,10 +130,14 @@ fun ProvideAgentApprovalInputGuard(
  * Whether the caller's buttons may answer the request. Restarts the wait
  * when the caller enters the composition, and is `false` until then, so a
  * guard armed earlier never arms fresh buttons, not even for one frame.
+ *
+ * @param restart `false` to keep the guard as it is, for buttons that
+ *   the user reached with armed buttons of the same request.
  */
 @Composable
-internal fun rememberAgentApprovalArmed(): Boolean {
+internal fun rememberAgentApprovalArmed(restart: Boolean = true): Boolean {
     val guard = LocalAgentApprovalInputGuard.current
+    if (!restart) return guard.armed
     var restarted by remember(guard) {
         mutableStateOf(false)
     }

@@ -39,7 +39,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LargeClass") // Ceremony scenarios share the same fixture.
 class WindowsPasskeyCeremonyTest {
     private val authenticator = testAuthenticator()
     private val passkey = SigningPasskey(authenticator)
@@ -62,6 +62,18 @@ class WindowsPasskeyCeremonyTest {
             onFailure = { failures += 1 },
             clock = clock,
         )
+        val prompts get() = ceremony.prompts
+
+        init {
+            // As the service does.
+            scope.launch { prompts.denyWhenSessionEnds(sessions()) }
+        }
+
+        /** The one prompt waiting for the user. */
+        fun prompt() = prompts.pending.value.single()
+
+        /** The choices of the one sign-in prompt waiting for the user. */
+        fun choices() = assertIs<PasskeyApprovalOperation.SignIn>(prompt().operation).choices
 
         /** Delivers [request] the way the service does. */
         fun serve(request: WindowsPasskeyRequest) =
@@ -228,12 +240,14 @@ class WindowsPasskeyCeremonyTest {
         val fixture = Fixture(backgroundScope, MasterSession.Empty(), testCipher(passkey.credential))
         fixture.serve(testSignInRequest())
         runCurrent()
-        // The request window shows the unlock screen.
-        assertEquals(1L, fixture.ceremony.ui.value?.request?.id)
-        assertNull(fixture.ceremony.ui.value?.mode)
+        // The approval window asks to unlock; a sign-in never opens the vault window.
+        assertEquals(PasskeyApprovalOperation.Unlock, fixture.prompt().operation)
+        assertEquals(TEST_RP_ID, fixture.prompt().rpId)
+        assertNull(fixture.ceremony.ui.value)
 
         fixture.sessions.state.value = testMasterSessionKey(MasterSession.Key.Authenticated)
         runCurrent()
+        assertTrue(fixture.prompts.pending.value.isEmpty())
         // The bridge learns that the unlock verified the user; no Hello prompt is shown.
         assertEquals(
             listOf(Verification(1, TEST_WINDOW, "alice", TEST_RP_ID, unlocked = true)),
@@ -248,7 +262,39 @@ class WindowsPasskeyCeremonyTest {
         fixture.serve(testSignInRequest())
         runCurrent()
         // Not a full 120 seconds: Windows started its clock before the request arrived.
-        assertEquals(TEST_NOW + TEST_EXPIRES_IN_MS.milliseconds, fixture.ceremony.ui.value?.expiresAt)
+        assertEquals(TEST_NOW + TEST_EXPIRES_IN_MS.milliseconds, fixture.prompt().expiresAt)
+
+        // The request ends as one Windows stopped waiting on: no reason, no error.
+        advanceTimeBy(TEST_EXPIRES_IN_MS.milliseconds + 1.seconds)
+        runCurrent()
+        assertTrue(fixture.prompts.pending.value.isEmpty())
+        assertTrue(fixture.bridge.answered(1))
+        assertNull(fixture.bridge.answer(1))
+        assertNull(fixture.bridge.failure(1))
+        assertEquals(0, fixture.failures)
+    }
+
+    @Test
+    fun `denying the unlock tells Windows the user dismissed the request`() = runTest {
+        val fixture = Fixture(backgroundScope, MasterSession.Empty(), testCipher(passkey.credential))
+        fixture.serve(testSignInRequest())
+        runCurrent()
+
+        assertTrue(fixture.prompts.respond(fixture.prompt().id, approved = false))
+        runCurrent()
+        assertEquals(WindowsPasskeyFailure.DISMISSED, fixture.bridge.failure(1))
+        assertTrue(fixture.bridge.verifications.isEmpty())
+        assertEquals(0, fixture.failures)
+    }
+
+    @Test
+    fun `a locked registration still unlocks in the vault window`() = runTest {
+        val fixture = Fixture(backgroundScope, MasterSession.Empty(), testCipher())
+        fixture.serve(testRegistrationRequest())
+        runCurrent()
+        assertEquals(1L, fixture.ceremony.ui.value?.request?.id)
+        assertNull(fixture.ceremony.ui.value?.mode)
+        assertTrue(fixture.prompts.pending.value.isEmpty())
     }
 
     @Test
@@ -266,19 +312,182 @@ class WindowsPasskeyCeremonyTest {
     @Test
     fun `an item that requires the password is never picked automatically`() = runTest {
         val cipher = testCipher(passkey.credential).copy(reprompt = true)
+        // Approving without confirming the identity denies the prompt.
+        val unconfirmed = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
+        unconfirmed.serve(testSignInRequest())
+        runCurrent()
+        assertEquals(listOf(true), unconfirmed.choices().map { it.reprompt })
+        assertTrue(unconfirmed.bridge.verifications.isEmpty())
+        assertTrue(unconfirmed.prompts.respond(unconfirmed.prompt().id, approved = true))
+        runCurrent()
+        assertEquals(WindowsPasskeyFailure.DISMISSED, unconfirmed.bridge.failure(1))
+        assertTrue(unconfirmed.bridge.verifications.isEmpty())
+
+        val confirmed = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
+        confirmed.serve(testSignInRequest())
+        runCurrent()
+        val id = confirmed.prompt().id
+        assertTrue(confirmed.prompts.confirmIdentity(id) { true })
+        assertTrue(confirmed.prompts.respond(id, approved = true))
+        runCurrent()
+        assertNull(confirmed.ceremony.ui.value)
+        assertEquals(1, confirmed.bridge.verifications.size)
+        assertTrue(passkey.signed(assertNotNull(confirmed.bridge.answer(1))))
+    }
+
+    @Test
+    fun `several matches are offered most recently used first`() = runTest {
+        val other = SigningPasskey(authenticator)
+        val first = testCipher(passkey.credential).copy(id = "first", name = "First")
+        val second = testCipher(other.credential).copy(id = "second", name = "Second")
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), first, second)
+        fixture.vault.lastUsed.value = mapOf("second" to TEST_NOW)
+        fixture.serve(testSignInRequest())
+        runCurrent()
+        assertEquals(
+            listOf(
+                PasskeyApprovalChoice(name = "Second", username = "alice", accountName = null, reprompt = false),
+                PasskeyApprovalChoice(name = "First", username = "alice", accountName = null, reprompt = false),
+            ),
+            fixture.choices(),
+        )
+        assertEquals(TEST_NOW + TEST_EXPIRES_IN_MS.milliseconds, fixture.prompt().expiresAt)
+        assertNull(fixture.ceremony.ui.value)
+
+        // An unreadable history keeps the vault order.
+        val unordered = Fixture(backgroundScope, testMasterSessionKey(Persisted), first, second)
+        unordered.vault.lastUsed.value = mapOf("second" to TEST_NOW)
+        unordered.vault.lastUsedFails = true
+        unordered.serve(testSignInRequest())
+        runCurrent()
+        assertEquals(listOf("First", "Second"), unordered.choices().map { it.name })
+    }
+
+    @Test
+    fun `the selected passkey signs in`() = runTest {
+        val other = SigningPasskey(authenticator)
+        val first = testCipher(passkey.credential).copy(id = "first")
+        val second = testCipher(other.credential).copy(id = "second")
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), first, second)
+        fixture.serve(testSignInRequest())
+        runCurrent()
+        val id = fixture.prompt().id
+        assertFalse(fixture.prompts.selectPasskey(id, 2))
+        assertTrue(fixture.prompts.selectPasskey(id, 1))
+        assertTrue(fixture.prompts.respond(id, approved = true))
+        runCurrent()
+        assertTrue(other.signed(assertNotNull(fixture.bridge.answer(1))))
+        assertEquals("second", fixture.vault.used.single().cipherId)
+        assertFalse(fixture.prompts.selectPasskey(id, 0))
+    }
+
+    @Test
+    fun `a confirmed identity holds only for the passkey it was confirmed for`() = runTest {
+        val other = SigningPasskey(authenticator)
+        val first = testCipher(passkey.credential).copy(id = "first", reprompt = true)
+        val second = testCipher(other.credential).copy(id = "second", reprompt = true)
+        // Confirmed, then another passkey is selected.
+        val changed = Fixture(backgroundScope, testMasterSessionKey(Persisted), first, second)
+        changed.serve(testSignInRequest())
+        runCurrent()
+        val id = changed.prompt().id
+        assertTrue(changed.prompts.confirmIdentity(id) { true })
+        assertTrue(changed.prompts.selectPasskey(id, 1))
+        assertTrue(changed.prompts.respond(id, approved = true))
+        runCurrent()
+        assertEquals(WindowsPasskeyFailure.DISMISSED, changed.bridge.failure(1))
+
+        // Another passkey is selected while the user confirms their identity.
+        val racing = Fixture(backgroundScope, testMasterSessionKey(Persisted), first, second)
+        racing.serve(testSignInRequest())
+        runCurrent()
+        val racingId = racing.prompt().id
+        assertFalse(racing.prompts.confirmIdentity(racingId) { racing.prompts.selectPasskey(racingId, 1) })
+        assertTrue(racing.prompts.respond(racingId, approved = true))
+        runCurrent()
+        assertEquals(WindowsPasskeyFailure.DISMISSED, racing.bridge.failure(1))
+        assertTrue(racing.bridge.verifications.isEmpty())
+    }
+
+    @Test
+    fun `denying the sign-in tells Windows the user dismissed the request`() = runTest {
+        val other = SigningPasskey(authenticator)
+        val fixture = Fixture(
+            backgroundScope,
+            testMasterSessionKey(Persisted),
+            testCipher(passkey.credential).copy(id = "first"),
+            testCipher(other.credential).copy(id = "second"),
+        )
+        fixture.serve(testSignInRequest())
+        runCurrent()
+        assertTrue(fixture.prompts.respond(fixture.prompt().id, approved = false))
+        runCurrent()
+        assertNull(fixture.bridge.answer(1))
+        assertEquals(WindowsPasskeyFailure.DISMISSED, fixture.bridge.failure(1))
+        assertEquals(0, fixture.failures)
+    }
+
+    @Test
+    fun `a sign-in prompt expires silently at Windows' deadline`() = runTest {
+        val cipher = testCipher(passkey.credential).copy(reprompt = true)
         val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
         fixture.serve(testSignInRequest())
         runCurrent()
-        val mode = assertIs<AppMode.PickPasskey>(fixture.ceremony.ui.value?.mode)
-        assertTrue(fixture.bridge.verifications.isEmpty())
+        advanceTimeBy(TEST_EXPIRES_IN_MS.milliseconds - 1.seconds)
+        runCurrent()
         assertFalse(fixture.bridge.answered(1))
 
-        // The picker completes only after the user confirms the password.
-        mode.onComplete(cipher, passkey.credential)
+        advanceTimeBy(2.seconds)
         runCurrent()
-        assertNull(fixture.ceremony.ui.value)
-        assertEquals(1, fixture.bridge.verifications.size)
-        assertTrue(passkey.signed(assertNotNull(fixture.bridge.answer(1))))
+        assertTrue(fixture.prompts.pending.value.isEmpty())
+        assertTrue(fixture.bridge.answered(1))
+        assertNull(fixture.bridge.failure(1))
+        assertEquals(0, fixture.failures)
+    }
+
+    @Test
+    fun `locking the vault while the sign-in prompt is open cancels the request`() = runTest {
+        val cipher = testCipher(passkey.credential).copy(reprompt = true)
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
+        fixture.serve(testSignInRequest())
+        runCurrent()
+        assertEquals(1, fixture.prompts.pending.value.size)
+
+        fixture.sessions.state.value = MasterSession.Empty()
+        runCurrent()
+        assertTrue(fixture.prompts.pending.value.isEmpty())
+        assertTrue(fixture.bridge.answered(1))
+        assertNull(fixture.bridge.answer(1))
+        // Not a dismissal: the site may retry once the vault is unlocked.
+        assertNull(fixture.bridge.failure(1))
+        assertEquals(0, fixture.failures)
+    }
+
+    @Test
+    fun `the approval window steps aside only while Windows Hello is open`() = runTest {
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), testCipher(passkey.credential))
+        val verifying = mutableListOf<Boolean>()
+        backgroundScope.launch { fixture.ceremony.verifying.collect { verifying += it } }
+        fixture.bridge.hello = CompletableDeferred()
+        fixture.serve(testSignInRequest())
+        runCurrent()
+        assertEquals(listOf(false, true), verifying)
+
+        fixture.bridge.hello.complete(Unit)
+        runCurrent()
+        assertNotNull(fixture.bridge.answer(1))
+        assertEquals(listOf(false, true, false), verifying)
+
+        // An unlock during the request verified the user: no Hello prompt is shown.
+        val unlocked = Fixture(backgroundScope, MasterSession.Empty(), testCipher(passkey.credential))
+        val unlockedVerifying = mutableListOf<Boolean>()
+        backgroundScope.launch { unlocked.ceremony.verifying.collect { unlockedVerifying += it } }
+        unlocked.serve(testSignInRequest())
+        runCurrent()
+        unlocked.sessions.state.value = testMasterSessionKey(MasterSession.Key.Authenticated)
+        runCurrent()
+        assertNotNull(unlocked.bridge.answer(1))
+        assertEquals(listOf(false), unlockedVerifying)
     }
 
     @Test

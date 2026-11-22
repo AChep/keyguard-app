@@ -2,6 +2,7 @@ package com.artemchep.keyguard.desktop.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import com.artemchep.keyguard.common.service.browser.BrowserOperation
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
+import com.artemchep.keyguard.common.service.passkey.PasskeyApprovals
 import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.feature.gpgagent.GpgAgentApprovalContent
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -27,6 +29,7 @@ import com.artemchep.keyguard.res.browser_extension_approval_title
 import com.artemchep.keyguard.res.browser_extension_approval_unlock_reason
 import com.artemchep.keyguard.res.environments_approval_title
 import com.artemchep.keyguard.res.gpg_client_request
+import com.artemchep.keyguard.res.passkeys
 import com.artemchep.keyguard.res.protocol_gpg
 import com.artemchep.keyguard.res.protocol_ssh
 import com.artemchep.keyguard.res.ssh_client_request
@@ -45,7 +48,9 @@ internal fun ApplicationScope.AgentApprovalWindow(
     environmentAccess: EnvironmentAccess,
     cli: CliService,
     browser: BrowserExtensionService,
+    passkeys: PasskeyApprovals,
 ) {
+    val suspended by center.suspended.collectAsState()
     val requestUiState = rememberAgentRequestUiState(
         pending = center.pending,
         idOf = AgentPrompt::id,
@@ -61,7 +66,12 @@ internal fun ApplicationScope.AgentApprovalWindow(
         if (shown != null) lastShown = shown
     }
     // A pause always follows a shown prompt, so there is always one to name.
-    val chrome = agentPromptChrome(shown ?: lastShown ?: return)
+    val named = shown ?: lastShown
+    // Off screen while the operating system verifies the user: Windows Hello
+    // must not be covered by, or lose focus to, this always-on-top window.
+    // The queue above keeps running.
+    if (named == null || suspended) return
+    val chrome = agentPromptChrome(named)
     AgentRequestWindow(
         processLifecycleProvider = processLifecycleProvider,
         requestUiState = requestUiState,
@@ -95,6 +105,12 @@ internal fun ApplicationScope.AgentApprovalWindow(
 
             is AgentPrompt.Browser -> BrowserApprovalPrompt(
                 service = browser,
+                request = prompt.request,
+                onDecision = onDecision,
+            )
+
+            is AgentPrompt.Passkey -> PasskeyApprovalPrompt(
+                approvals = passkeys,
                 request = prompt.request,
                 onDecision = onDecision,
             )
@@ -132,5 +148,10 @@ private fun agentPromptChrome(prompt: AgentPrompt): AgentPromptChrome = when (pr
             BrowserOperation.Unlock -> TextHolder.Res(Res.string.browser_extension_approval_unlock_reason)
             else -> TextHolder.Res(Res.string.browser_extension_approval_title)
         },
+    )
+
+    is AgentPrompt.Passkey -> AgentPromptChrome(
+        title = stringResource(Res.string.passkeys),
+        authReason = TextHolder.Value(prompt.request.rpId),
     )
 }

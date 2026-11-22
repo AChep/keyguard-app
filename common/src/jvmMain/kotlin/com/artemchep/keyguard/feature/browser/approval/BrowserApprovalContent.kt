@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.browser.approval
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -12,7 +12,6 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,14 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH
-import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.sanitizedAgentDisplayValue
 import com.artemchep.keyguard.common.service.browser.BrowserApprovalRequest
 import com.artemchep.keyguard.common.service.browser.BrowserOperation
 import com.artemchep.keyguard.common.service.browser.BrowserRelease
-import com.artemchep.keyguard.common.service.browser.toCallerIdentity
-import com.artemchep.keyguard.feature.agent.AgentApprovalDialog
-import com.artemchep.keyguard.feature.agent.rememberAgentApprovalCallerInfo
+import com.artemchep.keyguard.feature.agent.AgentApprovalChoiceList
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.settings.component.agentApprovalWindowTitle
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -47,7 +43,6 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.browser_extension_approval_add_uri
 import com.artemchep.keyguard.res.browser_extension_approval_always_ask_note
 import com.artemchep.keyguard.res.browser_extension_approval_fill_message
-import com.artemchep.keyguard.res.browser_extension_approval_origin
 import com.artemchep.keyguard.res.browser_extension_approval_origin_note
 import com.artemchep.keyguard.res.browser_extension_approval_pair_code_note
 import com.artemchep.keyguard.res.browser_extension_approval_pair_message_known_app
@@ -63,11 +58,7 @@ import com.artemchep.keyguard.res.browser_extension_approval_title
 import com.artemchep.keyguard.res.browser_extension_approval_top_site_note
 import com.artemchep.keyguard.res.browser_extension_approval_totp_message
 import com.artemchep.keyguard.res.browser_extension_approval_unmatched_note
-import com.artemchep.keyguard.res.browser_extension_approval_unverified
 import com.artemchep.keyguard.res.browser_extension_approval_user_verification_note
-import com.artemchep.keyguard.res.ipc_approval_approve
-import com.artemchep.keyguard.res.ipc_approval_deny
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -84,7 +75,8 @@ import org.jetbrains.compose.resources.stringResource
  * like the other agent approval windows: pairing a browser, or releasing a
  * login or a one-time password to a page.
  *
- * @param request The pending approval request; not an unlock request.
+ * @param request The pending approval request; not an unlock request, nor
+ *   a pick of a passkey, see [BrowserPasskeyPickContent].
  * @param name The name of the browser, for a pairing request.
  * @param addUri Whether approving adds the page to the item, for a release
  *   that offers it, see [BrowserRelease.addUri].
@@ -101,43 +93,19 @@ fun BrowserApprovalContent(
     onDeny: () -> Unit,
     onAllow: () -> Unit,
 ) {
-    val session = request.session
-    val callerIdentity = remember(session.caller) {
-        session.caller.toCallerIdentity()
-    }
-    val callerInfo = rememberAgentApprovalCallerInfo(callerIdentity)
-    val pairingName = remember(request.pairingName) {
-        request.pairingName.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
-    }
     val operation = request.operation
-    AgentApprovalDialog(
-        icon = {
-            Icon(
-                modifier = Modifier
-                    .fillMaxSize(),
-                imageVector = when (operation) {
-                    is BrowserOperation.Pair -> Icons.Outlined.Devices
-                    else -> Icons.Outlined.Language
-                },
-                contentDescription = null,
-            )
-        },
-        iconBadgePadding = 0.dp,
+    BrowserApprovalDialog(
+        request = request,
+        icon = if (operation is BrowserOperation.Pair) Icons.Outlined.Devices else Icons.Outlined.Language,
         title = if (operation is BrowserOperation.Pair) {
             stringResource(Res.string.browser_extension_approval_pair_title)
         } else {
             stringResource(Res.string.browser_extension_approval_title)
         },
-        // A release names the browser by its pairing, a pairing by the verified browser.
-        message = { who -> browserApprovalMessage(operation, who = pairingName ?: who) },
-        callerInfo = callerInfo,
-        details = browserApprovalDetails(request, callerInfo?.secondaryLabel),
-        expiresAt = request.expiresAt,
-        cancelText = stringResource(Res.string.ipc_approval_deny),
-        confirmText = stringResource(Res.string.ipc_approval_approve),
+        message = { who -> browserApprovalMessage(operation, who = who) },
         confirmEnabled = !busy && (operation !is BrowserOperation.Pair || name.isNotBlank()),
-        onCancel = onDeny,
-        onConfirm = onAllow,
+        onDeny = onDeny,
+        onAllow = onAllow,
     ) {
         when (operation) {
             is BrowserOperation.Pair -> BrowserPairContent(
@@ -153,8 +121,11 @@ fun BrowserApprovalContent(
                 onAddUriChange = onAddUriChange.takeUnless { busy },
             )
 
-            // An unlock approves itself once the vault unlocks.
-            BrowserOperation.Unlock -> Unit
+            // Rendered by BrowserPasskeyPickContent; an unlock
+            // approves itself once the vault unlocks.
+            is BrowserOperation.PasskeyPick,
+            BrowserOperation.Unlock,
+            -> Unit
         }
     }
 }
@@ -168,28 +139,9 @@ private fun BrowserOperation.Release.presentation(): Pair<ImageVector, StringRes
         Icons.Outlined.Key to Res.string.browser_extension_approval_passkey_create_message
 }
 
-/** The lines about the browser: whether its connector is verified, the process, and the extension. */
-@Composable
-private fun browserApprovalDetails(
-    request: BrowserApprovalRequest,
-    callerDetails: String?,
-): List<String> {
-    val session = request.session
-    val origin = remember(session.origin) {
-        session.origin.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH)
-    }
-    return listOfNotNull(
-        // Without a verified connector, the browser process may be another program.
-        stringResource(Res.string.browser_extension_approval_unverified)
-            .takeUnless { session.verifiedHost },
-        callerDetails,
-        origin?.let { stringResource(Res.string.browser_extension_approval_origin, it) },
-    )
-}
-
 /** What the browser asks for, naming it [who]. */
 @Composable
-private fun browserApprovalMessage(
+internal fun browserApprovalMessage(
     operation: BrowserOperation,
     who: String?,
 ): AnnotatedString = when (operation) {
@@ -197,6 +149,13 @@ private fun browserApprovalMessage(
         message = operation.presentation().second,
         who = who,
         release = operation.release,
+    )
+
+    // The site is the same for all passkeys.
+    is BrowserOperation.PasskeyPick -> releaseMessage(
+        message = Res.string.browser_extension_approval_passkey_get_message,
+        who = who,
+        release = operation.choices.first().release,
     )
 
     is BrowserOperation.Pair,
@@ -270,7 +229,7 @@ private fun BrowserPairContent(
 
 /** Which page asks, and whose passkey, when the site alone doesn't tell it. */
 @Composable
-private fun BrowserReleasePageNotes(
+internal fun BrowserReleasePageNotes(
     release: BrowserRelease,
 ) {
     // A frame of another site's page, which always asks: a warning, as for an unmatched item.
@@ -306,41 +265,18 @@ private fun BrowserReleasePageNotes(
 
 /** The item, its username and account, and what approving allows. */
 @Composable
-private fun BrowserReleaseContent(
+private fun ColumnScope.BrowserReleaseContent(
     release: BrowserRelease,
     icon: ImageVector,
     addUri: Boolean,
     onAddUriChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemLayoutExpressive(
-        leading = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-            )
-        },
-        content = {
-            val subtitle = listOfNotNull(release.username, release.accountName)
-                .mapNotNull { it.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH) }
-                .joinToString(separator = " • ")
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = release.name.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH).orEmpty(),
-                    )
-                },
-                text = if (subtitle.isNotEmpty()) {
-                    // composable
-                    {
-                        Text(
-                            text = subtitle,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
-        },
+    val item = remember(release) { release.toChoiceItem() }
+    AgentApprovalChoiceList(
+        items = listOf(item),
+        selected = 0,
+        onSelect = null,
+        icon = icon,
     )
     Spacer(modifier = Modifier.height(12.dp))
     // Found by search: no URI of the item matches the page.
@@ -395,7 +331,7 @@ private fun BrowserAddUriItem(
 
 /** How long Keyguard remembers approving this item on this site. */
 @Composable
-private fun BrowserReleaseNote(
+internal fun BrowserReleaseNote(
     release: BrowserRelease,
 ) {
     val context = LocalLeContext

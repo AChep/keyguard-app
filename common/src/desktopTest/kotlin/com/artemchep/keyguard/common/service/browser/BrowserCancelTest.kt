@@ -60,6 +60,26 @@ class BrowserCancelTest {
     }
 
     @Test
+    fun `a cancelled passkey_get takes the pick prompt off the screen`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.passkeyLogin("a")
+        val client = paired(fixture)
+
+        client.send(passkeyGet(10))
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        assertIs<BrowserOperation.PasskeyPick>(prompt.operation)
+        client.send(cancel(11, target = 10))
+        assertEquals("cancelled", client.responses(10, 11).getValue(10).string("error"))
+        assertTrue(fixture.service.approvals.value.isEmpty())
+
+        // The session may ask for a passkey again.
+        client.send(passkeyCreate(12))
+        fixture.passkeys.passkeyPickers.first { it.isNotEmpty() }
+        client.send(cancel(13, target = 12))
+        assertEquals("cancelled", client.responses(12, 13).getValue(12).string("error"))
+    }
+
+    @Test
     fun `cancel closes a save window that hasn't shown, and an unlock prompt`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         val client = paired(fixture)
@@ -156,7 +176,7 @@ class BrowserCancelTest {
         val handle = client.itemHandle(10)
         client.send(fill(11, handle))
         fixture.service.approvals.first { it.isNotEmpty() }
-        client.send(passkeyGet(12))
+        client.send(passkeyCreate(12))
         fixture.passkeys.passkeyPickers.first { it.isNotEmpty() }
 
         val gate = CompletableDeferred<Unit>()

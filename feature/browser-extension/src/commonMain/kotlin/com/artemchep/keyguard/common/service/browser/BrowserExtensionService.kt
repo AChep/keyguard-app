@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
  * of every platform. The extension reaches the app through the CLI agent, see
  * `browserExtension/protocol/README.md`.
  */
+@Suppress("TooManyFunctions") // One function per action of the user.
 interface BrowserExtensionService {
     val state: StateFlow<BrowserExtensionState>
     val approvals: StateFlow<List<BrowserApprovalRequest>>
@@ -50,6 +51,23 @@ interface BrowserExtensionService {
      * pending. Approving such a prompt without confirming denies it.
      */
     suspend fun confirmIdentity(id: String, verify: suspend () -> Boolean): Boolean
+
+    /**
+     * Selects the passkey [choice] of the pending [BrowserOperation.PasskeyPick]
+     * prompt [id], for when it is approved. An identity confirmed for another
+     * passkey no longer counts.
+     *
+     * @return `true` if the prompt was still pending and offers it.
+     */
+    fun selectPasskey(id: String, choice: Int): Boolean
+
+    /**
+     * Hands the pending [BrowserOperation.PasskeyPick] prompt [id] back to the
+     * browser, which offers its own passkeys and devices, once it is denied.
+     *
+     * @return `true` if the prompt was still pending.
+     */
+    fun useAnotherDevice(id: String): Boolean
 
     /** The window of the save request [id] is on screen; the extension learns it opened. */
     fun onSaveShown(id: String)
@@ -145,6 +163,8 @@ data class BrowserApprovalRequest(
     val pairingName: String?,
     val expiresAt: Instant,
     val operation: BrowserOperation,
+    /** Approving requires the user to confirm their identity, see [BrowserExtensionService.confirmIdentity]. */
+    val requiresIdentity: Boolean = false,
 )
 
 /** What an extension asks the user for. */
@@ -187,6 +207,14 @@ sealed interface BrowserOperation {
     ) : Release
 
     /**
+     * Signing in to a page with one of the [choices], which the user picks.
+     * Not empty; the most recently used first.
+     */
+    data class PasskeyPick(
+        val choices: List<BrowserPasskeyChoice>,
+    ) : BrowserOperation
+
+    /**
      * Saving a new passkey of a page in an item. The username of the
      * [release] is the user name of the new passkey. Only asked when the
      * page wants the user verified: picking the item approves it.
@@ -195,6 +223,13 @@ sealed interface BrowserOperation {
         override val release: BrowserRelease,
     ) : Release
 }
+
+/** One passkey of a [BrowserOperation.PasskeyPick]: what a [BrowserOperation.PasskeyGet] of it asks. */
+data class BrowserPasskeyChoice(
+    val release: BrowserRelease,
+    /** Approving this passkey requires the user to confirm their identity. */
+    val requiresIdentity: Boolean,
+)
 
 /** An item whose secrets an extension asks for, and where it fills them. */
 data class BrowserRelease(

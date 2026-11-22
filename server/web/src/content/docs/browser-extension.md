@@ -100,9 +100,9 @@ as **Saving only**.
 
 ## Use passkeys
 
-When a site creates or asks for a passkey, Keyguard opens a window: pick the
-passkey, or the item to save it to. Then confirm your identity, unless the site
-doesn't need it or you unlocked the vault for this request. On a field that
+To sign in with a passkey, select it in Keyguard's prompt. To create one, pick
+the item to save it to in Keyguard's window. Confirm your identity, unless the
+site doesn't need it or you unlocked the vault for this request. On a field that
 offers passkey autofill, the inline menu also lists the site's passkeys.
 
 The browser handles a request itself when Keyguard isn't connected, the tab

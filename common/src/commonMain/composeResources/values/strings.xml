@@ -19,6 +19,8 @@
     <string name="more">More</string>
     <string name="server">Server</string>
     <string name="confirm">Confirm</string>
+    <!-- Returns to the previous step -->
+    <string name="back">Back</string>
     <string name="change">Change</string>
     <string name="website">Website</string>
     <string name="phone">Phone</string>
@@ -284,6 +286,7 @@
     <string name="passkey_available">Passkey available</string>
     <string name="passkey_credential_load_failed_title">Couldn't load passkey</string>
     <string name="passkey_credential_id_label">Credential ID</string>
+    <string name="passkey_approval_sign_in_message">Sign in to <xliff:g id="site" example="example.com">%1$s</xliff:g> with a passkey:</string>
     <string name="twofa_available">Two-factor authentication available</string>
     <string name="custom">Custom</string>
     <string name="grant_permission">Grant permission</string>

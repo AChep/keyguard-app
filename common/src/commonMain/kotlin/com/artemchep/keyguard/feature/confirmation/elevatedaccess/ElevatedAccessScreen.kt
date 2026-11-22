@@ -57,13 +57,7 @@ fun ElevatedAccessScreen(
     val state = produceElevatedAccessState(
         transmitter = transmitter,
     )
-    val content = state.content
-    // If we have a content ready, subscribe to biometric
-    // prompt effects.
-    if (content is Loadable.Ok) {
-        BiometricPromptEffect(content.value.sideEffects.showBiometricPromptFlow)
-        YubiKeyPromptEffect(content.value.sideEffects.showYubiKeyPromptFlow)
-    }
+    ElevatedAccessPromptEffects(state)
 
     Dialog(
         icon = icon(Icons.Outlined.Security),
@@ -74,18 +68,9 @@ fun ElevatedAccessScreen(
             Column(
                 modifier = Modifier,
             ) {
-                when (content) {
-                    is Loadable.Loading -> {
-                        ElevatedAccessSkeleton()
-                    }
-
-                    is Loadable.Ok -> {
-                        ElevatedAccessContent(
-                            content = content.value,
-                            onConfirm = state.onConfirm,
-                        )
-                    }
-                }
+                ElevatedAccessForm(
+                    state = state,
+                )
             }
         },
         actions = {
@@ -115,19 +100,72 @@ fun ElevatedAccessScreen(
     )
 }
 
+/**
+ * Shows the biometric and YubiKey prompts of the access confirmation
+ * [state], once its content is ready.
+ */
 @Composable
-private fun ColumnScope.ElevatedAccessSkeleton() {
-    SkeletonText(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
-            .fillMaxWidth(0.8f),
-    )
-    SkeletonText(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
-            .fillMaxWidth(0.6f),
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+fun ElevatedAccessPromptEffects(
+    state: ElevatedAccessState,
+) {
+    val content = state.content
+    if (content is Loadable.Ok) {
+        BiometricPromptEffect(content.value.sideEffects.showBiometricPromptFlow)
+        YubiKeyPromptEffect(content.value.sideEffects.showYubiKeyPromptFlow)
+    }
+}
+
+/**
+ * The form of the access confirmation: the password field, the biometric
+ * and YubiKey buttons. Pair it with [ElevatedAccessPromptEffects].
+ *
+ * @param onConfirm What the Go key of the password field does.
+ * @param showText `false` if the host already explains why it asks.
+ * @param alwaysFocusPassword Focuses the password field even if biometrics
+ *   or a YubiKey can confirm the access; otherwise only if neither can.
+ */
+@Composable
+fun ColumnScope.ElevatedAccessForm(
+    state: ElevatedAccessState,
+    onConfirm: (() -> Unit)? = state.onConfirm,
+    showText: Boolean = true,
+    alwaysFocusPassword: Boolean = false,
+) {
+    when (val content = state.content) {
+        is Loadable.Loading -> {
+            ElevatedAccessSkeleton(
+                showText = showText,
+            )
+        }
+
+        is Loadable.Ok -> {
+            ElevatedAccessContent(
+                content = content.value,
+                onConfirm = onConfirm,
+                showText = showText,
+                alwaysFocusPassword = alwaysFocusPassword,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.ElevatedAccessSkeleton(
+    showText: Boolean,
+) {
+    if (showText) {
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .fillMaxWidth(0.8f),
+        )
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .fillMaxWidth(0.6f),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
     SkeletonTextField(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding)
@@ -140,6 +178,8 @@ private fun ColumnScope.ElevatedAccessSkeleton() {
 private fun ColumnScope.ElevatedAccessContent(
     content: ElevatedAccessState.Content,
     onConfirm: (() -> Unit)?,
+    showText: Boolean,
+    alwaysFocusPassword: Boolean,
 ) {
     val requester = remember {
         FocusRequester2()
@@ -154,12 +194,14 @@ private fun ColumnScope.ElevatedAccessContent(
         } else {
             null
         }
-    Text(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.string.elevatedaccess_header_text),
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+    if (showText) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding),
+            text = stringResource(Res.string.elevatedaccess_header_text),
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+    }
     PasswordFlatTextField(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding)
@@ -238,7 +280,7 @@ private fun ColumnScope.ElevatedAccessContent(
         // Do not auto-focus the password field if a device has hardware
         // confirmation available. It causes a weird layout lags when keyboard
         // pops up for a split second.
-        if (content.biometric == null && content.yubiKey == null) {
+        if (alwaysFocusPassword || content.biometric == null && content.yubiKey == null) {
             requester.requestFocus()
         }
     }

@@ -644,8 +644,10 @@ checks:
   applies to the item on the [site](#pages-and-sites) of `origin`, as for `fill`.
 - Without a `handle`, the candidates are the passkeys for the RP ID that
   `allowCredentials` names, or without it, the discoverable ones. With none, the
-  app answers `not_supported`. Otherwise it opens a window where the user picks
-  one. The pick approves the release, as the prompt of `fill` does.
+  app answers `not_supported`. Otherwise it shows a prompt that lists them, the
+  most recently used first, where the user picks one. Approving it approves the
+  release, as the prompt of `fill` does. The prompt always asks: no approval
+  window covers a pick.
 - If, while the user was asked, the item got master-password re-prompt and
   the user didn't confirm their identity, `not_allowed`.
 
@@ -663,28 +665,36 @@ checks:
 - A login the user can't edit gets `not_allowed`, before the app asks for the
   user's identity.
 
-The windows of both requests:
+The pick prompt of `passkey_get` and the window of `passkey_create`:
 
-- Closing a window answers `user_denied`; if the user doesn't pick within the
-  prompt timeout, `approval_timeout`.
+- Denying the prompt or closing the window answers `user_denied`; if the user
+  doesn't pick within the prompt timeout, `approval_timeout`.
 - "Use another device" answers `not_supported`.
-- A session has one passkey window at a time. Another request that needs one
-  gets `busy`.
-- Ending the session closes the window.
+- A session has one of them at a time. Another request that needs one gets
+  `busy`.
+- Ending the session closes it.
 
 User verification:
 
 - Unless `userVerification` (of `options`, or of `authenticatorSelection` for
-  `passkey_create`) is `discouraged`, the user confirms their identity in a
-  prompt, even after a pick in the window or when an approval window covers the
-  item. Without `userVerification`, it is `preferred`, as in WebAuthn. An
-  unlock during the request counts, and then the app doesn't ask again.
+  `passkey_create`) is `discouraged`, the user confirms their identity: in the
+  prompt of `passkey_get`, or for `passkey_create` in a prompt after the pick
+  in the window. An approval window that covers the item doesn't skip it; a
+  recent identity check does. Without `userVerification`, it is `preferred`,
+  as in WebAuthn. An unlock during the request counts, and then the app doesn't
+  ask again.
+- An identity check lasts for the approval window, at most 30 seconds, for the
+  requests of the same pairing. Unlocking the vault or confirming the identity
+  in a prompt starts it. Locking the vault or turning the integration off ends
+  it. Meanwhile, an approval window that covers the item asks nothing, and a
+  prompt doesn't ask for the identity.
 - The authenticator data reports a verified user when the user unlocked the
-  vault during the request or confirmed their identity, unless
-  `userVerification` is `discouraged`.
+  vault during the request, confirmed their identity, or has a recent identity
+  check, unless `userVerification` is `discouraged`.
 - An item with master-password re-prompt always prompts for `passkey_get`, and
-  the user confirms their identity. When the user picks it in the window, the
-  window asks for the master password, and the app doesn't ask again.
+  the user confirms their identity; an identity check never covers it. In the
+  pick prompt, the identity is confirmed for the picked passkey: picking
+  another one asks again.
 
 The extension sends the request while the vault is locked too: the app's unlock
 prompt comes first.
@@ -848,7 +858,7 @@ new or reset vault confirms no pairing, so each extension pairs again.
 | `invalid_state`    | A passkey of `excludeCredentials` is already in the vault.                                                                                                                                                                                                                                     |
 | `invalid_request`  | A missing or mistyped field, an unknown handle, a request out of order.                                                                                                                                                                                                                        |
 | `too_large`        | The response would exceed 1 MiB.                                                                                                                                                                                                                                                               |
-| `busy`             | 8 requests are in flight; the session's `unlock` prompt is open, its `pair_reveal` is unanswered, or its save window or passkey window is open; or 3 pairing attempts are unseen, see [Pairing](#8-pairing).                                                                                   |
+| `busy`             | 8 requests are in flight; the session's `unlock` prompt is open, its `pair_reveal` is unanswered, or its save window, passkey pick prompt or passkey window is open; or 3 pairing attempts are unseen, see [Pairing](#8-pairing).                                                              |
 | `cancelled`        | The extension cancelled the request.                                                                                                                                                                                                                                                           |
 
 The extension treats an unknown code as a failure without retrying.

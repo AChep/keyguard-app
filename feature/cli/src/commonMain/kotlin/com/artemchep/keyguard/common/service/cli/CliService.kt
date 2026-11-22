@@ -63,6 +63,8 @@ data class CliApprovalRequest(
     val terminalSession: Boolean,
     val expiresAt: Instant,
     val operation: CliOperation,
+    /** Approving requires the user to confirm their identity, see [CliService.confirmIdentity]. */
+    val requiresIdentity: Boolean = false,
 )
 
 /** What a command of the CLI asks to do. */

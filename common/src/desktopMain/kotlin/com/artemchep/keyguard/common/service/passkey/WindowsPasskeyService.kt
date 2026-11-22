@@ -1,16 +1,19 @@
 package com.artemchep.keyguard.common.service.passkey
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.ClearDataHook
 import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -27,6 +30,7 @@ import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyIdentity
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyStatus
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -34,6 +38,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -59,6 +64,8 @@ data class WindowsPasskeyVault(
     val getCanWrite: GetCanWrite,
     val getCollections: GetCollections,
     val recordUsage: AddCipherUsedPasskeyHistory,
+    /** Orders the passkeys of a sign-in by their last use on this device. */
+    val getCipherLastUsed: GetCipherLastUsed,
 ) {
     /**
      * The items Windows may offer to sign in with. Like the vault and the other platforms,
@@ -66,6 +73,14 @@ data class WindowsPasskeyVault(
      * checks them against a site's excluded credentials.
      */
     fun getVisibleCiphers(): Flow<List<DSecret>> = filterHiddenProfiles(getCiphers, getProfiles)
+
+    /** When each of the [cipherIds] was last used on this device; none if the history can't be read. */
+    suspend fun lastUsed(cipherIds: Set<String>): Map<String, Instant> =
+        attempt { getCipherLastUsed(cipherIds).bind() }.orEmpty()
+
+    /** The display name of each account. */
+    suspend fun accountNames(): Map<String, String> =
+        getProfiles().first().associate { it.accountId to it.displayName }
 }
 
 /** Keeps Windows integration alive when every application window is hidden. */
@@ -78,7 +93,7 @@ class WindowsPasskeyService(
     private val showMessage: ShowMessage,
     private val bridge: WindowsPasskeyBridge,
     private val scope: CoroutineScope,
-) : ClearDataHook {
+) : ClearDataHook, PasskeyApprovals {
     private companion object {
         /** A failing metadata update retries after this, doubling up to [METADATA_RETRY_MAX_MS]. */
         const val METADATA_RETRY_MS = 5000L
@@ -103,6 +118,8 @@ class WindowsPasskeyService(
     val status = mutableStatus.asStateFlow()
     val ui = ceremony.ui
     val busy = ceremony.busy
+    override val approvals: StateFlow<List<PasskeyApprovalRequest>> = ceremony.prompts.pending
+    override val verifying: Flow<Boolean> = ceremony.verifying
     private val mutableCacheFailed = MutableStateFlow(false)
     val cacheFailed = mutableCacheFailed.asStateFlow()
 
@@ -111,6 +128,8 @@ class WindowsPasskeyService(
     private var metadataJob: Job? = null
 
     fun start() {
+        // Sign-in prompts need an unlocked vault, except the unlock prompt; locking it denies them.
+        scope.launch { ceremony.prompts.denyWhenSessionEnds(getVaultSession()) }
         scope.launch {
             val initial = readStatus()
             mutableStatus.value = initial
@@ -249,7 +268,14 @@ class WindowsPasskeyService(
         if (result.isFailure) reportFailure()
     }
 
-    /** The user dismissed the request. */
+    override fun respondToApproval(id: String, approved: Boolean): Boolean = ceremony.prompts.respond(id, approved)
+
+    override fun selectPasskey(id: String, choice: Int): Boolean = ceremony.prompts.selectPasskey(id, choice)
+
+    override suspend fun confirmIdentity(id: String, verify: suspend () -> Boolean): Boolean =
+        ceremony.prompts.confirmIdentity(id, verify)
+
+    /** The user dismissed the request in the vault window. */
     fun cancel(id: Long): IO<Unit> = ioEffect {
         attempt { bridge.complete(id, null, WindowsPasskeyFailure.DISMISSED) }
         Unit

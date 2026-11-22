@@ -7,9 +7,9 @@ import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agent.AgentApprovalSelections
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionHashRequest
@@ -34,6 +34,8 @@ import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 
 data class WindowsPasskeyUiRequest(
@@ -55,7 +58,8 @@ data class WindowsPasskeyUiRequest(
 /**
  * Serves a Windows request from its delivery until Windows has its answer: waits for an
  * unlocked vault, lets the user pick a vault item, verifies the user, checks the vault
- * again, and signs. A failure tells Windows its reason when the site should learn it,
+ * again, and signs. A sign-in asks in the approval [prompts]; a registration shows the
+ * vault in [ui]. A failure tells Windows its reason when the site should learn it,
  * and otherwise cancels.
  */
 internal class WindowsPasskeyCeremony(
@@ -66,9 +70,18 @@ internal class WindowsPasskeyCeremony(
     private val authenticator: WebAuthnAuthenticator,
     private val onFailure: suspend () -> Unit,
     private val clock: Clock = Clock.System,
+    val prompts: WindowsPasskeyPrompts = WindowsPasskeyPrompts(clock),
 ) {
     private val mutableUi = MutableStateFlow<WindowsPasskeyUiRequest?>(null)
+
+    /** The vault window of a registration. A sign-in never sets it. */
     val ui = mutableUi.asStateFlow()
+
+    // A counter: the native Hello of a cancelled request can outlive it.
+    private val openVerifications = MutableStateFlow(0)
+
+    /** The operating system verifies the user, see [verify]. */
+    val verifying: Flow<Boolean> = openVerifications.map { it > 0 }.distinctUntilChanged()
 
     // The UI is hidden during Windows Hello, so it cannot tell whether a request is served.
     private val activeRequests = MutableStateFlow(0)
@@ -85,10 +98,15 @@ internal class WindowsPasskeyCeremony(
         var failure: WindowsPasskeyFailure? = null
         try {
             val initiallyLocked = getVaultSession().first() !is MasterSession.Key
-            if (initiallyLocked) {
-                mutableUi.value = WindowsPasskeyUiRequest(request, expiresAt)
+            val session = when {
+                !initiallyLocked -> awaitSession()
+                request.create -> {
+                    mutableUi.value = WindowsPasskeyUiRequest(request, expiresAt)
+                    awaitSession()
+                }
+
+                else -> promptUnlock(request.rpId, expiresAt)
             }
-            val session = getVaultSession().filterIsInstance<MasterSession.Key>().first()
             // Observe an unlock during this request. Wall-clock timestamps can move backwards.
             val freshUnlock = initiallyLocked && session.origin == MasterSession.Key.Authenticated
             // Keep the vault alive even when the picker closes for Windows Hello, or
@@ -121,6 +139,7 @@ internal class WindowsPasskeyCeremony(
     private fun Exception.windowsFailure() = when {
         this is WebAuthnInvalidStateException -> WindowsPasskeyFailure.EXCLUDED
         this is NoPasskeyException -> WindowsPasskeyFailure.NOT_FOUND
+        this is DismissedException -> WindowsPasskeyFailure.DISMISSED
         this is WindowsPasskeyException && code == WindowsPasskeyException.DISMISSED -> WindowsPasskeyFailure.DISMISSED
         else -> null
     }
@@ -131,6 +150,36 @@ internal class WindowsPasskeyCeremony(
      */
     private fun Exception.isEndedRequest() =
         this is WindowsPasskeyException && code == WindowsPasskeyException.CANCELLED
+
+    private suspend fun awaitSession() = getVaultSession().filterIsInstance<MasterSession.Key>().first()
+
+    /**
+     * Asks the user to unlock the vault for a sign-in, until it unlocks. The prompt closes
+     * once the vault unlocks by any means.
+     */
+    private suspend fun promptUnlock(rpId: String, expiresAt: Instant): MasterSession.Key = coroutineScope {
+        val prompt = async { prompts.ask(rpId, expiresAt, PasskeyApprovalOperation.Unlock) }
+        val unlocked = async { awaitSession() }
+        val answer = select<AgentApprovalSelections.Answer?> {
+            prompt.onAwait { it }
+            unlocked.onAwait { null }
+        }
+        // Takes the prompt off the screen.
+        prompt.cancel()
+        when (answer) {
+            null, is AgentApprovalSelections.Answer.Approved -> unlocked.await()
+            AgentApprovalSelections.Answer.Denied -> {
+                unlocked.cancel()
+                throw DismissedException()
+            }
+
+            // Ends as a request Windows stopped waiting on.
+            AgentApprovalSelections.Answer.Expired -> {
+                unlocked.cancel()
+                throw CancellationException("Windows stopped waiting")
+            }
+        }
+    }
 
     private suspend fun Serving.create(): PreparedResponse {
         val user = requireNotNull(request.user)
@@ -185,21 +234,11 @@ internal class WindowsPasskeyCeremony(
         val allowed = request.allowed()
         val matches = vault.getVisibleCiphers().first().availablePasskeys()
             .filter { (_, credential) -> credential.toWebAuthnCredential().canAnswer(request.rpId, allowed) }
-            .map { (cipher, credential) ->
-                Selection(cipher.accountId, cipher.id, credential.credentialId, cipher.reprompt)
-            }
         if (matches.isEmpty()) throw NoPasskeyException()
-        val selection = matches.singleOrNull()?.takeUnless { it.reprompt } ?: pick { select ->
-            AppMode.PickPasskey(
-                target = PasskeyTarget(
-                    rpId = request.rpId,
-                    allowed = allowed,
-                ),
-                onComplete = { cipher, credential ->
-                    select(Selection(cipher.accountId, cipher.id, credential.credentialId, cipher.reprompt))
-                },
-            )
-        }
+        val selection = matches.singleOrNull()
+            ?.takeUnless { (cipher, _) -> cipher.reprompt }
+            ?.let { (cipher, credential) -> Selection(cipher.accountId, cipher.id, credential.credentialId) }
+            ?: pickPasskey(matches)
         val before = selection.find(vault.getVisibleCiphers().first())
         val username = selection.credential(before)?.windowsUserName(before) ?: request.rpId
         verify(username)
@@ -243,6 +282,41 @@ internal class WindowsPasskeyCeremony(
         }
     }
 
+    /**
+     * Asks the user to pick one of the [matches], most recently used first, and to confirm
+     * their identity for an item that requires it.
+     */
+    private suspend fun Serving.pickPasskey(
+        matches: List<Pair<DSecret, DSecret.Login.Fido2Credentials>>,
+    ): Selection {
+        val lastUsed = vault.lastUsed(matches.mapTo(mutableSetOf()) { (cipher, _) -> cipher.id })
+        val ordered = matches.sortedByDescending { (cipher, _) -> lastUsed[cipher.id] }
+        val accountNames = vault.accountNames()
+        val choices = ordered.map { (cipher, credential) ->
+            PasskeyApprovalChoice(
+                name = cipher.name,
+                username = credential.userName?.takeUnless { it.isBlank() },
+                accountName = accountNames[cipher.accountId],
+                reprompt = cipher.reprompt,
+            )
+        }
+        return when (val answer = prompts.ask(request.rpId, expiresAt, PasskeyApprovalOperation.SignIn(choices))) {
+            is AgentApprovalSelections.Answer.Approved -> {
+                val (cipher, credential) = ordered[answer.choice]
+                Selection(cipher.accountId, cipher.id, credential.credentialId, reprompt = answer.identityConfirmed)
+            }
+
+            AgentApprovalSelections.Answer.Denied -> {
+                // A lock denies the prompt too: it stays a plain cancellation.
+                requireSession(session)
+                throw DismissedException()
+            }
+
+            // Ends as a request Windows stopped waiting on.
+            AgentApprovalSelections.Answer.Expired -> throw CancellationException("Windows stopped waiting")
+        }
+    }
+
     /** Shows the picker that [mode] builds around its selection callback, and awaits a pick. */
     private suspend fun Serving.pick(mode: (select: (Selection) -> Unit) -> AppMode): Selection {
         val selected = CompletableDeferred<Selection>()
@@ -256,9 +330,16 @@ internal class WindowsPasskeyCeremony(
         requireSession(session)
         // Vault text may not fit the native prompt; the RP ID always does.
         val name = username.takeIf(WindowsPasskeyLimits::acceptsText) ?: request.rpId
-        // The bridge answers Windows only for a verified user: by Windows Hello, or by the
-        // unlock that just happened during this request.
-        bridge.verify(request.id, request.window, name, request.rpId, unlocked = freshUnlock)
+        // A fresh unlock shows no Hello prompt.
+        val prompting = !freshUnlock
+        if (prompting) openVerifications.update { it + 1 }
+        try {
+            // The bridge answers Windows only for a verified user: by Windows Hello, or by the
+            // unlock that just happened during this request.
+            bridge.verify(request.id, request.window, name, request.rpId, unlocked = freshUnlock)
+        } finally {
+            if (prompting) openVerifications.update { it - 1 }
+        }
         requireSession(session)
     }
 
@@ -298,6 +379,8 @@ internal class WindowsPasskeyCeremony(
     }
 
     private class NoPasskeyException : IllegalStateException("The vault holds none of the requested passkeys")
+
+    private class DismissedException : IllegalStateException("The user denied the request")
 }
 
 private fun WindowsPasskeyPrfValues.toWebAuthn() = WebAuthnPrfValues(first = first, second = second)

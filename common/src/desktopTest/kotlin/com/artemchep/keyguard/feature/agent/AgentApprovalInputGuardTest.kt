@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -294,6 +295,59 @@ class AgentApprovalInputGuardTest {
             draw()
             arm()
             assertEquals(listOf("Confirm"), focusedTexts())
+        }
+        scope.cancel()
+    }
+
+    @Test
+    fun `the buttons of a next step keep the guard armed and the focus`() {
+        val guard = AgentApprovalInputGuard()
+        val scheduler = TestCoroutineScheduler()
+        val scope = CoroutineScope(StandardTestDispatcher(scheduler))
+        val other = FocusRequester()
+        var nextStep by mutableStateOf(false)
+        withScene(
+            content = {
+                CompositionLocalProvider(
+                    LocalAgentApprovalInputGuard provides guard,
+                ) {
+                    Column {
+                        TextButton(
+                            modifier = Modifier
+                                .focusRequester(other),
+                            onClick = {},
+                        ) {
+                            Text("Other")
+                        }
+                        // As the step of a prompt replaces the one before.
+                        key(nextStep) {
+                            AgentApprovalButtons(
+                                expiresAt = null,
+                                cancelText = "Cancel",
+                                confirmText = "Confirm",
+                                onCancel = {},
+                                onConfirm = {},
+                                nextStep = nextStep,
+                            )
+                        }
+                    }
+                }
+            },
+        ) {
+            scope.launch { guard.run(focused = true) }
+            scheduler.advanceTimeBy(1.seconds)
+            scheduler.runCurrent()
+            draw()
+            assertTrue(guard.armed)
+            assertEquals(listOf("Confirm"), focusedTexts())
+
+            other.requestFocus()
+            nextStep = true
+            draw()
+            scheduler.runCurrent()
+            draw()
+            assertTrue(guard.armed)
+            assertEquals(listOf("Other"), focusedTexts())
         }
         scope.cancel()
     }

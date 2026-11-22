@@ -162,6 +162,12 @@ class BrowserExtensionServiceImpl(
     override suspend fun confirmIdentity(id: String, verify: suspend () -> Boolean): Boolean =
         browserApprovals.confirmIdentity(id, verify)
 
+    override fun selectPasskey(id: String, choice: Int): Boolean =
+        browserApprovals.selectPasskey(id, choice)
+
+    override fun useAnotherDevice(id: String): Boolean =
+        browserApprovals.useAnotherDevice(id)
+
     override fun onSaveShown(id: String) = saveWindows.onShown(id)
 
     override fun closeSave(id: String) = saveWindows.close(id)

@@ -171,6 +171,7 @@ class CliServiceImpl(
                     terminalSession = context.terminalSession != null,
                     expiresAt = expiresAt,
                     operation = prompt,
+                    requiresIdentity = elevationPending,
                 )
             }
         } finally {

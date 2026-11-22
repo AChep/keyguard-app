@@ -277,6 +277,7 @@ private class DesktopApplicationModule {
                 environments = get<EnvironmentAccess>(),
                 cli = get<CliService>(),
                 browser = get<BrowserExtensionService>(),
+                passkeys = get<WindowsPasskeyService>(),
                 scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
             )
         }
@@ -566,6 +567,7 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                 environmentAccess = remember { koin.get<EnvironmentAccess>() },
                 cli = remember { koin.get<CliService>() },
                 browser = remember { koin.get<BrowserExtensionService>() },
+                passkeys = windowsPasskeys,
             )
             // A window for each login that a browser extension asks to save.
             BrowserSaveLoginHost(

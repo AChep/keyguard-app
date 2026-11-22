@@ -163,6 +163,7 @@ class EnvironmentAccessTest {
             it.singleOrNull()?.environmentName == fixture.secret.name
         }.single()
         assertEquals(lockedRequest.id, unlockedRequest.id)
+        assertFalse(unlockedRequest.requiresIdentity)
         assertEquals(epoch, fixture.access.deliveryGeneration("environment"))
         fixture.access.respondToApproval(unlockedRequest.id, true)
         val response = pending.await().resolved()
@@ -186,12 +187,14 @@ class EnvironmentAccessTest {
         val pending = async { handler.handle(resolveMount(epoch)) }
         val lockedRequest = fixture.access.approvals.first { it.isNotEmpty() }.single()
         assertEquals(null, lockedRequest.elevationChallenge)
+        assertFalse(lockedRequest.requiresIdentity)
 
         fixture.unlock()
         val unlockedRequest = fixture.access.approvals.first {
             it.singleOrNull()?.elevationChallenge != null
         }.single()
         assertEquals(lockedRequest.id, unlockedRequest.id)
+        assertTrue(unlockedRequest.requiresIdentity)
         assertEquals(epoch, fixture.access.deliveryGeneration("environment"))
         fixture.access.respondToApproval(unlockedRequest.id, true)
         val refused = pending.await()

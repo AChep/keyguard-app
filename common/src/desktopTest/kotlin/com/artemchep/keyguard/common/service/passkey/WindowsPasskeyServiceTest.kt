@@ -203,6 +203,26 @@ class WindowsPasskeyServiceTest {
     }
 
     @Test
+    fun `a sign-in asks in the approval window and a lock denies it`() = runTest {
+        val cipher = testCipher(SigningPasskey(authenticator).credential).copy(reprompt = true)
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
+        fixture.service.start()
+        runCurrent()
+        fixture.bridge.events.send(WindowsPasskeyEvent(request = testSignInRequest(), activeId = 1))
+        runCurrent()
+        val prompt = fixture.service.approvals.value.single()
+        assertTrue(fixture.service.selectPasskey(prompt.id, 0))
+        assertFalse(fixture.service.selectPasskey(prompt.id, 1))
+
+        fixture.sessions.state.value = MasterSession.Empty()
+        runCurrent()
+        assertTrue(fixture.service.approvals.value.isEmpty())
+        assertFalse(fixture.service.respondToApproval(prompt.id, approved = true))
+        assertNull(fixture.bridge.answer(1))
+        assertNull(fixture.bridge.failure(1))
+    }
+
+    @Test
     fun `a server that failed to start at launch serves again`() = runTest {
         val fixture = Fixture(backgroundScope, MasterSession.Empty())
         fixture.bridge.serving = false

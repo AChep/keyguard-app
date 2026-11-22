@@ -29,15 +29,14 @@ import com.artemchep.keyguard.res.browser_extension_approval_unverified
 import com.artemchep.keyguard.res.browser_extension_history_pairing
 import com.artemchep.keyguard.res.browser_extension_passkey_another_device
 import com.artemchep.keyguard.res.browser_extension_passkey_create_title
-import com.artemchep.keyguard.res.browser_extension_passkey_get_title
 import com.artemchep.keyguard.res.browser_extension_passkey_rp_id
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Shows a vault window for each passkey request of a browser extension that
- * waits for the user to pick an item. Reads the requests here, so their
+ * Shows a vault window for each passkey that a browser extension asks to
+ * save, where the user picks the item. Reads the requests here, so their
  * transitions do not recompose the whole application.
  */
 @Composable
@@ -48,14 +47,9 @@ internal fun ApplicationScope.BrowserPasskeyPickerHost(
     val list by pickers.passkeyPickers.collectAsState()
     list.forEach { picker ->
         key(picker.id) {
-            val title = if (picker.create) {
-                stringResource(Res.string.browser_extension_passkey_create_title)
-            } else {
-                stringResource(Res.string.browser_extension_passkey_get_title)
-            }
             PasskeyVaultWindow(
                 requestId = picker.id,
-                title = title,
+                title = stringResource(Res.string.browser_extension_passkey_create_title),
                 reason = picker.rpId,
                 expiresAt = picker.expiresAt,
                 mode = picker.mode,

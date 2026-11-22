@@ -134,6 +134,10 @@ internal class FakeBrowserExtensionService(
 
     override suspend fun confirmIdentity(id: String, verify: suspend () -> Boolean) = false
 
+    override fun selectPasskey(id: String, choice: Int) = false
+
+    override fun useAnotherDevice(id: String) = false
+
     override fun onSaveShown(id: String) = Unit
 
     override fun closeSave(id: String) = Unit

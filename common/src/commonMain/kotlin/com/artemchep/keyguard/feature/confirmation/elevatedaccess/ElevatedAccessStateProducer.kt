@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.feature.confirmation.elevatedaccess
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -35,6 +37,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -84,6 +87,41 @@ fun produceElevatedAccessState(
     )
 }
 
+/**
+ * Produces the state of an access confirmation that is part of another
+ * screen: the [onResult] receives every confirmation and denial, and an
+ * incorrect password shows as the error of the password field.
+ */
+@Composable
+fun produceElevatedAccessState(
+    onResult: (ElevatedAccessResult) -> Unit,
+): ElevatedAccessState = with(currentKoinScope()) {
+    val currentOnResult by rememberUpdatedState(onResult)
+    val windowCoroutineScope: WindowCoroutineScope = get()
+    val biometricStatusUseCase: BiometricStatusUseCase = get()
+    val getBiometricRequireConfirmation: GetBiometricRequireConfirmation = get()
+    val confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase = get()
+    val confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase = get()
+    produceScreenState(
+        key = "elevated_access_inline",
+        initial = ElevatedAccessState(),
+        args = arrayOf(
+            windowCoroutineScope,
+        ),
+    ) {
+        elevatedAccessStateProducer(
+            onResult = { result ->
+                currentOnResult(result)
+            },
+            inlinePasswordError = true,
+            biometricStatusUseCase = biometricStatusUseCase,
+            getBiometricRequireConfirmation = getBiometricRequireConfirmation,
+            confirmAccessByPasswordUseCase = confirmAccessByPasswordUseCase,
+            confirmAccessByYubiKeyUseCase = confirmAccessByYubiKeyUseCase,
+        )
+    }
+}
+
 suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
     transmitter: RouteResultTransmitter<ElevatedAccessResult>,
     biometricStatusUseCase: BiometricStatusUseCase,
@@ -91,8 +129,6 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
     confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
     confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
 ): Flow<ElevatedAccessState> {
-    val executor = screenExecutor()
-
     // A dialog dismissed by tapping outside of it or by going back sends
     // no result of its own. Deny then, so that a caller waiting for the
     // result is never left hanging.
@@ -100,12 +136,42 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
     screenScope.coroutineContext.job.invokeOnCompletion {
         resultHandler.complete(ElevatedAccessResult.Deny)
     }
+    return elevatedAccessStateProducer(
+        onResult = { result ->
+            resultHandler.complete(result) {
+                navigatePopSelf()
+            }
+        },
+        inlinePasswordError = false,
+        biometricStatusUseCase = biometricStatusUseCase,
+        getBiometricRequireConfirmation = getBiometricRequireConfirmation,
+        confirmAccessByPasswordUseCase = confirmAccessByPasswordUseCase,
+        confirmAccessByYubiKeyUseCase = confirmAccessByYubiKeyUseCase,
+    )
+}
+
+/**
+ * Produces the state of the access confirmation, without a route of its
+ * own: the [onResult] receives every confirmation and denial.
+ *
+ * @param inlinePasswordError Shows an incorrect password as the error of
+ *   the password field, instead of as a message.
+ */
+suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
+    onResult: (ElevatedAccessResult) -> Unit,
+    inlinePasswordError: Boolean,
+    biometricStatusUseCase: BiometricStatusUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
+    confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
+    confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
+): Flow<ElevatedAccessState> {
+    val executor = screenExecutor()
 
     val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
+    // The password the user last entered, if it was incorrect.
+    val incorrectPasswordSink = MutableStateFlow<String?>(null)
     val grantAccess = {
-        resultHandler.complete(ElevatedAccessResult.Allow) {
-            navigatePopSelf()
-        }
+        onResult(ElevatedAccessResult.Allow)
     }
 
     val biometricPrompt = kotlin.run {
@@ -195,11 +261,13 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
         )
     }
 
+    val incorrectPasswordText = translate(Res.string.error_incorrect_password)
     return combine(
         passwordHandle.sink
             .map { cell -> cell to validatedPassword(cell.text) },
         executor.isExecutingFlow,
-    ) { (passwordCell, validatedPassword), taskExecuting ->
+        incorrectPasswordSink,
+    ) { (passwordCell, validatedPassword), taskExecuting, incorrectPassword ->
         val error = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = error == null && !taskExecuting
         val content = ElevatedAccessState.Content(
@@ -221,15 +289,15 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
                 cell = passwordCell,
                 handle = passwordHandle,
                 validated = validatedPassword,
+            ).withIncorrectPassword(
+                error = incorrectPasswordText.takeIf { passwordCell.text == incorrectPassword },
             ),
             isLoading = taskExecuting,
         )
         ElevatedAccessState(
             content = Loadable.Ok(content),
             onDeny = {
-                resultHandler.complete(ElevatedAccessResult.Deny) {
-                    navigatePopSelf()
-                }
+                onResult(ElevatedAccessResult.Deny)
             },
             onConfirm = if (canCreateVault) {
                 // lambda
@@ -238,6 +306,8 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
                         .effectTap { success ->
                             if (success) {
                                 grantAccess()
+                            } else if (inlinePasswordError) {
+                                incorrectPasswordSink.value = passwordCell.text
                             } else {
                                 val message = ToastMessage(
                                     title = translate(Res.string.error_incorrect_password),
@@ -253,6 +323,14 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
             },
         )
     }
+}
+
+private fun TextFieldModel.withIncorrectPassword(
+    error: String?,
+): TextFieldModel = if (error != null) {
+    copy(state = state.copy(error = error))
+} else {
+    this
 }
 
 private fun createPromptOrNull(

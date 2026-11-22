@@ -83,7 +83,11 @@ data class EnvironmentApprovalRequest(
     val elevationChallenge: String? = null,
     /** The account of a new environment. */
     val accountId: String? = null,
-)
+) {
+    /** Approving requires the user to confirm their identity, see [ensureElevatedAccess]. */
+    val requiresIdentity: Boolean
+        get() = environmentId != null && elevationChallenge != null
+}
 
 /** What an approval allows the caller to do. */
 enum class EnvironmentCapability {

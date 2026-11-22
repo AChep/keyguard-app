@@ -59,24 +59,23 @@
    * at the first height it gets: not the first placeholder's, which the rows
    * would replace with a jump.
    */
-  function sendHeight() {
-    if (root === undefined || (placeholder && sentHeight === 0)) return;
-    const height = Math.ceil(root.scrollHeight);
+  function sendHeight(element: HTMLElement) {
+    if (placeholder && sentHeight === 0) return;
+    const height = Math.ceil(element.scrollHeight);
     if (height === sentHeight) return;
     sentHeight = height;
     port.send({ kind: "resize", height });
   }
 
-  $effect(() => {
-    if (root === undefined) return;
-    const observer = new ResizeObserver(sendHeight);
-    observer.observe(root);
+  function observeHeight(element: HTMLElement) {
+    const observer = new ResizeObserver(() => sendHeight(element));
+    observer.observe(element);
     return () => observer.disconnect();
-  });
+  }
 
   // Each view and error at once: the hidden frame may get no ResizeObserver callbacks until it shows.
   $effect(() => {
-    if (!placeholder) sendHeight();
+    if (!placeholder && root !== undefined) sendHeight(root);
   });
 
   // A requested focus goes to the first row once there is one; and a row keeps
@@ -144,6 +143,7 @@
 <div
   class="menu"
   bind:this={root}
+  {@attach observeHeight}
   role="menu"
   aria-label={t("browser_extension_name")}
   aria-busy={busy}

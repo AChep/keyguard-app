@@ -45,7 +45,7 @@
 <div class="region {className}" role="status" aria-live="polite">
   {#if message !== null}
     {#key shown}
-      <div class="snackbar" class:leaving>{message}</div>
+      <div class={["snackbar", { leaving }]}>{message}</div>
     {/key}
   {/if}
 </div>

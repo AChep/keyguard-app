@@ -5,6 +5,7 @@
   the add-on's page of about:addons. Opened in a tab, it's a centered column.
 -->
 <script lang="ts">
+  import { onMount } from "svelte";
   import { browser } from "wxt/browser";
   import { t, type I18nKey } from "../../src/lib/i18n";
   import type { IconName } from "../../src/lib/ui/icons";
@@ -33,9 +34,14 @@
   let options = $state<ExtensionOptions>({ ...DEFAULT_OPTIONS });
 
   const privacy = browser as unknown as PrivacyBrowser;
-  let browserSaving = $state<BrowserSavingState>("off");
+  let browserSaving = $state<BrowserSavingState | "loading" | "error">("loading");
   let browserSavingBusy = $state(false);
-  const browserSavingNoteKey = $derived(browserSavingNote(browserSaving));
+  const browserSavingNoteKey = $derived(
+    browserSaving === "loading" || browserSaving === "error" ? undefined : browserSavingNote(browserSaving),
+  );
+  const browserSavingUnavailable = $derived(
+    browserSaving === "loading" || browserSaving === "error" || browserSavingNoteKey !== undefined,
+  );
 
   const toggles: { key: keyof ExtensionOptions; icon: IconName; title: I18nKey; text: I18nKey }[] = [
     {
@@ -71,9 +77,18 @@
   ];
 
   $effect(() => watchOptions(storage, (next) => (options = next)));
-  $effect(() => {
-    void browserSavingState(privacy).then((state) => (browserSaving = state));
-  });
+  onMount(() => void loadBrowserSaving());
+
+  async function loadBrowserSaving() {
+    browserSaving = await browserSavingState(privacy).catch(() => "error" as const);
+  }
+
+  async function retryBrowserSaving() {
+    if (browserSavingBusy) return;
+    browserSavingBusy = true;
+    await loadBrowserSaving();
+    browserSavingBusy = false;
+  }
 
   function onToggleChange(input: HTMLInputElement, key: keyof ExtensionOptions) {
     // A failed write leaves the options as they were, so Svelte wouldn't reset the input.
@@ -87,7 +102,7 @@
     try {
       browserSaving = await task;
     } catch {
-      browserSaving = await browserSavingState(privacy).catch(() => "off" as const);
+      await loadBrowserSaving();
     }
     // A denied request leaves the state as it was, so Svelte wouldn't reset the input.
     input.checked = browserSaving === "on";
@@ -121,8 +136,8 @@
         />
       </label>
     {/each}
-    <!-- Disabled while someone else controls the setting: the note says who, at full emphasis. -->
-    <label class="row setting" class:disabled={browserSavingNoteKey !== undefined}>
+    <!-- A note explains when someone else controls the setting. -->
+    <label class={["row setting", { disabled: browserSavingUnavailable }]}>
       <span class="leading"><Icon name="password" /></span>
       <span class="row-content">
         <span class="body-large">{t("browser_extension_options_browser_saving_title")}</span>
@@ -136,11 +151,23 @@
         type="checkbox"
         role="switch"
         checked={browserSaving === "on"}
-        disabled={browserSavingBusy || browserSavingNoteKey !== undefined}
+        disabled={browserSavingBusy || browserSavingUnavailable}
+        aria-busy={browserSavingBusy || browserSaving === "loading"}
         onchange={(event) => void onBrowserSavingChange(event.currentTarget)}
       />
     </label>
   </div>
+
+  {#if browserSaving === "error"}
+    <div class="banner">
+      <Icon name="error_outline" />
+      <span role="alert">{t("error_failed_unknown")}</span>
+      <!-- Keep the button focusable during a retry so a failed read leaves focus in place. -->
+      <button class="btn btn-text" type="button" aria-disabled={browserSavingBusy} onclick={retryBrowserSaving}>
+        {t("retry")}
+      </button>
+    </div>
+  {/if}
 
   <p class="footnote body-medium medium">{t("browser_extension_options_never_save_text")}</p>
 

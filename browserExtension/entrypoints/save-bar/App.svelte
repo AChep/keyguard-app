@@ -22,15 +22,15 @@
   let root = $state<HTMLElement | undefined>();
 
   /** The content script sizes the frame to the content; the background drops what comes before the page binds. */
-  function reportHeight() {
-    if (root !== undefined) port.send({ kind: "resize", height: Math.ceil(root.scrollHeight) });
+  function reportHeight(element: HTMLElement) {
+    port.send({ kind: "resize", height: Math.ceil(element.scrollHeight) });
   }
 
   $effect(() =>
     port.onEvent((event) => {
       switch (event.kind) {
         case "bound":
-          reportHeight();
+          if (root !== undefined) reportHeight(root);
           return;
         case "view":
           // Another offer: a click aimed at what showed before doesn't take it.
@@ -49,12 +49,11 @@
     }),
   );
 
-  $effect(() => {
-    if (root === undefined) return;
-    const observer = new ResizeObserver(reportHeight);
-    observer.observe(root);
+  function observeHeight(element: HTMLElement) {
+    const observer = new ResizeObserver(() => reportHeight(element));
+    observer.observe(element);
     return () => observer.disconnect();
-  });
+  }
 
   type Action = "save" | "dismiss" | "never";
 
@@ -73,7 +72,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="bar" bind:this={root} role="dialog" aria-labelledby="title" aria-busy={busy}>
+<div class="bar" bind:this={root} {@attach observeHeight} role="dialog" aria-labelledby="title" aria-busy={busy}>
   {#if busy}
     <!-- Over the frame's top edge: the content doesn't move. -->
     <div class="linear-progress busy" role="progressbar" aria-label={t("loading")}></div>

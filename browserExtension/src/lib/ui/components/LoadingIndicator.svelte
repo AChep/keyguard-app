@@ -15,7 +15,7 @@
   let { label, size = 48, contained = true }: Props = $props();
 </script>
 
-<span class="indicator" class:contained style:--indicator-size="{size}px" role="progressbar" aria-label={label}>
+<span class={["indicator", { contained }]} style:--indicator-size="{size}px" role="progressbar" aria-label={label}>
   <span class="shape"></span>
 </span>
 

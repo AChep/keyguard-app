@@ -97,8 +97,7 @@
 
 <!-- Always there: the search field's aria-controls names it. -->
 <div
-  class="options"
-  class:populated={view.kind === "items"}
+  class={["options", { populated: view.kind === "items" }]}
   role="listbox"
   id={listboxId}
   aria-labelledby={header !== undefined ? headerId : undefined}

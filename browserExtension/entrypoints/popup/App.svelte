@@ -6,10 +6,15 @@
   import Vault from "./Vault.svelte";
 
   let status = $state.raw<ExtensionStatus>({ kind: "starting" });
+  // A call's error belongs to the status screen that started it.
+  let statusRevision = $state(0);
   // The active tab: undefined until the query answers, null for none.
   let tabId = $state<number | null | undefined>();
 
-  const client = new PopupClient((next) => (status = next));
+  const client = new PopupClient((next) => {
+    if (status.kind !== next.kind) statusRevision++;
+    status = next;
+  });
 
   void browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => (tabId = tab?.id ?? null));
 </script>
@@ -18,7 +23,7 @@
   {#if status.kind === "unlocked"}
     <Vault {client} {tabId} />
   {:else}
-    <StatusView {client} {status} />
+    <StatusView {client} {status} {statusRevision} />
   {/if}
 </div>
 

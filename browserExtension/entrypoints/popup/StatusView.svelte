@@ -15,23 +15,14 @@
   interface Props {
     client: PopupClient;
     status: ExtensionStatus;
+    statusRevision: number;
   }
 
-  let { client, status }: Props = $props();
+  let { client, status, statusRevision }: Props = $props();
 
   let busy = $state(false);
   /** The error of the last call: about the status it was made in. */
-  let error = $state<string | null>(null);
-  /** Counts the screens, one per kind of status the popup showed: a call's error is for its own. */
-  let screens = 0;
-
-  // Another status, another screen: the last call's error goes.
-  const kind = $derived(status.kind);
-  $effect.pre(() => {
-    void kind;
-    screens++;
-    error = null;
-  });
+  let error = $state.raw<{ revision: number; text: string } | null>(null);
 
   interface Content {
     text?: I18nKey;
@@ -111,18 +102,17 @@
       return status.pairing.error === "vault_locked" ? null : errorText(status.pairing.error);
     }
     if (status.kind === "locked" && status.error !== undefined) return errorText(status.error);
-    return error;
+    return error?.revision === statusRevision ? error.text : null;
   });
 
   async function run(method: CallMethod) {
-    const screen = screens;
+    const revision = statusRevision;
     busy = true;
     error = null;
     try {
       await client.call(method, {});
     } catch (failure) {
-      // Not once the status moved on, as when the app needs an update while Unlock waits.
-      if (screen === screens) error = errorText(callErrorCode(failure));
+      error = { revision, text: errorText(callErrorCode(failure)) };
     } finally {
       busy = false;
     }

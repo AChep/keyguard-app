@@ -4,6 +4,7 @@
   scrolls sideways.
 -->
 <script lang="ts">
+  import { on } from "svelte/events";
   import { t, type I18nKey } from "../../src/lib/i18n";
   import LoadingIndicator from "../../src/lib/ui/components/LoadingIndicator.svelte";
   import { ariaKeyShortcuts, SHORTCUTS, shortcutKeys, type PopupAction } from "../../src/lib/ui/popupKeys";
@@ -25,32 +26,29 @@
 
   let { actions, mac, busy, onaction }: Props = $props();
 
-  let strip = $state<HTMLElement | undefined>();
-
   // A mouse wheel scrolls the strip sideways: it shows no scrollbar. Down
   // goes toward its end, which is to the left in a right-to-left page, where
   // `scrollLeft` counts down from 0.
-  $effect(() => {
-    const element = strip;
-    if (element === undefined) return;
-    const onWheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || element.scrollWidth <= element.clientWidth) return;
-      event.preventDefault();
-      const rtl = getComputedStyle(element).direction === "rtl";
-      element.scrollLeft += rtl ? -event.deltaY : event.deltaY;
-    };
-    element.addEventListener("wheel", onWheel, { passive: false });
-    return () => element.removeEventListener("wheel", onWheel);
-  });
+  function scrollWithWheel(element: HTMLElement) {
+    return on(
+      element,
+      "wheel",
+      (event) => {
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX) || element.scrollWidth <= element.clientWidth) return;
+        event.preventDefault();
+        const rtl = getComputedStyle(element).direction === "rtl";
+        element.scrollLeft += rtl ? -event.deltaY : event.deltaY;
+      },
+      { passive: false },
+    );
+  }
 </script>
 
-<div class="strip" bind:this={strip}>
+<div class="strip" {@attach scrollWithWheel}>
   {#each actions as action (action)}
     <!-- Fill, the default action, comes first in the primary color. -->
     <button
-      class="badge state-layer"
-      class:primary={action === "fill"}
-      class:busy={busy === action}
+      class={["badge state-layer", { primary: action === "fill", busy: busy === action }]}
       disabled={busy !== null}
       aria-keyshortcuts={ariaKeyShortcuts(SHORTCUTS[action], mac)}
       onclick={() => onaction(action)}

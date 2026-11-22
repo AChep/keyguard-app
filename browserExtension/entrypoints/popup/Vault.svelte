@@ -6,6 +6,7 @@
 -->
 <script lang="ts">
   import { untrack } from "svelte";
+  import { MediaQuery } from "svelte/reactivity";
   import { browser } from "wxt/browser";
   import type { PageSuggestions } from "../../src/lib/background/api";
   import { t, tp } from "../../src/lib/i18n";
@@ -47,7 +48,7 @@
   let generatorOpen = $state(false);
   /** Narrow: the details cover the list. */
   let detailOpen = $state(false);
-  let narrow = $state(matchMedia(NARROW_QUERY).matches);
+  const narrow = new MediaQuery(NARROW_QUERY);
   let field = $state<HTMLInputElement | undefined>();
   let snackbar = $state<Snackbar | undefined>();
 
@@ -85,13 +86,6 @@
   });
 
   $effect(() => () => searcher.dispose());
-
-  $effect(() => {
-    const query = matchMedia(NARROW_QUERY);
-    const update = () => (narrow = query.matches);
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  });
 
   // The field has focus when the popup opens.
   $effect(() => field?.focus());
@@ -162,7 +156,7 @@
   const drilled = $derived(detailOpen || generatorOpen);
   const stripShown = $derived(!generatorOpen && actions.length > 0);
   /** Narrow, the details are hidden until a row is opened: an action's error shows over the action strip. */
-  const errorOverStrip = $derived(narrow && !drilled);
+  const errorOverStrip = $derived(narrow.current && !drilled);
   // An action's error and progress show on its item only: typing may select another meanwhile.
   const selectedError = $derived(error !== null && error.handle === selected?.handle ? error.text : null);
   const selectedBusy = $derived(busy !== null && busy.handle === selected?.handle ? busy.action : null);
@@ -180,7 +174,7 @@
   // A press on a row: the keys go on in the field, as in Quick search.
   function pick(item: Item) {
     select(items.indexOf(item));
-    if (narrow && busy === null) detailOpen = true;
+    if (narrow.current && busy === null) detailOpen = true;
     field?.focus();
   }
 
@@ -297,7 +291,7 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="vault" class:raised={stripShown}>
+<div class={["vault", { raised: stripShown }]}>
   <header class="search-row">
     <Icon name="search" class="search-icon" />
     <!-- Not in a form: Enter fills the selected login. -->
@@ -306,10 +300,10 @@
       class="search-field body-large"
       type="search"
       role="combobox"
-      aria-expanded={!(narrow && drilled)}
+      aria-expanded={!(narrow.current && drilled)}
       aria-controls={LISTBOX_ID}
       aria-autocomplete="list"
-      aria-activedescendant={selected !== null && !(narrow && drilled)
+      aria-activedescendant={selected !== null && !(narrow.current && drilled)
         ? optionId(LISTBOX_ID, selectedIndex)
         : undefined}
       placeholder={t("vault_main_search_placeholder")}
@@ -350,7 +344,7 @@
     </button>
   </header>
 
-  <div class="panes" class:drilled>
+  <div class={["panes", { drilled }]}>
     <div class="list-pane">
       <ItemList view={list} listboxId={LISTBOX_ID} selected={selected?.handle ?? null} {last} {iconOf} onpick={pick} />
     </div>

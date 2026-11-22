@@ -58,6 +58,22 @@ describe("embedded pages", () => {
     post({ type: BIND_MESSAGE, token: "b".repeat(32) }, parent);
     expect(port.posted).toHaveLength(1);
   });
+
+  it("stops delivering events to an unsubscribed listener", () => {
+    const runtime = new FakePort();
+    const port = connectEmbedded("inline-menu", frameWindow(window), () => runtime);
+    const first = vi.fn();
+    const second = vi.fn();
+    const unsubscribe = port.onEvent(first);
+    port.onEvent(second);
+
+    runtime.emit({ kind: "bound" });
+    unsubscribe();
+    runtime.emit({ kind: "shown" });
+
+    expect(first.mock.calls).toEqual([[{ kind: "bound" }]]);
+    expect(second.mock.calls).toEqual([[{ kind: "bound" }], [{ kind: "shown" }]]);
+  });
 });
 
 describe("page direction", () => {

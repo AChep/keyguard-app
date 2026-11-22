@@ -67,7 +67,7 @@
   <p class="banner" role="alert"><Icon name="error_outline" />{error}</p>
 {/if}
 
-<div class="password" class:stale={busy && password !== null}>
+<div class={["password", { stale: busy && password !== null }]}>
   {#if password !== null}
     <output aria-live="polite"
       >{#each runs as run, index (index)}<span class={run.kind}>{run.text}</span>{/each}</output

@@ -15,8 +15,8 @@ import "./embedded.css";
 
 export interface EmbeddedPort<Request, Event> {
   send(request: Request): void;
-  /** Called for each event of the background. */
-  onEvent(listener: (event: Event) => void): void;
+  /** Calls the listener for each background event and returns its unsubscribe function. */
+  onEvent(listener: (event: Event) => void): () => void;
 }
 
 /** The parts of `runtime.Port` an embedded page uses. */
@@ -37,7 +37,7 @@ export function connectEmbedded<Request, Event extends { kind: string }>(
   connect: (name: string) => RuntimePort = (name) => browser.runtime.connect({ name }),
 ): EmbeddedPort<Request | { kind: "bind"; token: string }, Event> {
   const port = connect(name);
-  const listeners: ((event: Event) => void)[] = [];
+  const listeners = new Set<(event: Event) => void>();
   let bound = false;
 
   const onToken = (message: MessageEvent) => {
@@ -66,7 +66,10 @@ export function connectEmbedded<Request, Event extends { kind: string }>(
         // The background dropped the port.
       }
     },
-    onEvent: (listener) => void listeners.push(listener),
+    onEvent: (listener) => {
+      listeners.add(listener);
+      return () => void listeners.delete(listener);
+    },
   };
 }
 

@@ -3,7 +3,15 @@
 // responses and events over Noise transport messages.
 import type { NativeCryptoNoise, NoiseHandshake, NoiseTransport } from "../crypto/noise";
 import { bytesEqual, concatBytes, utf8 } from "../util/bytes";
-import { fragmentMessage, MAX_DEPTH, MessageTooDeep, nestsAtMost, ProtocolViolation, Reassembler, type JsonObject } from "./framing";
+import {
+  fragmentMessage,
+  MAX_DEPTH,
+  MessageTooDeep,
+  nestsAtMost,
+  ProtocolViolation,
+  Reassembler,
+  type JsonObject,
+} from "./framing";
 import {
   parseEvent,
   parseResponse,

@@ -9,7 +9,11 @@ import { SerialQueue } from "../util/serial";
 export type ClipboardRoute = "offscreen" | "document";
 
 /** Where the background writes the clipboard, or `null` when it can't. */
-export function clipboardRoute(env: { firefox: boolean; offscreen: boolean; document: boolean }): ClipboardRoute | null {
+export function clipboardRoute(env: {
+  firefox: boolean;
+  offscreen: boolean;
+  document: boolean;
+}): ClipboardRoute | null {
   if (env.firefox) return env.document ? "document" : null;
   if (env.offscreen) return "offscreen";
   return env.document ? "document" : null;

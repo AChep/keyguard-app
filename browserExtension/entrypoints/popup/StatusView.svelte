@@ -101,7 +101,9 @@
   }
 
   const view = $derived(content(status));
-  const code = $derived(status.kind === "not_paired" && status.pairing.phase === "confirm" ? status.pairing.code : null);
+  const code = $derived(
+    status.kind === "not_paired" && status.pairing.phase === "confirm" ? status.pairing.code : null,
+  );
   const title = $derived(code !== null ? t("browser_extension_pairing_code_title") : statusTitle(status));
   // An error the background keeps in the status, or one of the last call.
   const shownError = $derived.by(() => {

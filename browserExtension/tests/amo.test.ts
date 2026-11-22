@@ -36,7 +36,12 @@ describe("amoJwt", () => {
     const [header, payload, signature] = amoJwt(KEY, now).split(".");
     expect(decode(header!)).toEqual({ alg: "HS256", typ: "JWT" });
     const claims = decode(payload!);
-    expect(claims).toEqual({ iss: KEY.issuer, jti: expect.any(String), iat: Math.floor(now / 1000), exp: expect.any(Number) });
+    expect(claims).toEqual({
+      iss: KEY.issuer,
+      jti: expect.any(String),
+      iat: Math.floor(now / 1000),
+      exp: expect.any(Number),
+    });
     const lifetime = (claims.exp as number) - (claims.iat as number);
     expect(lifetime).toBeGreaterThan(0);
     expect(lifetime).toBeLessThanOrEqual(5 * 60);

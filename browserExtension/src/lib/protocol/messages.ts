@@ -12,7 +12,10 @@ export const PROTOCOL_VERSIONS = { min: 1, max: 1 } as const;
  */
 export type VersionCheck = { kind: "ok"; version: number } | { kind: "app_outdated" } | { kind: "invalid" };
 
-export function checkVersion(answered: number, versions: { min: number; max: number } = PROTOCOL_VERSIONS): VersionCheck {
+export function checkVersion(
+  answered: number,
+  versions: { min: number; max: number } = PROTOCOL_VERSIONS,
+): VersionCheck {
   if (answered > versions.max) return { kind: "invalid" };
   if (answered < versions.min) return { kind: "app_outdated" };
   return { kind: "ok", version: answered };

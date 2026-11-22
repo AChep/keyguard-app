@@ -31,7 +31,10 @@ const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Line endings of a Windows checkout, and blank lines around the text, don't change the file. */
 function normalize(text: string): string {
-  return text.replace(/\r\n?/g, "\n").replace(/^\s*\n/, "").trimEnd();
+  return text
+    .replace(/\r\n?/g, "\n")
+    .replace(/^\s*\n/, "")
+    .trimEnd();
 }
 
 /** The license files of a directory, by name, or `undefined` if it has none. */

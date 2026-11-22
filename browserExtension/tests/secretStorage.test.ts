@@ -83,10 +83,18 @@ describe("PairingStore", () => {
 
   it("replaces an unreadable record with a new key", async () => {
     const secrets = new IndexedDbArea(factory);
-    for (const record of ["text", { privateKey: "AA==" }, { version: 1, privateKey: "AA==", publicKey: "AA==" }, { version: 0 }]) {
+    for (const record of [
+      "text",
+      { privateKey: "AA==" },
+      { version: 1, privateKey: "AA==", publicKey: "AA==" },
+      { version: 0 },
+    ]) {
       await secrets.set({ keyguard: record });
       const keys = await new PairingStore(secrets).staticKey(noise);
-      expect((await secrets.get("keyguard")).keyguard, JSON.stringify(record)).toMatchObject({ version: 1, publicKey: toBase64(keys.publicKey) });
+      expect((await secrets.get("keyguard")).keyguard, JSON.stringify(record)).toMatchObject({
+        version: 1,
+        publicKey: toBase64(keys.publicKey),
+      });
     }
   });
 });

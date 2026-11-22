@@ -90,7 +90,11 @@ describe("options", () => {
     const defaults = DEFAULT_OPTIONS as ExtensionOptions;
     defaults.submitAfterFill = true;
     try {
-      expect(await new OptionsStore(storage).options()).toEqual({ ...DEFAULT_OPTIONS, inlineMenu: false, submitAfterFill: true });
+      expect(await new OptionsStore(storage).options()).toEqual({
+        ...DEFAULT_OPTIONS,
+        inlineMenu: false,
+        submitAfterFill: true,
+      });
     } finally {
       defaults.submitAfterFill = false;
     }
@@ -118,7 +122,10 @@ describe("options", () => {
     const slow = {
       get: () => new Promise<Record<string, unknown>>((it) => (resolve = it)),
       set: async () => undefined,
-      onChanged: { addListener: (it: (typeof listeners)[number]) => listeners.push(it), removeListener: () => undefined },
+      onChanged: {
+        addListener: (it: (typeof listeners)[number]) => listeners.push(it),
+        removeListener: () => undefined,
+      },
     };
     const seen: ExtensionOptions[] = [];
     watchOptions(slow, (options) => seen.push(options));

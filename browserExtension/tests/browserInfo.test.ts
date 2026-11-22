@@ -8,7 +8,10 @@ describe("extensionOrigin", () => {
   });
 
   it("is the add-on ID on Firefox", () => {
-    const runtime = { id: "browser@keyguard.dev", getURL: () => "moz-extension://0b5a3e3c-5d2e-4bfa-9c1e-1b2c3d4e5f60/" };
+    const runtime = {
+      id: "browser@keyguard.dev",
+      getURL: () => "moz-extension://0b5a3e3c-5d2e-4bfa-9c1e-1b2c3d4e5f60/",
+    };
     expect(extensionOrigin(runtime)).toBe("browser@keyguard.dev");
   });
 });
@@ -16,9 +19,17 @@ describe("extensionOrigin", () => {
 describe("browserName", () => {
   it.each([
     ["Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0", undefined, "Firefox"],
-    ["Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0", undefined, "Microsoft Edge"],
+    [
+      "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0",
+      undefined,
+      "Microsoft Edge",
+    ],
     ["Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36", ["Brave", "Chromium"], "Brave"],
-    ["Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36", ["Google Chrome", "Chromium"], "Google Chrome"],
+    [
+      "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36",
+      ["Google Chrome", "Chromium"],
+      "Google Chrome",
+    ],
     ["Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36", ["Chromium"], "Chromium"],
   ])("names %s", (userAgent, brands, name) => {
     const userAgentData = brands === undefined ? undefined : { brands: brands.map((brand) => ({ brand })) };

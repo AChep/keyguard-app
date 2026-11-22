@@ -2,7 +2,14 @@
 // forms of the top frame the content script reports to the background
 // (`password_step`), and the field that a fill of target `step` then takes.
 import { randomToken, type ContentRequest } from "../page/messages";
-import { collectInputs, detectFormOf, formRootOf, type DetectedForm, type DetectOptions, type FormRoot } from "./detect";
+import {
+  collectInputs,
+  detectFormOf,
+  formRootOf,
+  type DetectedForm,
+  type DetectOptions,
+  type FormRoot,
+} from "./detect";
 import { isPasswordStep, shownAccount, type CanFill, type FilledValue } from "./fill";
 import { fieldExposure, type Layout } from "./guards";
 

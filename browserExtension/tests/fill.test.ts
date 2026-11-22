@@ -110,7 +110,16 @@ describe("fill", () => {
     await fillLogin(formOf("p"), { username: "ann", password: "secret" }, canFill);
 
     expect(username.map((it) => it.type).filter((it) => it === "blur")).toEqual(["blur"]);
-    expect(password.map((it) => it.type)).toEqual(["focus", "keydown", "keypress", "input", "keyup", "change", "blur", "focus"]);
+    expect(password.map((it) => it.type)).toEqual([
+      "focus",
+      "keydown",
+      "keypress",
+      "input",
+      "keyup",
+      "change",
+      "blur",
+      "focus",
+    ]);
     expect(document.activeElement).toBe(byId("p"));
   });
 
@@ -163,13 +172,18 @@ describe("fill", () => {
     render(`<form><input id="u" name="email" readonly><input id="p" type="password" readonly></form>`);
     for (const id of ["u", "p"]) byId(id).addEventListener("focus", () => byId(id).removeAttribute("readonly"));
 
-    expect(await fillLogin(formOf("p"), { username: "ann", password: "secret" }, canFill)).toEqual([byId("u"), byId("p")]);
+    expect(await fillLogin(formOf("p"), { username: "ann", password: "secret" }, canFill)).toEqual([
+      byId("u"),
+      byId("p"),
+    ]);
     expect(byId("u").value).toBe("ann");
     expect(byId("p").value).toBe("secret");
   });
 
   it("skips the account a password step shows read-only, with no events but focus", async () => {
-    render(`<form><input id="account" name="email" readonly value="ann@example.com"><input id="p" type="password"></form>`);
+    render(
+      `<form><input id="account" name="email" readonly value="ann@example.com"><input id="p" type="password"></form>`,
+    );
     const events = recordEvents(byId("account"));
 
     expect(await fillLogin(formOf("p"), { username: "bob", password: "secret" }, canFill)).toEqual([byId("p")]);
@@ -203,7 +217,9 @@ describe("fill", () => {
   });
 
   it("fills a generated password into the new password and its confirmation", async () => {
-    render(`<form><input id="cur" type="password" name="current"><input id="n1" type="password"><input id="n2" type="password"></form>`);
+    render(
+      `<form><input id="cur" type="password" name="current"><input id="n1" type="password"><input id="n2" type="password"></form>`,
+    );
     expect(await fillNewPassword(formOf("n1"), "Gen3rated!", canFill)).toEqual([byId("n1"), byId("n2")]);
     expect(byId("n2").value).toBe("Gen3rated!");
     expect(byId("cur").value).toBe("");
@@ -219,7 +235,16 @@ describe("fill", () => {
     const events = recordEvents(byId("b6"));
     await fillOtp(formOf("b1"), "654321", canFill);
     expect([1, 2, 3, 4, 5, 6].map((i) => byId(`b${i}`).value).join("")).toBe("654321");
-    expect(events.map((it) => it.type)).toEqual(["focus", "keydown", "keypress", "input", "keyup", "change", "blur", "focus"]);
+    expect(events.map((it) => it.type)).toEqual([
+      "focus",
+      "keydown",
+      "keypress",
+      "input",
+      "keyup",
+      "change",
+      "blur",
+      "focus",
+    ]);
   });
 });
 

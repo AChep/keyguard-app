@@ -159,8 +159,7 @@ export interface FrameCheck {
  * follow.
  */
 export type DocumentResult =
-  | { ok: true; url?: string; parent?: FrameCheck; passwordStep?: true }
-  | { ok: false; reason: FillRefusal };
+  { ok: true; url?: string; parent?: FrameCheck; passwordStep?: true } | { ok: false; reason: FillRefusal };
 
 /** Each [DocumentCommand]: whether it expects a [DocumentResult], or only notifies. */
 const DOCUMENT_COMMANDS: { readonly [K in DocumentCommand["kind"]]: "answer" | "notify" } = {
@@ -180,7 +179,9 @@ const DOCUMENT_COMMANDS: { readonly [K in DocumentCommand["kind"]]: "answer" | "
  * rest.
  */
 export function documentCommandOf(kind: unknown): "answer" | "notify" | null {
-  return typeof kind === "string" && Object.hasOwn(DOCUMENT_COMMANDS, kind) ? DOCUMENT_COMMANDS[kind as DocumentCommand["kind"]] : null;
+  return typeof kind === "string" && Object.hasOwn(DOCUMENT_COMMANDS, kind)
+    ? DOCUMENT_COMMANDS[kind as DocumentCommand["kind"]]
+    : null;
 }
 
 export type ContentCommand =
@@ -336,8 +337,10 @@ const MAX_HANDLE_LENGTH = 64;
 const REFUSALS: ReadonlySet<string> = new Set<FillRefusal>(["no_form", "obscured", "origin"]);
 
 const isValue = (value: unknown): value is string => typeof value === "string" && value.length <= MAX_VALUE_LENGTH;
-const isOptionalValue = (value: unknown): value is string | undefined => value === undefined || (isValue(value) && value.length > 0);
-const isOptionalString = (value: unknown): value is string | undefined => value === undefined || typeof value === "string";
+const isOptionalValue = (value: unknown): value is string | undefined =>
+  value === undefined || (isValue(value) && value.length > 0);
+const isOptionalString = (value: unknown): value is string | undefined =>
+  value === undefined || typeof value === "string";
 
 export function isToken(value: unknown): value is string {
   return typeof value === "string" && TOKEN.test(value);
@@ -453,7 +456,12 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
       return isToken(message.probe) ? { kind: "top_report", probe: message.probe } : null;
     case "frame_report": {
       const parent = parseFrameCheck(message.parent);
-      if (!isToken(message.probe) || typeof message.ok !== "boolean" || (message.parent !== undefined && parent === null)) return null;
+      if (
+        !isToken(message.probe) ||
+        typeof message.ok !== "boolean" ||
+        (message.parent !== undefined && parent === null)
+      )
+        return null;
       return { kind: "frame_report", probe: message.probe, ok: message.ok, ...(parent !== null ? { parent } : {}) };
     }
     default:
@@ -483,7 +491,9 @@ export function parseMenuRequest(message: unknown): MenuRequest | null {
 
 /** The content height an embedded page reports; the content script clamps it. */
 function parseResize(message: Record<string, unknown>): { kind: "resize"; height: number } | null {
-  return typeof message.height === "number" && Number.isFinite(message.height) ? { kind: "resize", height: message.height } : null;
+  return typeof message.height === "number" && Number.isFinite(message.height)
+    ? { kind: "resize", height: message.height }
+    : null;
 }
 
 export function parseSaveBarRequest(message: unknown): SaveBarRequest | null {

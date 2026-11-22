@@ -61,7 +61,8 @@
       {:else}
         <!-- On one line: no spaces around the "+". -->
         <span class="shortcut body-small" aria-hidden="true"
-          >{#each shortcutKeys(SHORTCUTS[action], mac) as key, index (index)}{#if index > 0}+{/if}<b>{key}</b>{/each}</span
+          >{#each shortcutKeys(SHORTCUTS[action], mac) as key, index (index)}{#if index > 0}+{/if}<b>{key}</b
+            >{/each}</span
         >
       {/if}
     </button>

@@ -53,7 +53,9 @@ describe("parseStoredTheme", () => {
     expect(parseStoredTheme(LIGHT)).toEqual(LIGHT);
     const shuffled = { tokens: Object.fromEntries(Object.entries(DARK.tokens).reverse()), dark: true, v: 1 };
     expect(JSON.stringify(parseStoredTheme(shuffled))).toBe(JSON.stringify(DARK));
-    expect(JSON.stringify(toStoredTheme({ dark: true, tokens: shuffled.tokens as ThemeTokens }))).toBe(JSON.stringify(DARK));
+    expect(JSON.stringify(toStoredTheme({ dark: true, tokens: shuffled.tokens as ThemeTokens }))).toBe(
+      JSON.stringify(DARK),
+    );
   });
 
   const { surface: _, ...missing } = DARK.tokens;
@@ -178,7 +180,10 @@ describe("watchTheme", () => {
     const listeners: ((changes: Record<string, { newValue?: unknown }>) => void)[] = [];
     const slow = {
       get: () => new Promise<Record<string, unknown>>((it) => (resolve = it)),
-      onChanged: { addListener: (it: (typeof listeners)[number]) => listeners.push(it), removeListener: () => undefined },
+      onChanged: {
+        addListener: (it: (typeof listeners)[number]) => listeners.push(it),
+        removeListener: () => undefined,
+      },
     };
     const seen: (StoredTheme | null)[] = [];
     watchTheme(slow, (stored) => seen.push(stored));
@@ -261,7 +266,11 @@ describe("followTheme", () => {
   });
 
   it("starts with theme.css without a usable copy", async () => {
-    for (const options of [{ mirror: "{" }, { mirror: JSON.stringify({ ...DARK, v: 2 }) }, { storage: "throws" as const }]) {
+    for (const options of [
+      { mirror: "{" },
+      { mirror: JSON.stringify({ ...DARK, v: 2 }) },
+      { storage: "throws" as const },
+    ]) {
       const { win } = page({ dark: false, ...options });
       const stop = followTheme(win, area());
       expect(surface()).toBe("");

@@ -150,7 +150,9 @@ describe("ProtocolSession", () => {
     const answers: (() => void)[] = [];
     const { app, protocol, sent, ends } = connect({
       handler: (request) =>
-        request.type === "generate" ? new Promise((resolve) => answers.push(() => resolve({ password: "pw" }))) : undefined,
+        request.type === "generate"
+          ? new Promise((resolve) => answers.push(() => resolve({ password: "pw" })))
+          : undefined,
     });
     await protocol.established;
     // Every slot taken: a request that took one would wait.
@@ -163,7 +165,11 @@ describe("ProtocolSession", () => {
       for (let i = 1; i < depth; i++) value = i % 2 === 0 ? { a: value } : [value];
       return { a: value };
     };
-    const fields = (depth: number) => ({ origin: "https://example.com", options: nested(depth), same_origin_with_ancestors: true });
+    const fields = (depth: number) => ({
+      origin: "https://example.com",
+      options: nested(depth),
+      same_origin_with_ancestors: true,
+    });
     await expect(protocol.request("passkey_create", fields(MAX_DEPTH))).rejects.toBeInstanceOf(MessageTooDeep);
     expect(sent).toHaveLength(frames);
     answers.splice(0).forEach((answer) => answer());
@@ -192,7 +198,9 @@ describe("ProtocolSession", () => {
   it("reads an unknown vault state as locked, in responses and events", async () => {
     const { app, protocol, events } = connect({
       handler: (request) =>
-        request.type === "hello" ? { protocol: 1, capabilities: [], paired: true, vault: "sealed" } : { vault: "sealed" },
+        request.type === "hello"
+          ? { protocol: 1, capabilities: [], paired: true, vault: "sealed" }
+          : { vault: "sealed" },
     });
     await expect(protocol.request("hello", hello)).resolves.toMatchObject({ vault: "locked" });
     await expect(protocol.request("unlock", {})).resolves.toMatchObject({ vault: "locked" });
@@ -204,8 +212,20 @@ describe("ProtocolSession", () => {
   });
 
   it("reads password_hidden of an item as an optional boolean", async () => {
-    const item = { handle: "h", name: "Example", account: "Work", has_password: true, has_totp: false, reprompt: false };
-    const response = (hidden: unknown) => ({ blocked: false, save_blocked: false, truncated: false, items: [{ ...item, password_hidden: hidden }] });
+    const item = {
+      handle: "h",
+      name: "Example",
+      account: "Work",
+      has_password: true,
+      has_totp: false,
+      reprompt: false,
+    };
+    const response = (hidden: unknown) => ({
+      blocked: false,
+      save_blocked: false,
+      truncated: false,
+      items: [{ ...item, password_hidden: hidden }],
+    });
     let hidden: unknown = true;
     const { protocol } = connect({ handler: (request) => (request.type === "suggest" ? response(hidden) : undefined) });
     await expect(protocol.request("suggest", { url: "https://example.com/" })).resolves.toMatchObject({
@@ -280,8 +300,7 @@ describe("ProtocolSession", () => {
   it("keeps at most 8 requests in flight", async () => {
     const answers: (() => void)[] = [];
     const { app, protocol } = connect({
-      handler: (request) =>
-        new Promise((resolve) => answers.push(() => resolve({ password: String(request.id) }))),
+      handler: (request) => new Promise((resolve) => answers.push(() => resolve({ password: String(request.id) }))),
     });
     const requests = Array.from({ length: MAX_IN_FLIGHT + 2 }, () => protocol.request("generate", {}));
     await flush();
@@ -301,8 +320,7 @@ describe("ProtocolSession", () => {
   it("cancels a request in flight: fails it at once, and sends cancel outside the 8 slots", async () => {
     const answers: (() => void)[] = [];
     const { app, protocol, ends } = connect({
-      handler: (request) =>
-        new Promise((resolve) => answers.push(() => resolve({ password: String(request.id) }))),
+      handler: (request) => new Promise((resolve) => answers.push(() => resolve({ password: String(request.id) }))),
     });
     const abort = new AbortController();
     const first = protocol.request("generate", {}, abort.signal);
@@ -373,7 +391,9 @@ describe("ProtocolSession", () => {
 
   it("fails a request after close, with 8 in flight", async () => {
     const { app, protocol } = connect({ handler: () => new Promise(() => undefined) });
-    const full = Array.from({ length: MAX_IN_FLIGHT }, () => protocol.request("generate", {}).catch((error: unknown) => error));
+    const full = Array.from({ length: MAX_IN_FLIGHT }, () =>
+      protocol.request("generate", {}).catch((error: unknown) => error),
+    );
     await flush();
     expect(app.requests).toHaveLength(MAX_IN_FLIGHT);
     protocol.close();

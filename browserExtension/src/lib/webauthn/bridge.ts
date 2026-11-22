@@ -44,7 +44,8 @@ export type MainMessage =
   /** The page aborted, or the browser answered first. */
   | { kind: "abort"; id: number };
 
-export type WebAuthnErrorName = "NotAllowedError" | "InvalidStateError" | "SecurityError" | "AbortError" | "NotSupportedError";
+export type WebAuthnErrorName =
+  "NotAllowedError" | "InvalidStateError" | "SecurityError" | "AbortError" | "NotSupportedError";
 
 export const ERROR_NAMES: readonly WebAuthnErrorName[] = [
   "NotAllowedError",

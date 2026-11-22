@@ -30,7 +30,9 @@ describe("opaque origins", () => {
     // data: and similar URLs.
     expect(isOpaqueOrigin({ origin: "null", location: { origin: "null" } })).toBe(true);
     expect(isOpaqueOrigin({ location: { origin: "null" } })).toBe(true);
-    expect(isOpaqueOrigin({ origin: "https://bank.example", location: { origin: "https://bank.example" } })).toBe(false);
+    expect(isOpaqueOrigin({ origin: "https://bank.example", location: { origin: "https://bank.example" } })).toBe(
+      false,
+    );
   });
 
   it("serves about:blank and srcdoc frames as the origin they inherit, unless sandboxed", () => {
@@ -288,7 +290,11 @@ describe("popup exposure", () => {
         [outer, outerRoot],
         [inner, innerRoot],
       ]);
-      const layout = testLayout({ boxes, topHit: () => host, shadowRoot: (element) => roots.get(element) ?? element.shadowRoot });
+      const layout = testLayout({
+        boxes,
+        topHit: () => host,
+        shadowRoot: (element) => roots.get(element) ?? element.shadowRoot,
+      });
       expect(popupExposure(host, popup, layout, document), mode).toBeNull();
       open(popover);
       expect(popupExposure(host, popup, layout, document), mode).toBe("obscured");
@@ -307,19 +313,33 @@ describe("popup exposure", () => {
     open(popover);
     // Firefox: `Element.openOrClosedShadowRoot`; Chromium: `dom.openOrClosedShadowRoot`.
     for (const element of [outer, host]) {
-      Object.defineProperty(element, "openOrClosedShadowRoot", { value: element === host ? ownRoot : closed, configurable: true });
+      Object.defineProperty(element, "openOrClosedShadowRoot", {
+        value: element === host ? ownRoot : closed,
+        configurable: true,
+      });
     }
-    const chromium = { openOrClosedShadowRoot: (element: Element) => (element === outer ? closed : element === host ? ownRoot : null) };
-    for (const [name, dom] of [["firefox", undefined], ["chromium", chromium]] as const) {
+    const chromium = {
+      openOrClosedShadowRoot: (element: Element) => (element === outer ? closed : element === host ? ownRoot : null),
+    };
+    for (const [name, dom] of [
+      ["firefox", undefined],
+      ["chromium", chromium],
+    ] as const) {
       // Detection asks custom elements only: it doesn't see this one.
       const detection = shadowRootReader(dom, host, { everyHost: false });
       expect(detection(outer), name).toBeNull();
-      expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: detection }), document), name).toBeNull();
+      expect(
+        popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: detection }), document),
+        name,
+      ).toBeNull();
       const guard = shadowRootReader(dom, host, { everyHost: true });
       expect(guard(outer), name).toBe(closed);
       // Never the extension's own root.
       expect(guard(host), name).toBeNull();
-      expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: guard }), document), name).toBe("obscured");
+      expect(
+        popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: guard }), document),
+        name,
+      ).toBe("obscured");
     }
   });
 
@@ -328,7 +348,14 @@ describe("popup exposure", () => {
     // The menu's and the icon's popovers are the extension's.
     open(popup);
     const root = new Map<Element, ShadowRoot>([[host, popup.getRootNode() as ShadowRoot]]);
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: (element) => root.get(element) ?? null }), document)).toBeNull();
+    expect(
+      popupExposure(
+        host,
+        popup,
+        testLayout({ boxes, topHit: () => host, shadowRoot: (element) => root.get(element) ?? null }),
+        document,
+      ),
+    ).toBeNull();
   });
 
   it("takes the modal dialog around the host as under the menu, but not a foreign one or the fullscreen element", () => {
@@ -344,7 +371,10 @@ describe("popup exposure", () => {
     open(decoy);
     expect(popupExposure(host, popup, layout, document)).toBe("obscured");
     decoy.removeAttribute(TOP_LAYER);
-    const fullscreen = { fullscreenElement: dialog, querySelectorAll: (selector: string) => document.querySelectorAll(selector) } as unknown as Document;
+    const fullscreen = {
+      fullscreenElement: dialog,
+      querySelectorAll: (selector: string) => document.querySelectorAll(selector),
+    } as unknown as Document;
     expect(popupExposure(host, popup, layout, fullscreen)).toBe("obscured");
   });
 
@@ -374,20 +404,27 @@ describe("popup exposure", () => {
     host.attachShadow({ mode: "closed" }).append(popup);
     const boxes = new Map<Element, Box>([[popup, { left: 100, top: 140, width: 320, height: 200 }]]);
     // The document hits the component; its root, the host.
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => host }), document)).toBeNull();
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => modal }), document)).toBe("obscured");
+    expect(
+      popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => host }), document),
+    ).toBeNull();
+    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => modal }), document)).toBe(
+      "obscured",
+    );
   });
 });
 
 describe("frames that hold the menu", () => {
   /** An iframe of the parent's document at [box], with a 2px border, hit wherever it is. */
-  function setup(html = `<div id="wrap"><iframe id="frame" style="border: 2px solid"></iframe></div><div id="decoy"></div>`) {
+  function setup(
+    html = `<div id="wrap"><iframe id="frame" style="border: 2px solid"></iframe></div><div id="decoy"></div>`,
+  ) {
     render(html);
     const frame = byId<HTMLIFrameElement>("frame");
     const box: Box = { left: 100, top: 50, width: 400, height: 300 };
     const boxes = new Map<Element, Box>([[frame, box]]);
     let hit: Element | null = frame;
-    const inside = (x: number, y: number) => x >= box.left && y >= box.top && x < box.left + box.width && y < box.top + box.height;
+    const inside = (x: number, y: number) =>
+      x >= box.left && y >= box.top && x < box.left + box.width && y < box.top + box.height;
     const layout = testLayout({ boxes, hit: (x, y) => (inside(x, y) ? hit : null) });
     return { frame, layout, cover: (element: Element | null) => (hit = element) };
   }
@@ -427,7 +464,10 @@ describe("frames that hold the menu", () => {
     const { frame, layout } = setup();
     const wrap = byId<HTMLElement>("wrap");
     // As browsers compute them: matrices.
-    for (const transform of ["matrix(1, 0, 0, 1, 30, -20)", "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 30, -20, 0, 1)"]) {
+    for (const transform of [
+      "matrix(1, 0, 0, 1, 30, -20)",
+      "matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 30, -20, 0, 1)",
+    ]) {
       wrap.style.transform = transform;
       expect(frameExposure(frame, { x: 60, y: 40 }, layout, document), transform).toEqual({ x: 162, y: 92 });
     }
@@ -442,11 +482,24 @@ describe("frames that hold the menu", () => {
       expect(frameExposure(frame, { x: 60, y: 40 }, layout, document), transform).toBeNull();
     }
     wrap.style.transform = "none";
-    const scaled = { ...getComputedStyle(frame), transform: "none", scale: "0.5", rotate: "none", translate: "none" } as CSSStyleDeclaration;
+    const scaled = {
+      ...getComputedStyle(frame),
+      transform: "none",
+      scale: "0.5",
+      rotate: "none",
+      translate: "none",
+    } as CSSStyleDeclaration;
     const rotated = { ...scaled, scale: "none", rotate: "45deg" } as CSSStyleDeclaration;
     const zoomed = { ...scaled, scale: "none", zoom: "0.5" } as CSSStyleDeclaration;
     for (const style of [scaled, rotated, zoomed]) {
-      expect(frameExposure(frame, { x: 60, y: 40 }, { ...layout, style: (element) => (element === frame ? style : getComputedStyle(element)) }, document)).toBeNull();
+      expect(
+        frameExposure(
+          frame,
+          { x: 60, y: 40 },
+          { ...layout, style: (element) => (element === frame ? style : getComputedStyle(element)) },
+          document,
+        ),
+      ).toBeNull();
     }
   });
 
@@ -620,8 +673,16 @@ describe("top-layer watch", () => {
     closed.innerHTML = `<div id="inside" popover="manual"></div>`;
     let now = 0;
     frames();
-    const shadowRoot = shadowRootReader({ openOrClosedShadowRoot: (element) => (element === outer ? closed : null) }, host, { everyHost: true });
-    const watch = new TopLayerWatch({ documents: () => [{ doc: document, host, layout: testLayout({ shadowRoot }) }], open: () => true, now: () => now });
+    const shadowRoot = shadowRootReader(
+      { openOrClosedShadowRoot: (element) => (element === outer ? closed : null) },
+      host,
+      { everyHost: true },
+    );
+    const watch = new TopLayerWatch({
+      documents: () => [{ doc: document, host, layout: testLayout({ shadowRoot }) }],
+      open: () => true,
+      now: () => now,
+    });
     watch.start();
     // Not composed: the document doesn't see it, the root's listener does.
     toggle(byId("inside", closed), "beforetoggle");
@@ -642,7 +703,10 @@ describe("top-layer watch", () => {
     const dialog = document.createElement("dialog");
     document.body.append(dialog);
     dialog.append(host);
-    Object.defineProperty(dialog, "matches", { value: (selector: string) => selector === ":modal", configurable: true });
+    Object.defineProperty(dialog, "matches", {
+      value: (selector: string) => selector === ":modal",
+      configurable: true,
+    });
     dialog.setAttribute(TOP_LAYER, "");
     watch.start();
     toggle(dialog, "beforetoggle");

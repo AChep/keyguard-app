@@ -144,9 +144,12 @@ To use another Chrome or Chromium, set `CHROME_PATH` to its executable.
 ```sh
 pnpm typecheck
 pnpm lint
+pnpm format:check
 pnpm test
 pnpm build:firefox && pnpm lint:firefox
 ```
+
+Run `pnpm format` to apply Prettier formatting to the extension source.
 
 The build fails when it bundles an npm package under a license outside the
 allowlist in `wxt.config.ts`.

@@ -163,7 +163,9 @@ function extensionPagesCsp(browser: string, devServer: boolean): string {
     "object-src 'none'",
     "base-uri 'none'",
     "form-action 'none'",
-  ].join("; ").concat(";");
+  ]
+    .join("; ")
+    .concat(";");
 }
 
 export default defineConfig({

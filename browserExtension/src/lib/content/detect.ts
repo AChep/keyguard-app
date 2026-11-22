@@ -95,7 +95,13 @@ const IGNORED_WORDS = /search|captcha|coupon|promo|voucher|postal|zip-?code|news
  * 1Password's, LastPass's, Bitwarden's and Proton Pass's. Any value but
  * "false" counts; React writes `data-lpignore={false}` as "false".
  */
-const IGNORE_ATTRIBUTES = ["data-keyguard-ignore", "data-1p-ignore", "data-lpignore", "data-bwignore", "data-protonpass-ignore"];
+const IGNORE_ATTRIBUTES = [
+  "data-keyguard-ignore",
+  "data-1p-ignore",
+  "data-lpignore",
+  "data-bwignore",
+  "data-protonpass-ignore",
+];
 /** Text before a field longer than this is prose, not its label. */
 const NEARBY_TEXT_MAX = 64;
 /** Nodes read for the text before a field: a label has few. */
@@ -130,7 +136,10 @@ function autocompleteHint(tokens: string[]): Hint {
 }
 
 function normalized(text: string | null | undefined): string {
-  return (text ?? "").trim().replace(/[\s_]+/g, "-").slice(0, 200);
+  return (text ?? "")
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .slice(0, 200);
 }
 
 /**
@@ -139,7 +148,12 @@ function normalized(text: string | null | undefined): string {
  * `<div>Email</div><input>`.
  */
 export function describe(input: HTMLInputElement): string {
-  const parts: (string | null | undefined)[] = [input.name, input.id, input.getAttribute("aria-label"), input.placeholder];
+  const parts: (string | null | undefined)[] = [
+    input.name,
+    input.id,
+    input.getAttribute("aria-label"),
+    input.placeholder,
+  ];
   const labels = Array.from(input.labels ?? []);
   for (const label of labels) parts.push(label.textContent);
   const labelledBy = input.getAttribute("aria-labelledby");
@@ -254,7 +268,10 @@ function looksLikeOtp(input: HTMLInputElement, hint: Hint, words: string): boole
   if (hint !== null || input.type === "password" || input.type === "email") return false;
   if (OTP_WORDS.test(words)) return true;
   const numeric =
-    input.inputMode === "numeric" || input.type === "number" || input.type === "tel" || /\\d|\[0-9\]/.test(input.pattern);
+    input.inputMode === "numeric" ||
+    input.type === "number" ||
+    input.type === "tel" ||
+    /\\d|\[0-9\]/.test(input.pattern);
   const short = input.maxLength >= 4 && input.maxLength <= 10;
   return (CODE_NAME.test(input.name) || CODE_NAME.test(input.id)) && (numeric || short);
 }
@@ -328,7 +345,11 @@ export function formRootOf(input: HTMLInputElement): FormRoot {
 }
 
 /** Classifies the inputs of one form root, in tree order. */
-export function classifyForm(root: FormRoot, inputs: HTMLInputElement[], options: DetectOptions = {}): DetectedForm | null {
+export function classifyForm(
+  root: FormRoot,
+  inputs: HTMLInputElement[],
+  options: DetectOptions = {},
+): DetectedForm | null {
   const rendered = options.rendered ?? defaultRendered;
   const fields = inputs.filter((input) => isFillableType(input) && !isIgnored(input) && rendered(input));
   if (fields.length === 0) return null;
@@ -356,7 +377,15 @@ export function classifyForm(root: FormRoot, inputs: HTMLInputElement[], options
     tokens.get(input)!.includes("webauthn") ||
     USERNAME_WORDS.test(words.get(input)!);
 
-  const form: DetectedForm = { kind: "login", root, username: null, currentPassword: null, newPasswords: [], otp, webauthn };
+  const form: DetectedForm = {
+    kind: "login",
+    root,
+    username: null,
+    currentPassword: null,
+    newPasswords: [],
+    otp,
+    webauthn,
+  };
 
   if (passwords.length === 0) {
     if (otp.length > 0) return { ...form, kind: "otp" };
@@ -432,7 +461,9 @@ export function classifyForm(root: FormRoot, inputs: HTMLInputElement[], options
 export function detectFormOf(input: HTMLInputElement, options: DetectOptions = {}): DetectedForm | null {
   const root = formRootOf(input);
   // Outside a form: the inputs of its own tree only, not of shadow roots in it.
-  const inputs = isElement(root) ? formInputs(root) : Array.from(root.querySelectorAll("input")).filter((it) => it.form === null);
+  const inputs = isElement(root)
+    ? formInputs(root)
+    : Array.from(root.querySelectorAll("input")).filter((it) => it.form === null);
   return classifyForm(root, inputs, options);
 }
 

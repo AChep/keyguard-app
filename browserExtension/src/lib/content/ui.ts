@@ -151,7 +151,8 @@ const FRAME_COLOR = /^#[0-9a-f]{6}$/;
  * style sheet.
  */
 function frameCss(colors: FrameColors): string {
-  const color = (value: string | null, fallback: string) => (value !== null && FRAME_COLOR.test(value) ? value : fallback);
+  const color = (value: string | null, fallback: string) =>
+    value !== null && FRAME_COLOR.test(value) ? value : fallback;
   return `
 .popup { background: ${color(colors.light, SURFACE_CONTAINER_LIGHT)}; }
 @media (prefers-color-scheme: dark) {
@@ -282,7 +283,8 @@ export class ContentUi {
     this.host.removeAttribute("inert");
     const moved = records.some(
       (record) =>
-        (record.type === "attributes" && record.target !== this.host) || Array.from(record.removedNodes).includes(this.host),
+        (record.type === "attributes" && record.target !== this.host) ||
+        Array.from(record.removedNodes).includes(this.host),
     );
     if (!moved) return;
     this.hideIcon();
@@ -452,11 +454,21 @@ export class ContentUi {
   /** Scales [element] in with a fade, unless the user asked for reduced motion. */
   private appear(element: HTMLElement) {
     const win = this.doc.defaultView;
-    if (typeof element.animate !== "function" || win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches !== false) return;
-    element.animate([{ opacity: 0, transform: `scale(${ICON_APPEAR_SCALE})` }, { opacity: 1, transform: "none" }], {
-      duration: ICON_APPEAR_MS,
-      easing: EASE_STANDARD,
-    });
+    if (
+      typeof element.animate !== "function" ||
+      win?.matchMedia?.("(prefers-reduced-motion: reduce)").matches !== false
+    )
+      return;
+    element.animate(
+      [
+        { opacity: 0, transform: `scale(${ICON_APPEAR_SCALE})` },
+        { opacity: 1, transform: "none" },
+      ],
+      {
+        duration: ICON_APPEAR_MS,
+        easing: EASE_STANDARD,
+      },
+    );
   }
 
   hideIcon(): void {
@@ -684,7 +696,8 @@ export class ContentUi {
     const moved = this.reposition();
     if (this.following === null) return;
     this.stillFrames = moved ? 0 : this.stillFrames + 1;
-    if (this.stillFrames < STILL_FRAMES) this.frameRequest = this.doc.defaultView!.requestAnimationFrame(() => this.onFrame());
+    if (this.stillFrames < STILL_FRAMES)
+      this.frameRequest = this.doc.defaultView!.requestAnimationFrame(() => this.onFrame());
     else this.stillTimer = setTimeout(() => this.onStillCheck(), STILL_CHECK_MS);
   }
 
@@ -732,7 +745,10 @@ export class ContentUi {
       this.following = { abort, fields: resize, observed: [] };
     }
     const following = this.following;
-    if (fields.length !== following.observed.length || fields.some((field, index) => field !== following.observed[index])) {
+    if (
+      fields.length !== following.observed.length ||
+      fields.some((field, index) => field !== following.observed[index])
+    ) {
       following.fields?.disconnect();
       for (const field of fields) following.fields?.observe(field);
       following.observed = fields;

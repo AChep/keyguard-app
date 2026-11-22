@@ -81,7 +81,13 @@
   <header>
     <Logo size={40} />
     <h1 id="title" class="title-medium">{t("browser_extension_save_title")}</h1>
-    <button class="icon-btn close" aria-label={t("close")} title={t("close")} disabled={busy || login === null} onclick={(event) => act(event, "dismiss")}>
+    <button
+      class="icon-btn close"
+      aria-label={t("close")}
+      title={t("close")}
+      disabled={busy || login === null}
+      onclick={(event) => act(event, "dismiss")}
+    >
       <Icon name="close" />
     </button>
   </header>

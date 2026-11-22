@@ -30,7 +30,7 @@ is 87,380 base64 characters.
 Both directions carry Noise frames:
 
 ```json
-{"type": "noise", "data": "<base64>"}
+{ "type": "noise", "data": "<base64>" }
 ```
 
 `data` decodes to 1 to 65,535 bytes. The host relays it unchanged and in order.
@@ -38,7 +38,7 @@ Both directions carry Noise frames:
 The host also reports its connection to the app:
 
 ```json
-{"type": "status", "status": "ready"}
+{ "type": "status", "status": "ready" }
 ```
 
 To connect, the host opens the CLI agent's socket, found as the `keyguard` CLI
@@ -46,7 +46,7 @@ finds it (`KEYGUARD_CLI_SOCKET`, then the platform default). Frames on that sock
 are a 32-bit big-endian length, then the bytes. The host sends one JSON frame:
 
 ```json
-{"type": "browser", "origin": "<origin>", "hostRevision": 1}
+{ "type": "browser", "origin": "<origin>", "hostRevision": 1 }
 ```
 
 `origin` is the extension origin of [section 2](#2-noise). The host then waits for
@@ -54,14 +54,14 @@ the agent's JSON answer and writes nothing until it arrives. After `{"ok": true}
 each frame in either direction is one Noise frame of 1 to 65,535 bytes. The
 agent's answer sets the status:
 
-| `status` | Agent answer | Meaning |
-|---|---|---|
-| `ready` | `{"ok": true}` | Connected to the app. A new session starts. |
-| `app_unavailable` | No socket, no answer within 30 seconds, `unavailable`, or any error not listed here. Also sent when an open connection closes. | The app isn't running, or it closed the connection. |
-| `update_required` | `unsupported_command` (the app predates browser connections), or `update_required` (the app doesn't accept `hostRevision`) | The app and the host don't match. Update the app, or reinstall the connector from it. |
-| `integration_disabled` | `integration_disabled` | The browser integration is off in the app. |
-| `unverified_host` | `unverified_host` | The app refused the host: it isn't the binary bundled with the app. |
-| `too_many_sessions` | `too_many_sessions` | The app already serves as many browser sessions as it allows. |
+| `status`               | Agent answer                                                                                                                   | Meaning                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `ready`                | `{"ok": true}`                                                                                                                 | Connected to the app. A new session starts.                                           |
+| `app_unavailable`      | No socket, no answer within 30 seconds, `unavailable`, or any error not listed here. Also sent when an open connection closes. | The app isn't running, or it closed the connection.                                   |
+| `update_required`      | `unsupported_command` (the app predates browser connections), or `update_required` (the app doesn't accept `hostRevision`)     | The app and the host don't match. Update the app, or reinstall the connector from it. |
+| `integration_disabled` | `integration_disabled`                                                                                                         | The browser integration is off in the app.                                            |
+| `unverified_host`      | `unverified_host`                                                                                                              | The app refused the host: it isn't the binary bundled with the app.                   |
+| `too_many_sessions`    | `too_many_sessions`                                                                                                            | The app already serves as many browser sessions as it allows.                         |
 
 A refusal is `{"ok": false, "error": "<code>"}`.
 
@@ -101,14 +101,14 @@ reply. A future suite gets a new ID and a new prologue version.
 
 ### Parameters
 
-| | |
-|---|---|
-| Protocol name | `Noise_XX_25519_ChaChaPoly_SHA256`, Noise revision 34 |
-| Initiator | the extension |
-| Responder | the app |
-| Prologue | `"keyguard-browser/v1\n" \|\| origin` |
-| Handshake payloads | empty |
-| Largest Noise message | 65,535 bytes |
+|                       |                                                       |
+| --------------------- | ----------------------------------------------------- |
+| Protocol name         | `Noise_XX_25519_ChaChaPoly_SHA256`, Noise revision 34 |
+| Initiator             | the extension                                         |
+| Responder             | the app                                               |
+| Prologue              | `"keyguard-browser/v1\n" \|\| origin`                 |
+| Handshake payloads    | empty                                                 |
+| Largest Noise message | 65,535 bytes                                          |
 
 The prologue starts with 20 bytes, ending in `0x0a`, followed by the extension
 origin, with no terminator:
@@ -135,11 +135,11 @@ two sides disagree, the initiator fails to decrypt message 2.
 
 ### Handshake
 
-| Message | Tokens | Length |
-|---|---|---|
-| 1, extension → app | `e` | 32 |
-| 2, app → extension | `e, ee, s, es` | 96 |
-| 3, extension → app | `s, se` | 64 |
+| Message            | Tokens         | Length |
+| ------------------ | -------------- | ------ |
+| 1, extension → app | `e`            | 32     |
+| 2, app → extension | `e, ee, s, es` | 96     |
+| 3, extension → app | `s, se`        | 64     |
 
 - A handshake message with a payload ends the session.
 - **Pinned app key.** A paired extension compares the app's static key with the
@@ -171,10 +171,10 @@ two sides disagree, the initiator fails to decrypt message 2.
 
 The plaintext of each transport message is a flags byte followed by data.
 
-| Flags bit | Meaning |
-|---|---|
+| Flags bit  | Meaning                                |
+| ---------- | -------------------------------------- |
 | 0 (`0x01`) | More fragments of this message follow. |
-| 1 to 7 | Reserved, must be 0. |
+| 1 to 7     | Reserved, must be 0.                   |
 
 - A message is the data of consecutive fragments, up to and including the first
   fragment with bit 0 clear. The fragments of one message are never interleaved
@@ -189,12 +189,12 @@ The plaintext of each transport message is a flags byte followed by data.
 
 ## 4. Messages
 
-| Kind | Direction | Shape |
-|---|---|---|
-| Request | extension → app | `{"id": <id>, "type": "<request>", ...fields}` |
-| Response | app → extension | `{"id": <id>, "ok": true, ...fields}` |
+| Kind           | Direction       | Shape                                          |
+| -------------- | --------------- | ---------------------------------------------- |
+| Request        | extension → app | `{"id": <id>, "type": "<request>", ...fields}` |
+| Response       | app → extension | `{"id": <id>, "ok": true, ...fields}`          |
 | Error response | app → extension | `{"id": <id>, "ok": false, "error": "<code>"}` |
-| Event | app → extension | `{"event": "<event>", ...fields}` |
+| Event          | app → extension | `{"event": "<event>", ...fields}`              |
 
 - `id` is an integer from 1 to 2^53 − 1, unique among the session's requests in
   flight. The extension counts up from 1. A request or response without a valid
@@ -223,12 +223,12 @@ The plaintext of each transport message is a flags byte followed by data.
 
 ### Gates
 
-| Gate | Requirement |
-|---|---|
-| none | Any session. |
-| unpaired | An unpaired session; a paired one gets `invalid_request`. |
-| paired | A paired session; an unpaired one gets `unpaired`. |
-| unlocked | Paired, and the vault is unlocked; otherwise `vault_locked`. |
+| Gate     | Requirement                                                                                                                                                                                                                                                                                                                                                                                        |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| none     | Any session.                                                                                                                                                                                                                                                                                                                                                                                       |
+| unpaired | An unpaired session; a paired one gets `invalid_request`.                                                                                                                                                                                                                                                                                                                                          |
+| paired   | A paired session; an unpaired one gets `unpaired`.                                                                                                                                                                                                                                                                                                                                                 |
+| unlocked | Paired, and the vault is unlocked; otherwise `vault_locked`.                                                                                                                                                                                                                                                                                                                                       |
 | approval | Unlocked, and the user approves the release. An approval window may cover later releases of the same item on the same site to the same pairing; locking the vault ends it. Items with master-password re-prompt always ask, and the user confirms their identity. A `fill` or `totp` of a handle that isn't matched, or in a frame of another site, always asks, see [`fill`, `totp`](#fill-totp). |
 
 ### Pages and sites
@@ -261,8 +261,8 @@ Requests that carry it: `suggest`, `search`, `fill`, `totp`, `generate`,
 
 Blocked URIs are the user's rules in the app that keep Keyguard away from
 some pages. A rule blocks autofill and saving, or saving only. A page is
-*blocked* when an enabled rule of autofill and saving matches it. *Saving is
-blocked* on a page when any enabled rule matches it, so on every blocked page
+_blocked_ when an enabled rule of autofill and saving matches it. _Saving is
+blocked_ on a page when any enabled rule matches it, so on every blocked page
 too. A rule of saving only never applies to passkeys.
 
 ## 5. Requests
@@ -271,28 +271,28 @@ too. A rule of saving only never applies to passkeys.
 
 Gate: none.
 
-| Request field | Type | |
-|---|---|---|
-| `protocol` | integer | Highest protocol version the extension speaks. This document is `1`. |
-| `capabilities` | string[] | Optional features the extension uses. |
+| Request field  | Type     |                                                                      |
+| -------------- | -------- | -------------------------------------------------------------------- |
+| `protocol`     | integer  | Highest protocol version the extension speaks. This document is `1`. |
+| `capabilities` | string[] | Optional features the extension uses.                                |
 
-| Response field | Type | |
-|---|---|---|
-| `protocol` | integer | The version of this session. |
-| `capabilities` | string[] | The requested capabilities that the app supports. |
-| `paired` | boolean | Whether the session is paired, see [Handshake](#handshake). |
-| `vault` | `"locked"` \| `"unlocked"` | |
+| Response field | Type                       |                                                             |
+| -------------- | -------------------------- | ----------------------------------------------------------- |
+| `protocol`     | integer                    | The version of this session.                                |
+| `capabilities` | string[]                   | The requested capabilities that the app supports.           |
+| `paired`       | boolean                    | Whether the session is paired, see [Handshake](#handshake). |
+| `vault`        | `"locked"` \| `"unlocked"` |                                                             |
 
 Each side speaks a range of versions, from its lowest to its highest. The app
 answers the lower of the two highest versions, or `not_supported` when that is
 below its lowest. The session uses the answered version until it ends.
 
-| Answer | The extension |
-|---|---|
-| Within its range | Uses it. |
-| Below its lowest | Asks the user to update the app. |
+| Answer            | The extension                              |
+| ----------------- | ------------------------------------------ |
+| Within its range  | Uses it.                                   |
+| Below its lowest  | Asks the user to update the app.           |
 | Above its highest | Ends the session: the app broke this rule. |
-| `not_supported` | Asks the user to update the extension. |
+| `not_supported`   | Asks the user to update the extension.     |
 
 A new version is only for a change that an older side would misread. New
 requests, fields and events go behind a capability or as optional fields.
@@ -304,10 +304,10 @@ changes nothing; a failed `hello` may be retried.
 
 Capabilities in version 1:
 
-| Capability | Requests |
-|---|---|
+| Capability | Requests                        |
+| ---------- | ------------------------------- |
 | `passkeys` | `passkey_get`, `passkey_create` |
-| `save` | `save`, `never_save` |
+| `save`     | `save`, `never_save`            |
 
 A request of a capability missing from the response gets `not_supported`.
 
@@ -323,16 +323,16 @@ first encounters the format when the vault unlocks.
 
 Gate: unpaired. The app always prompts, see [Pairing](#8-pairing).
 
-| `pair_commit` field | Type | |
-|---|---|---|
-| `commit` | base64, 32 bytes | The commitment to the extension's nonce. |
-| `name` | string, 1 to 64 characters | The name the extension suggests for itself. |
+| `pair_commit` field | Type                       |                                             |
+| ------------------- | -------------------------- | ------------------------------------------- |
+| `commit`            | base64, 32 bytes           | The commitment to the extension's nonce.    |
+| `name`              | string, 1 to 64 characters | The name the extension suggests for itself. |
 
 Response: `nonce`, base64, 32 bytes: the app's nonce.
 
-| `pair_reveal` field | Type | |
-|---|---|---|
-| `nonce` | base64, 32 bytes | The extension's nonce. |
+| `pair_reveal` field | Type             |                        |
+| ------------------- | ---------------- | ---------------------- |
+| `nonce`             | base64, 32 bytes | The extension's nonce. |
 
 Response: `vault`, `"locked"` or `"unlocked"`. The session is paired from then on.
 
@@ -340,9 +340,9 @@ Response: `vault`, `"locked"` or `"unlocked"`. The session is paired from then o
 
 Gate: none.
 
-| Request field | Type | |
-|---|---|---|
-| `target` | integer | The `id` of the request to stop. |
+| Request field | Type    |                                  |
+| ------------- | ------- | -------------------------------- |
+| `target`      | integer | The `id` of the request to stop. |
 
 Response: no fields. The app answers at once, whatever `target` names.
 
@@ -381,19 +381,19 @@ that wait for the vault share this prompt.
 
 Gate: unlocked. No prompt.
 
-| Request field | Type | |
-|---|---|---|
-| `url` | string | Absolute URL of the frame that holds the field. The background takes it from the sender, not from page content. |
-| `kinds` | string[]? | `"login"`, `"passkey"`. Default: `["login"]`. Unknown kinds are ignored. |
-| `rp_id` | string? | The relying party ID. Required with `"passkey"`. It must be valid for the origin of `url`, as for [passkeys](#passkey_get-passkey_create); otherwise `security`. |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| Request field    | Type      |                                                                                                                                                                  |
+| ---------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url`            | string    | Absolute URL of the frame that holds the field. The background takes it from the sender, not from page content.                                                  |
+| `kinds`          | string[]? | `"login"`, `"passkey"`. Default: `["login"]`. Unknown kinds are ignored.                                                                                         |
+| `rp_id`          | string?   | The relying party ID. Required with `"passkey"`. It must be valid for the origin of `url`, as for [passkeys](#passkey_get-passkey_create); otherwise `security`. |
+| `private_window` | boolean?  | `true` for a page of a [private window](#private-windows).                                                                                                       |
 
-| Response field | Type | |
-|---|---|---|
-| `blocked` | boolean | The page is [blocked](#blocked-uris); `items` is empty. |
+| Response field | Type    |                                                                               |
+| -------------- | ------- | ----------------------------------------------------------------------------- |
+| `blocked`      | boolean | The page is [blocked](#blocked-uris); `items` is empty.                       |
 | `save_blocked` | boolean | Saving is [blocked](#blocked-uris) on the page. `true` whenever `blocked` is. |
-| `truncated` | boolean | More than 50 items matched. |
-| `items` | item[] | At most 50, in the order below. |
+| `truncated`    | boolean | More than 50 items matched.                                                   |
+| `items`        | item[]  | At most 50, in the order below.                                               |
 
 The items are the logins that match the page, of the accounts the user didn't
 hide, and not in the trash or the archive. With `"passkey"`, the logins with a
@@ -407,40 +407,40 @@ sign-in. A request of a [private window](#private-windows) makes no use. The
 other items follow: the best match first, then the logins of `"passkey"`. The
 50 are taken after this order.
 
-| Item field | Type | |
-|---|---|---|
-| `handle` | string | See [Handles](#7-handles). |
-| `name` | string | |
-| `username` | string? | Absent when empty. |
-| `account` | string | The account the item belongs to, for display. |
-| `has_password` | boolean | |
-| `has_totp` | boolean | The item has a time-based one-time password. |
-| `reprompt` | boolean | Releasing it always prompts. |
-| `passkeys` | passkey[]? | With `"passkey"`: the item's discoverable passkeys for `rp_id`, which answer a request without `allowCredentials`. May be empty. |
-| `last_used` | boolean? | `true` on the first item when it has a use on this device. Absent otherwise. |
-| `password_hidden` | boolean? | `true` when the item's collections hide its password. Absent otherwise. The extension doesn't copy the password; `fill` still releases it. |
+| Item field        | Type       |                                                                                                                                            |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `handle`          | string     | See [Handles](#7-handles).                                                                                                                 |
+| `name`            | string     |                                                                                                                                            |
+| `username`        | string?    | Absent when empty.                                                                                                                         |
+| `account`         | string     | The account the item belongs to, for display.                                                                                              |
+| `has_password`    | boolean    |                                                                                                                                            |
+| `has_totp`        | boolean    | The item has a time-based one-time password.                                                                                               |
+| `reprompt`        | boolean    | Releasing it always prompts.                                                                                                               |
+| `passkeys`        | passkey[]? | With `"passkey"`: the item's discoverable passkeys for `rp_id`, which answer a request without `allowCredentials`. May be empty.           |
+| `last_used`       | boolean?   | `true` on the first item when it has a use on this device. Absent otherwise.                                                               |
+| `password_hidden` | boolean?   | `true` when the item's collections hide its password. Absent otherwise. The extension doesn't copy the password; `fill` still releases it. |
 
-| Passkey field | Type | |
-|---|---|---|
-| `handle` | string | A passkey handle, for `passkey_get`. |
-| `user_name` | string | |
-| `user_display_name` | string? | |
+| Passkey field       | Type    |                                      |
+| ------------------- | ------- | ------------------------------------ |
+| `handle`            | string  | A passkey handle, for `passkey_get`. |
+| `user_name`         | string  |                                      |
+| `user_display_name` | string? |                                      |
 
 ### `search`
 
 Gate: unlocked. No prompt.
 
-| Request field | Type | |
-|---|---|---|
-| `query` | string | 2 to 100 code points once trimmed; otherwise `invalid_request`. |
-| `url` | string | As for `suggest`. |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| Request field    | Type     |                                                                 |
+| ---------------- | -------- | --------------------------------------------------------------- |
+| `query`          | string   | 2 to 100 code points once trimmed; otherwise `invalid_request`. |
+| `url`            | string   | As for `suggest`.                                               |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows).      |
 
-| Response field | Type | |
-|---|---|---|
-| `blocked` | boolean | The page is [blocked](#blocked-uris); `items` is empty. |
-| `truncated` | boolean | More than 20 items matched. |
-| `items` | item[] | At most 20. |
+| Response field | Type    |                                                         |
+| -------------- | ------- | ------------------------------------------------------- |
+| `blocked`      | boolean | The page is [blocked](#blocked-uris); `items` is empty. |
+| `truncated`    | boolean | More than 20 items matched.                             |
+| `items`        | item[]  | At most 20.                                             |
 
 The items are the logins that `suggest` could list, on any site, whose name,
 username or URI host holds `query`, ignoring case. Those that match the page
@@ -449,20 +449,20 @@ group is sorted by name.
 
 An item is a `suggest` item without `passkeys` or `last_used`, plus:
 
-| Item field | Type | |
-|---|---|---|
-| `matched` | boolean | A URI of the item matches the page by the app's URI match rules. A name alike the page doesn't count. On an `http` page, see [Handles](#7-handles). |
+| Item field | Type    |                                                                                                                                                     |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `matched`  | boolean | A URI of the item matches the page by the app's URI match rules. A name alike the page doesn't count. On an `http` page, see [Handles](#7-handles). |
 
 ### `fill`, `totp`
 
 Gate: approval.
 
-| Request field | Type | |
-|---|---|---|
-| `handle` | string | An item handle from `suggest` or `search`. |
-| `url` | string | The URL to fill, from the sender. It must be on the same [site](#pages-and-sites) as the URL of the request that issued the handle, and not be [blocked](#blocked-uris); otherwise `not_allowed`. |
-| `top_origin` | string? | The origin of the tab's top frame, such as `https://example.com`, when the frame of `url` has another origin. The background takes it from the browser, never from page content: from the tab's URL or, when that isn't `http` or `https`, from the sender of a message of the top frame's content script, as for an `about:blank` popup. It sends no `fill` or `totp` when neither tells. Anything but an `http` or `https` origin gets `invalid_request`. |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| Request field    | Type     |                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `handle`         | string   | An item handle from `suggest` or `search`.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `url`            | string   | The URL to fill, from the sender. It must be on the same [site](#pages-and-sites) as the URL of the request that issued the handle, and not be [blocked](#blocked-uris); otherwise `not_allowed`.                                                                                                                                                                                                                                                           |
+| `top_origin`     | string?  | The origin of the tab's top frame, such as `https://example.com`, when the frame of `url` has another origin. The background takes it from the browser, never from page content: from the tab's URL or, when that isn't `http` or `https`, from the sender of a message of the top frame's content script, as for an `about:blank` popup. It sends no `fill` or `totp` when neither tells. Anything but an `http` or `https` origin gets `invalid_request`. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows).                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 A frame of another site, whose `top_origin` isn't on the site of `url`:
 
@@ -487,8 +487,8 @@ A handle that isn't matched, see [Handles](#7-handles):
 
 `fill` response, with each field absent when empty:
 
-| Field | Type |
-|---|---|
+| Field      | Type    |
+| ---------- | ------- |
 | `username` | string? |
 | `password` | string? |
 
@@ -507,9 +507,9 @@ re-prompt or stopped matching the page, the approval no longer covers it:
 
 Gate: paired.
 
-| Request field | Type | |
-|---|---|---|
-| `url` | string? | The page the password is for. |
+| Request field    | Type     |                                                            |
+| ---------------- | -------- | ---------------------------------------------------------- |
+| `url`            | string?  | The page the password is for.                              |
 | `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: `password`, string, made with the settings of the app's password
@@ -519,13 +519,13 @@ generator. The vault may be locked.
 
 Gate: unlocked.
 
-| Request field | Type | |
-|---|---|---|
-| `url` | string | |
-| `username` | string? | |
-| `password` | string? | |
-| `previous_password` | string? | |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| Request field       | Type     |                                                            |
+| ------------------- | -------- | ---------------------------------------------------------- |
+| `url`               | string   |                                                            |
+| `username`          | string?  |                                                            |
+| `password`          | string?  |                                                            |
+| `previous_password` | string?  |                                                            |
+| `private_window`    | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: no fields, once the window is on screen. The app opens a window with a
 new item, or with the matching item and the new password. The user saves in the
@@ -549,22 +549,22 @@ app; the extension never writes to the vault.
 
 Gate: unlocked. Capability: `save`.
 
-| Request field | Type | |
-|---|---|---|
-| `url` | string | The page, as for `save`. |
+| Request field    | Type     |                                                            |
+| ---------------- | -------- | ---------------------------------------------------------- |
+| `url`            | string   | The page, as for `save`.                                   |
 | `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: no fields. The app doesn't prompt. It adds a rule that blocks saving
 only, for the registrable domain of `url`:
 
-| Rule field | Value |
-|---|---|
-| Name | The host of `url`. |
-| Description | Empty. |
-| URI | The scheme and host of `url`, such as `https://login.example.com`. |
-| Match | Base domain. |
-| Enabled | Yes. |
-| Exposed | Yes: the rule applies while the vault is locked. |
+| Rule field  | Value                                                              |
+| ----------- | ------------------------------------------------------------------ |
+| Name        | The host of `url`.                                                 |
+| Description | Empty.                                                             |
+| URI         | The scheme and host of `url`, such as `https://login.example.com`. |
+| Match       | Base domain.                                                       |
+| Enabled     | Yes.                                                               |
+| Exposed     | Yes: the rule applies while the vault is locked.                   |
 
 - If saving is already [blocked](#blocked-uris) on the page, the app adds
   nothing and answers the same.
@@ -579,23 +579,23 @@ does: closing it answers `user_denied`, and a timeout `approval_timeout`. Once
 the vault is unlocked, a session whose pairing it doesn't confirm gets
 `unpaired`. If the vault locks before the app answers, `vault_locked`.
 
-| `passkey_get` field | Type | |
-|---|---|---|
-| `origin` | string | The page's origin, such as `https://example.com`. The background takes it from the sender, never from page content. |
-| `options` | object | `PublicKeyCredentialRequestOptionsJSON` (WebAuthn Level 3). |
-| `mediation` | string | `"silent"`, `"optional"`, `"conditional"` or `"required"`. |
-| `same_origin_with_ancestors` | boolean | |
-| `handle` | string? | A passkey handle from `suggest`, the user's pick in the inline menu. |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| `passkey_get` field          | Type     |                                                                                                                     |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------- |
+| `origin`                     | string   | The page's origin, such as `https://example.com`. The background takes it from the sender, never from page content. |
+| `options`                    | object   | `PublicKeyCredentialRequestOptionsJSON` (WebAuthn Level 3).                                                         |
+| `mediation`                  | string   | `"silent"`, `"optional"`, `"conditional"` or `"required"`.                                                          |
+| `same_origin_with_ancestors` | boolean  |                                                                                                                     |
+| `handle`                     | string?  | A passkey handle from `suggest`, the user's pick in the inline menu.                                                |
+| `private_window`             | boolean? | `true` for a page of a [private window](#private-windows).                                                          |
 
 Response: `credential`, an `AuthenticationResponseJSON`.
 
-| `passkey_create` field | Type | |
-|---|---|---|
-| `origin` | string | As for `passkey_get`. |
-| `options` | object | `PublicKeyCredentialCreationOptionsJSON`. |
-| `same_origin_with_ancestors` | boolean | |
-| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
+| `passkey_create` field       | Type     |                                                            |
+| ---------------------------- | -------- | ---------------------------------------------------------- |
+| `origin`                     | string   | As for `passkey_get`.                                      |
+| `options`                    | object   | `PublicKeyCredentialCreationOptionsJSON`.                  |
+| `same_origin_with_ancestors` | boolean  |                                                            |
+| `private_window`             | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: `credential`, a `RegistrationResponseJSON`, with `"none"` attestation.
 
@@ -675,12 +675,12 @@ prompt comes first.
 
 The extension answers the page:
 
-| Code | The extension |
-|---|---|
-| `not_supported` | Lets the browser handle the call. |
-| `invalid_state` | Rejects with `InvalidStateError`. |
-| `security` | Rejects with `SecurityError`. |
-| Any other | Rejects with `NotAllowedError`, also when the user closes the unlock prompt. |
+| Code            | The extension                                                                |
+| --------------- | ---------------------------------------------------------------------------- |
+| `not_supported` | Lets the browser handle the call.                                            |
+| `invalid_state` | Rejects with `InvalidStateError`.                                            |
+| `security`      | Rejects with `SecurityError`.                                                |
+| Any other       | Rejects with `NotAllowedError`, also when the user closes the unlock prompt. |
 
 A conditional `passkey_get` is the exception: after a failed pick, the page's call
 stays pending and the inline menu shows the error. `not_supported` hands the call
@@ -704,11 +704,11 @@ extension send `cancel` for the request.
 
 The app sends events to paired sessions only.
 
-| Event | Fields | |
-|---|---|---|
-| `vault` | `state`: `"locked"` \| `"unlocked"` | The vault's state changed. |
-| `revoked` | none | The user removed this pairing. The app ends the session next; the extension forgets the pairing. |
-| `disabled` | none | The user turned the integration off. The app ends the session next. |
+| Event      | Fields                              |                                                                                                  |
+| ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `vault`    | `state`: `"locked"` \| `"unlocked"` | The vault's state changed.                                                                       |
+| `revoked`  | none                                | The user removed this pairing. The app ends the session next; the extension forgets the pairing. |
+| `disabled` | none                                | The user turned the integration off. The app ends the session next.                              |
 
 ## 7. Handles
 
@@ -817,21 +817,21 @@ new or reset vault confirms no pairing, so each extension pairs again.
 
 ## 9. Errors
 
-| Code | Meaning |
-|---|---|
-| `vault_locked` | The request needs an unlocked vault. |
-| `update_required` | The desktop app cannot read its browser pairing format. Keep the pairing and retry after updating the app. |
-| `unpaired` | The session isn't paired. |
-| `user_denied` | The user declined. |
-| `approval_timeout` | The prompt timed out. |
-| `not_allowed` | A valid request that the app refuses, such as a handle used on another site, a [blocked](#blocked-uris) page, a `save` where saving is blocked, or a pairing or rule it can't store. Also an unexpected failure in the app. |
-| `security` | A security check failed: a commitment mismatch, or an origin or RP ID that fails validation. |
-| `not_supported` | An unknown request, a capability or protocol version the app lacks, or an unsupported case such as a cross-origin passkey call. For a passkey request, the app hands the call back to the browser: no passkey matches, the user chose another device, or the page is [blocked](#blocked-uris). |
-| `invalid_state` | A passkey of `excludeCredentials` is already in the vault. |
-| `invalid_request` | A missing or mistyped field, an unknown handle, a request out of order. |
-| `too_large` | The response would exceed 1 MiB. |
-| `busy` | 8 requests are in flight; the session's `unlock` prompt is open, its `pair_reveal` is unanswered, or its save window or passkey window is open; or 3 pairing attempts are unseen, see [Pairing](#8-pairing). |
-| `cancelled` | The extension cancelled the request. |
+| Code               | Meaning                                                                                                                                                                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `vault_locked`     | The request needs an unlocked vault.                                                                                                                                                                                                                                                           |
+| `update_required`  | The desktop app cannot read its browser pairing format. Keep the pairing and retry after updating the app.                                                                                                                                                                                     |
+| `unpaired`         | The session isn't paired.                                                                                                                                                                                                                                                                      |
+| `user_denied`      | The user declined.                                                                                                                                                                                                                                                                             |
+| `approval_timeout` | The prompt timed out.                                                                                                                                                                                                                                                                          |
+| `not_allowed`      | A valid request that the app refuses, such as a handle used on another site, a [blocked](#blocked-uris) page, a `save` where saving is blocked, or a pairing or rule it can't store. Also an unexpected failure in the app.                                                                    |
+| `security`         | A security check failed: a commitment mismatch, or an origin or RP ID that fails validation.                                                                                                                                                                                                   |
+| `not_supported`    | An unknown request, a capability or protocol version the app lacks, or an unsupported case such as a cross-origin passkey call. For a passkey request, the app hands the call back to the browser: no passkey matches, the user chose another device, or the page is [blocked](#blocked-uris). |
+| `invalid_state`    | A passkey of `excludeCredentials` is already in the vault.                                                                                                                                                                                                                                     |
+| `invalid_request`  | A missing or mistyped field, an unknown handle, a request out of order.                                                                                                                                                                                                                        |
+| `too_large`        | The response would exceed 1 MiB.                                                                                                                                                                                                                                                               |
+| `busy`             | 8 requests are in flight; the session's `unlock` prompt is open, its `pair_reveal` is unanswered, or its save window or passkey window is open; or 3 pairing attempts are unseen, see [Pairing](#8-pairing).                                                                                   |
+| `cancelled`        | The extension cancelled the request.                                                                                                                                                                                                                                                           |
 
 The extension treats an unknown code as a failure without retrying.
 

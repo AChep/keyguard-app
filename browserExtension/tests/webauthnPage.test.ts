@@ -4,7 +4,12 @@
 // WebAuthn classes.
 import { Window as HappyWindow } from "happy-dom";
 import { afterEach, describe, expect, it } from "vitest";
-import { MAX_REQUESTS, sameOriginWithAncestors, startWebAuthnBridge, type BridgePort } from "../src/lib/content/webauthnBridge";
+import {
+  MAX_REQUESTS,
+  sameOriginWithAncestors,
+  startWebAuthnBridge,
+  type BridgePort,
+} from "../src/lib/content/webauthnBridge";
 import { BRIDGE_TAG, type WebAuthnRequest, type WebAuthnResult } from "../src/lib/webauthn/bridge";
 import { fromBase64Url } from "../src/lib/webauthn/json";
 import { installWebAuthn } from "../src/lib/webauthn/page";
@@ -29,7 +34,8 @@ function bridgeMessages(win: PageWindow): string[] {
   const kinds: string[] = [];
   win.addEventListener("message", (event) => {
     const data = event.data as { tag?: unknown; json?: unknown } | null;
-    if (data?.tag === BRIDGE_TAG && typeof data.json === "string") kinds.push((JSON.parse(data.json) as { kind: string }).kind);
+    if (data?.tag === BRIDGE_TAG && typeof data.json === "string")
+      kinds.push((JSON.parse(data.json) as { kind: string }).kind);
   });
   return kinds;
 }
@@ -40,7 +46,9 @@ class FakeBridgePort implements BridgePort {
   disconnected = false;
   private readonly messageListeners: ((message: unknown) => void)[] = [];
   private readonly disconnectListeners: (() => void)[] = [];
-  readonly onMessage = { addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener) };
+  readonly onMessage = {
+    addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener),
+  };
   readonly onDisconnect = { addListener: (listener: () => void) => void this.disconnectListeners.push(listener) };
 
   constructor(private readonly background: Background) {}
@@ -78,11 +86,14 @@ function challengeOf(request: WebAuthnRequest): string {
 /** Answers with a credential for the request, as the app would. */
 const answerWithCredential: Background = (request, port) => {
   if (request.kind === "available") port.reply({ kind: "available", available: true });
-  else if (request.kind === "get") port.reply({ kind: "credential", credential: authenticationJSON(ORIGIN, challengeOf(request)) });
+  else if (request.kind === "get")
+    port.reply({ kind: "credential", credential: authenticationJSON(ORIGIN, challengeOf(request)) });
   else port.reply({ kind: "credential", credential: registrationJSON(ORIGIN, challengeOf(request)) });
 };
 
-function setup(options: { bridge?: boolean; background?: Background; timeoutMs?: number; focused?: () => boolean } = {}) {
+function setup(
+  options: { bridge?: boolean; background?: Background; timeoutMs?: number; focused?: () => boolean } = {},
+) {
   const happy = new HappyWindow({ url: URL });
   windows.push(happy);
   const win = happy as unknown as PageWindow;
@@ -117,7 +128,11 @@ function setup(options: { bridge?: boolean; background?: Background; timeoutMs?:
       return Promise.resolve(native.uvpaa);
     }
     static getClientCapabilities() {
-      return Promise.resolve({ conditionalGet: native.conditional, hybridTransport: true, userVerifyingPlatformAuthenticator: false });
+      return Promise.resolve({
+        conditionalGet: native.conditional,
+        hybridTransport: true,
+        userVerifyingPlatformAuthenticator: false,
+      });
     }
   }
   class FakeAttestationResponse {}
@@ -125,7 +140,10 @@ function setup(options: { bridge?: boolean; background?: Background; timeoutMs?:
   const credentials = new FakeContainer();
   const originals = {
     get: Object.getOwnPropertyDescriptor(FakeContainer.prototype, "get")!,
-    isConditionalMediationAvailable: Object.getOwnPropertyDescriptor(FakePublicKeyCredential, "isConditionalMediationAvailable")!,
+    isConditionalMediationAvailable: Object.getOwnPropertyDescriptor(
+      FakePublicKeyCredential,
+      "isConditionalMediationAvailable",
+    )!,
   };
   define(win, "isSecureContext", true);
   define(win, "CredentialsContainer", FakeContainer);
@@ -164,7 +182,10 @@ function setup(options: { bridge?: boolean; background?: Background; timeoutMs?:
 }
 
 const challenge = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-const getOptions = (extra: Record<string, unknown> = {}) => ({ publicKey: { challenge, rpId: "example.com" }, ...extra });
+const getOptions = (extra: Record<string, unknown> = {}) => ({
+  publicKey: { challenge, rpId: "example.com" },
+  ...extra,
+});
 const createOptions = (): CredentialCreationOptions => ({
   publicKey: {
     rp: { id: "example.com", name: "Example" },
@@ -194,14 +215,17 @@ describe("main-world wrappers", () => {
     const { value: __, ...original } = originals.get;
     expect(attributes).toEqual(original);
     expect(Object.keys(win.navigator.credentials)).toEqual([]);
-    const check = (classes.FakePublicKeyCredential as unknown as Record<string, () => unknown>).isConditionalMediationAvailable!;
+    const check = (classes.FakePublicKeyCredential as unknown as Record<string, () => unknown>)
+      .isConditionalMediationAvailable!;
     expect(check.name).toBe("isConditionalMediationAvailable");
   });
 
   it("passes everything but publicKey requests on navigator.credentials to the browser", async () => {
     const { win, native, ports } = setup();
     const password = { password: true };
-    await expect(win.navigator.credentials.get(password as CredentialRequestOptions)).resolves.toBe("native credential");
+    await expect(win.navigator.credentials.get(password as CredentialRequestOptions)).resolves.toBe(
+      "native credential",
+    );
     expect(native.gets[0]).toBe(password);
     const other = new (win.CredentialsContainer as unknown as new () => CredentialsContainer)();
     await other.get(getOptions());
@@ -211,7 +235,9 @@ describe("main-world wrappers", () => {
     const aborted = new (win.AbortController as typeof AbortController)();
     aborted.abort();
     await win.navigator.credentials.get(getOptions({ signal: aborted.signal }));
-    await win.navigator.credentials.create(getOptions({ mediation: "conditional" }) as unknown as CredentialCreationOptions);
+    await win.navigator.credentials.create(
+      getOptions({ mediation: "conditional" }) as unknown as CredentialCreationOptions,
+    );
     await settle();
     expect(native.gets).toHaveLength(5);
     expect(native.creates).toHaveLength(1);
@@ -329,8 +355,12 @@ describe("main-world wrappers", () => {
   it("falls back when the background goes away or Keyguard's answer is malformed", async () => {
     const closing = setup({ background: (_request, port) => port.close() });
     await expect(closing.win.navigator.credentials.get(getOptions())).resolves.toBe("native credential");
-    const malformed = setup({ background: (_request, port) => port.reply({ kind: "credential", credential: { id: 1 } }) });
-    await expect(malformed.win.navigator.credentials.get(getOptions())).rejects.toMatchObject({ name: "NotAllowedError" });
+    const malformed = setup({
+      background: (_request, port) => port.reply({ kind: "credential", credential: { id: 1 } }),
+    });
+    await expect(malformed.win.navigator.credentials.get(getOptions())).rejects.toMatchObject({
+      name: "NotAllowedError",
+    });
     expect(malformed.native.gets).toEqual([]);
   });
 
@@ -376,7 +406,10 @@ describe("main-world wrappers", () => {
   it("hands a request longer than the bridge takes to the browser, queued or not", async () => {
     // A long timer: only the length check answers the queued call.
     const { win, native, ports } = setup({ timeoutMs: 60_000 });
-    const descriptors = Array.from({ length: 2_000 }, (_, i) => ({ type: "public-key" as const, id: new Uint8Array(32).fill(i) }));
+    const descriptors = Array.from({ length: 2_000 }, (_, i) => ({
+      type: "public-key" as const,
+      id: new Uint8Array(32).fill(i),
+    }));
     const get = { publicKey: { ...getOptions().publicKey, allowCredentials: descriptors } };
     const create = createOptions();
     create.publicKey!.excludeCredentials = descriptors;
@@ -403,7 +436,11 @@ describe("main-world wrappers", () => {
     let settled = false;
     void win.navigator.credentials.get(getOptions()).then(() => (settled = true));
     await settle();
-    const forged = { tag: BRIDGE_TAG, to: "main", json: JSON.stringify({ kind: "result", id: 1, result: { kind: "fallback" } }) };
+    const forged = {
+      tag: BRIDGE_TAG,
+      to: "main",
+      json: JSON.stringify({ kind: "result", id: 1, result: { kind: "fallback" } }),
+    };
     const other = new HappyWindow({ url: "https://evil.example/" });
     windows.push(other);
     win.dispatchEvent(new win.MessageEvent("message", { data: forged, source: other as unknown as Window }));
@@ -543,9 +580,11 @@ describe("conditional mediation", () => {
     let fallback: (() => void) | null = null;
     const context = conditionalSetup((_request, port) => (fallback = () => port.reply({ kind: "fallback" })));
     let outcome: unknown = null;
-    const pending = context.win.navigator.credentials.get(getOptions({ mediation: "conditional" })).catch((error: unknown) => {
-      outcome = error;
-    });
+    const pending = context.win.navigator.credentials
+      .get(getOptions({ mediation: "conditional" }))
+      .catch((error: unknown) => {
+        outcome = error;
+      });
     await settle();
     const error = new DOMException("no conditional UI", "NotSupportedError");
     context.rejectBrowser(error);
@@ -559,7 +598,9 @@ describe("conditional mediation", () => {
   it("rejects on abort, stopping both", async () => {
     const context = conditionalSetup(() => undefined);
     const controller = new (context.win.AbortController as typeof AbortController)();
-    const pending = context.win.navigator.credentials.get(getOptions({ mediation: "conditional", signal: controller.signal }));
+    const pending = context.win.navigator.credentials.get(
+      getOptions({ mediation: "conditional", signal: controller.signal }),
+    );
     await settle();
     controller.abort();
     await expect(pending).rejects.toMatchObject({ name: "AbortError" });
@@ -588,8 +629,9 @@ describe("feature checks", () => {
   it("adds Keyguard to the browser's client capabilities", async () => {
     let available = true;
     const context = setup({ background: (_request, port) => port.reply({ kind: "available", available }) });
-    const getClientCapabilities = (context.win.PublicKeyCredential as unknown as { getClientCapabilities(): Promise<unknown> })
-      .getClientCapabilities;
+    const getClientCapabilities = (
+      context.win.PublicKeyCredential as unknown as { getClientCapabilities(): Promise<unknown> }
+    ).getClientCapabilities;
     await expect(getClientCapabilities()).resolves.toEqual({
       conditionalGet: true,
       hybridTransport: true,
@@ -616,7 +658,11 @@ describe("isolated bridge", () => {
     windows.push(happy);
     const win = happy as unknown as PageWindow;
     const messages = bridgeMessages(win);
-    startWebAuthnBridge({ win, connect: () => new FakeBridgePort(() => undefined), signal: new AbortController().signal });
+    startWebAuthnBridge({
+      win,
+      connect: () => new FakeBridgePort(() => undefined),
+      signal: new AbortController().signal,
+    });
     await settle();
     expect(messages).toEqual([]);
     post(win, { kind: "ping" });
@@ -636,7 +682,12 @@ describe("isolated bridge", () => {
     post(win, { ...request, id: -1 });
     post(win, { ...request, mediation: "sometimes" });
     post(win, { kind: "create", id: 98 });
-    win.dispatchEvent(new win.MessageEvent("message", { data: { tag: BRIDGE_TAG, to: "main", json: JSON.stringify(request) }, source: win }));
+    win.dispatchEvent(
+      new win.MessageEvent("message", {
+        data: { tag: BRIDGE_TAG, to: "main", json: JSON.stringify(request) },
+        source: win,
+      }),
+    );
     await settle();
     expect(ports).toEqual([]);
     post(win, request);
@@ -646,13 +697,25 @@ describe("isolated bridge", () => {
 
   it("computes same_origin_with_ancestors itself, never from the page", async () => {
     const { win, requests } = setup({ background: () => undefined });
-    post(win, { kind: "get", id: 7, options: { challenge: "AA" }, mediation: "optional", same_origin_with_ancestors: false, origin: "https://bank.example" });
+    post(win, {
+      kind: "get",
+      id: 7,
+      options: { challenge: "AA" },
+      mediation: "optional",
+      same_origin_with_ancestors: false,
+      origin: "https://bank.example",
+    });
     await settle();
-    expect(requests()).toEqual([{ kind: "get", options: { challenge: "AA" }, mediation: "optional", same_origin_with_ancestors: true }]);
+    expect(requests()).toEqual([
+      { kind: "get", options: { challenge: "AA" }, mediation: "optional", same_origin_with_ancestors: true },
+    ]);
   });
 
   it("compares the frame's origin with each ancestor's", () => {
-    const location = (origin: string, ancestorOrigins?: string[]) => ({ origin, ...(ancestorOrigins ? { ancestorOrigins } : {}) });
+    const location = (origin: string, ancestorOrigins?: string[]) => ({
+      origin,
+      ...(ancestorOrigins ? { ancestorOrigins } : {}),
+    });
     const top = { location: location(ORIGIN) } as unknown as Window & { top: unknown; parent: unknown };
     top.top = top;
     top.parent = top;
@@ -686,7 +749,8 @@ describe("isolated bridge", () => {
     const results: unknown[] = [];
     win.addEventListener("message", (event) => {
       const data = event.data as { to?: string; json?: string };
-      const message = data.to === "main" && typeof data.json === "string" ? (JSON.parse(data.json) as { kind: string }) : null;
+      const message =
+        data.to === "main" && typeof data.json === "string" ? (JSON.parse(data.json) as { kind: string }) : null;
       if (message?.kind === "result") results.push(message);
     });
     post(win, { kind: "get", id: 1, options: { challenge: "AA" }, mediation: "optional" });
@@ -713,7 +777,11 @@ describe("isolated bridge", () => {
     const answers: unknown[] = [];
     win.addEventListener("message", (event) => answers.push(event.data));
     let connects = 0;
-    startWebAuthnBridge({ win, connect: () => (connects++, new FakeBridgePort(() => undefined)), signal: new AbortController().signal });
+    startWebAuthnBridge({
+      win,
+      connect: () => (connects++, new FakeBridgePort(() => undefined)),
+      signal: new AbortController().signal,
+    });
     post(win, { kind: "get", id: 1, options: { challenge: "AA" }, mediation: "optional" });
     post(win, { kind: "available", id: 2 });
     await settle();

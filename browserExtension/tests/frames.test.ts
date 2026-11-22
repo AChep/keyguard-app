@@ -1,7 +1,14 @@
 // Frames come from the browser's sender, never from messages.
 import { describe, expect, it } from "vitest";
 import { POPUP_PAGE } from "../src/lib/background/api";
-import { frameOf, frameTarget, isOwnPage, sameSite, TabWatch, type MessageSenderLike } from "../src/lib/background/frames";
+import {
+  frameOf,
+  frameTarget,
+  isOwnPage,
+  sameSite,
+  TabWatch,
+  type MessageSenderLike,
+} from "../src/lib/background/frames";
 import { MENU_PAGE, SAVE_BAR_PAGE } from "../src/lib/page/messages";
 
 const ID = "abcdefghijklmnopabcdefghijklmnop";
@@ -24,7 +31,12 @@ describe("frameOf", () => {
 
   it("matches a cross-origin iframe by its own URL", () => {
     const frame = frameOf(sender({ frameId: 4, documentId: "doc-4", url: "https://auth.idp.example/login" }), ID);
-    expect(frame).toMatchObject({ frameId: 4, documentId: "doc-4", url: "https://auth.idp.example/login", origin: "https://auth.idp.example" });
+    expect(frame).toMatchObject({
+      frameId: 4,
+      documentId: "doc-4",
+      url: "https://auth.idp.example/login",
+      origin: "https://auth.idp.example",
+    });
   });
 
   it("keeps the document's token of the message", () => {
@@ -40,15 +52,24 @@ describe("frameOf", () => {
 
   it("takes the origin of the tab's top frame from the tab, for a frame of another origin only", () => {
     const top = "https://shop.example.net/cart";
-    expect(frameOf(sender({ frameId: 4, url: "https://auth.idp.example/login", tab: { id: 7, url: top } }), ID)).toMatchObject({
+    expect(
+      frameOf(sender({ frameId: 4, url: "https://auth.idp.example/login", tab: { id: 7, url: top } }), ID),
+    ).toMatchObject({
       origin: "https://auth.idp.example",
       topOrigin: "https://shop.example.net",
     });
-    expect(frameOf(sender({ frameId: 2, url: "about:blank", origin: "https://auth.idp.example", tab: { id: 7, url: top } }), ID)).toMatchObject({
+    expect(
+      frameOf(
+        sender({ frameId: 2, url: "about:blank", origin: "https://auth.idp.example", tab: { id: 7, url: top } }),
+        ID,
+      ),
+    ).toMatchObject({
       origin: "https://auth.idp.example",
       topOrigin: "https://shop.example.net",
     });
-    expect(frameOf(sender({ frameId: 4, tab: { id: 7, url: "https://login.example.com/other" } }), ID)).not.toHaveProperty("topOrigin");
+    expect(
+      frameOf(sender({ frameId: 4, tab: { id: 7, url: "https://login.example.com/other" } }), ID),
+    ).not.toHaveProperty("topOrigin");
     // The top frame is the tab's page, whatever the tab's URL says.
     expect(frameOf(sender({ tab: { id: 7, url: top } }), ID)).not.toHaveProperty("topOrigin");
   });
@@ -99,7 +120,13 @@ describe("frameOf", () => {
   });
 
   it("refuses everything but http(s) pages of our content scripts in tabs", () => {
-    for (const url of ["data:text/html,x", "blob:https://a.example/1", "file:///etc/passwd", "chrome://settings/", `chrome-extension://${ID}/popup.html`]) {
+    for (const url of [
+      "data:text/html,x",
+      "blob:https://a.example/1",
+      "file:///etc/passwd",
+      "chrome://settings/",
+      `chrome-extension://${ID}/popup.html`,
+    ]) {
       expect(frameOf(sender({ url }), ID), url).toBeNull();
     }
     expect(frameOf(sender({ id: "another-extension" }), ID)).toBeNull();
@@ -130,14 +157,18 @@ describe("frameTarget", () => {
 describe("isOwnPage", () => {
   it("accepts our page, also under a dynamic ID", () => {
     expect(isOwnPage({ id: ID, url: `chrome-extension://${ID}/inline-menu.html` }, ID, "/inline-menu.html")).toBe(true);
-    expect(isOwnPage({ id: ID, url: "chrome-extension://3f1c9e0a-dynamic/inline-menu.html" }, ID, "/inline-menu.html")).toBe(true);
+    expect(
+      isOwnPage({ id: ID, url: "chrome-extension://3f1c9e0a-dynamic/inline-menu.html" }, ID, "/inline-menu.html"),
+    ).toBe(true);
     expect(isOwnPage({ id: ID, url: "moz-extension://5a5c4a3e-uuid/save-bar.html" }, ID, "/save-bar.html")).toBe(true);
   });
 
   it("refuses content scripts, other pages and other extensions", () => {
     expect(isOwnPage({ id: ID, url: "https://evil.example/inline-menu.html" }, ID, "/inline-menu.html")).toBe(false);
     expect(isOwnPage({ id: ID, url: `chrome-extension://${ID}/popup.html` }, ID, "/inline-menu.html")).toBe(false);
-    expect(isOwnPage({ id: "other", url: `chrome-extension://other/inline-menu.html` }, ID, "/inline-menu.html")).toBe(false);
+    expect(isOwnPage({ id: "other", url: `chrome-extension://other/inline-menu.html` }, ID, "/inline-menu.html")).toBe(
+      false,
+    );
     expect(isOwnPage(undefined, ID, "/inline-menu.html")).toBe(false);
   });
 

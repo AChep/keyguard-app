@@ -16,7 +16,10 @@ let events: string[];
 beforeEach(() => {
   vi.useFakeTimers();
   events = [];
-  document.addEventListener("click", (event) => events.push(`click:${(event.target as Element).id}`), { capture: true, signal: abort.signal });
+  document.addEventListener("click", (event) => events.push(`click:${(event.target as Element).id}`), {
+    capture: true,
+    signal: abort.signal,
+  });
   document.addEventListener(
     "submit",
     (event) => {
@@ -82,7 +85,9 @@ describe("in a form", () => {
   });
 
   it("takes, among several submit buttons, the only one with a hint that it signs in", async () => {
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button>Help</button><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button>Help</button><button id="go">Sign in</button></form>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go", "submit:f"]);
 
@@ -171,9 +176,13 @@ describe("in a form", () => {
   it("submits a form without submit buttons as Enter would, with requestSubmit, never by GET with a password", async () => {
     /** The method of each submit: the form's, as no submit button names another. */
     const methods: string[] = [];
-    document.addEventListener("submit", (event) => methods.push((event.target as HTMLFormElement).method), { signal: abort.signal });
+    document.addEventListener("submit", (event) => methods.push((event.target as HTMLFormElement).method), {
+      signal: abort.signal,
+    });
     // One field to type in: Enter submits, by the form's method.
-    render(`<form id="f" method="post"><input id="p" type="password"><button type="button">Help</button><button type="button">Cancel</button></form>`);
+    render(
+      `<form id="f" method="post"><input id="p" type="password"><button type="button">Help</button><button type="button">Cancel</button></form>`,
+    );
     expect(await submit({ ...(await fill("p", { password: "secret" })), step: { account: "" } })).toBe(true);
     expect(events).toEqual(["submit:f"]);
     expect(methods).toEqual(["post"]);
@@ -205,13 +214,17 @@ describe("in a form", () => {
   });
 
   it("clicks the sign-in button that the page's script handles, in a form where Enter does nothing", async () => {
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" type="button">Anmelden</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" type="button">Anmelden</button></form>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
     // Two of them: nothing tells which.
     events.length = 0;
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button type="button">Anmelden</button><button type="button">Hilfe</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button type="button">Anmelden</button><button type="button">Hilfe</button></form>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(false);
     expect(events).toEqual([]);
   });
@@ -224,14 +237,20 @@ describe("in a form", () => {
       </div>`);
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(false);
 
-    render(`<div><form id="f"><input id="u" name="email"><input id="p" type="password"></form><div id="other" role="button">Sign in</div></div>`);
+    render(
+      `<div><form id="f"><input id="u" name="email"><input id="p" type="password"></form><div id="other" role="button">Sign in</div></div>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(false);
 
-    render(`<div><input id="u" name="email"><input id="p" type="password"><form id="g"><button id="other" type="button">Sign in</button></form></div>`);
+    render(
+      `<div><input id="u" name="email"><input id="p" type="password"><form id="g"><button id="other" type="button">Sign in</button></form></div>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(false);
 
     // A `[role=button]` has no form owner: the form around it is its form.
-    render(`<div><input id="u" name="email"><input id="p" type="password"><form id="g"><div id="other" role="button">Sign in</div></form></div>`);
+    render(
+      `<div><input id="u" name="email"><input id="p" type="password"><form id="g"><div id="other" role="button">Sign in</div></form></div>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(false);
     expect(events).toEqual([]);
   });
@@ -239,30 +258,41 @@ describe("in a form", () => {
 
 describe("outside a form", () => {
   it("clicks the only control near the fields, whatever its words", async () => {
-    render(`<div><div><input id="u" autocomplete="username"></div><div id="next" role="button">Weiter</div></div><button id="far">Hilfe</button>`);
+    render(
+      `<div><div><input id="u" autocomplete="username"></div><div id="next" role="button">Weiter</div></div><button id="far">Hilfe</button>`,
+    );
     expect(await submit(await fill("u", { username: "ann" }))).toBe(true);
     expect(events).toEqual(["click:next"]);
   });
 
   it("clicks the one control with a hint that it submits, among several", async () => {
-    render(`<div><input id="u" name="email"><input id="p" type="password"><button id="help">Help</button><button id="go" class="btn btn-primary">Log in</button></div>`);
+    render(
+      `<div><input id="u" name="email"><input id="p" type="password"><button id="help">Help</button><button id="go" class="btn btn-primary">Log in</button></div>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
     events.length = 0;
-    render(`<div><input id="u" name="email"><input id="p" type="password"><button id="help">Hilfe</button><button id="go" type="submit">Anmelden</button></div>`);
+    render(
+      `<div><input id="u" name="email"><input id="p" type="password"><button id="help">Hilfe</button><button id="go" type="submit">Anmelden</button></div>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
     // Its name, on the password step: off it, a form of the password alone needs a label that says so.
     events.length = 0;
-    render(`<div><input id="p" type="password"><button>Hilfe</button><button id="go" data-testid="x" name="signIn">→</button></div>`);
+    render(
+      `<div><input id="p" type="password"><button>Hilfe</button><button id="go" data-testid="x" name="signIn">→</button></div>`,
+    );
     expect(await submit({ ...(await fill("p", { password: "secret" })), step: { account: "" } })).toBe(true);
     expect(events).toEqual(["click:go"]);
   });
 
   it("clicks nothing when it can't tell which", async () => {
-    for (const buttons of [`<button>Hilfe</button><button>Anmelden</button>`, `<button>Sign in</button><button>Next</button>`]) {
+    for (const buttons of [
+      `<button>Hilfe</button><button>Anmelden</button>`,
+      `<button>Sign in</button><button>Next</button>`,
+    ]) {
       render(`<div><input id="p" type="password">${buttons}</div>`);
       expect(await submit(await fill("p", { password: "secret" })), buttons).toBe(false);
       expect(events, buttons).toEqual([]);
@@ -293,34 +323,46 @@ describe("outside a form", () => {
 
   it("never takes a field's own eye or clear button, nor a control without words", async () => {
     // An eye with a generated class, next to the field.
-    render(`<div><div class="field"><input id="p" type="password"><button type="button" class="css-1q2w3e"><svg></svg></button></div><button id="go" type="button">Sign in</button></div>`);
+    render(
+      `<div><div class="field"><input id="p" type="password"><button type="button" class="css-1q2w3e"><svg></svg></button></div><button id="go" type="button">Sign in</button></div>`,
+    );
     expect(await submit(await fill("p", { password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
     // With an eye that has a label, the only other control near the field doesn't count for its place alone.
     events.length = 0;
-    render(`<div><div class="field"><input id="p" type="password"><button type="button" aria-label="Passwort anzeigen"><svg></svg></button></div><button type="button">Anmelden</button></div>`);
+    render(
+      `<div><div class="field"><input id="p" type="password"><button type="button" aria-label="Passwort anzeigen"><svg></svg></button></div><button type="button">Anmelden</button></div>`,
+    );
     expect(await submit({ ...(await fill("p", { password: "secret" })), step: { account: "" } })).toBe(false);
     expect(events).toEqual([]);
 
     // An icon button with a generated class one wrapper above the field, past the wrapper of its own.
-    render(`<div><div class="field"><span><input id="u" autocomplete="username"></span><button type="button" class="sc-x7f3a"><svg></svg></button></div><button id="go" type="button">Weiter</button></div>`);
+    render(
+      `<div><div class="field"><span><input id="u" autocomplete="username"></span><button type="button" class="sc-x7f3a"><svg></svg></button></div><button id="go" type="button">Weiter</button></div>`,
+    );
     expect(await submit(await fill("u", { username: "ann" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
     // A class that says it submits is a hint all the same.
     events.length = 0;
-    render(`<div><div><input id="u" autocomplete="username"></div><button id="go" class="submit-arrow"><svg></svg></button></div>`);
+    render(
+      `<div><div><input id="u" autocomplete="username"></div><button id="go" class="submit-arrow"><svg></svg></button></div>`,
+    );
     expect(await submit(await fill("u", { username: "ann" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
     // An eye without words, in a form whose sign-in is a plain button.
     events.length = 0;
-    render(`<form id="f"><input name="email" readonly value="ann@example.com"><div><input id="p" type="password"><button type="button"><svg></svg></button></div><button id="go" type="button">Sign in</button></form>`);
+    render(
+      `<form id="f"><input name="email" readonly value="ann@example.com"><div><input id="p" type="password"><button type="button"><svg></svg></button></div><button id="go" type="button">Sign in</button></form>`,
+    );
     expect(await submit(await fill("p", { password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
     // A clear button on a username step.
     events.length = 0;
-    render(`<div><div><input id="u" autocomplete="username"><button type="button">×</button></div><button id="go" type="button">Weiter</button></div>`);
+    render(
+      `<div><div><input id="u" autocomplete="username"><button type="button">×</button></div><button id="go" type="button">Weiter</button></div>`,
+    );
     expect(await submit(await fill("u", { username: "ann" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
 
@@ -343,7 +385,9 @@ describe("outside a form", () => {
   });
 
   it("skips hidden controls", async () => {
-    render(`<div><input id="p" type="password"><button style="display:none">Sign in</button><button style="visibility:hidden">Sign in</button><button id="go">Sign in</button></div>`);
+    render(
+      `<div><input id="p" type="password"><button style="display:none">Sign in</button><button style="visibility:hidden">Sign in</button><button id="go">Sign in</button></div>`,
+    );
     expect(await submit(await fill("p", { password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go"]);
   });
@@ -368,7 +412,9 @@ describe("outside a form", () => {
 describe("when it waits or does nothing", () => {
   it("waits for a disabled control to turn enabled, up to SUBMIT_WAIT_MS", async () => {
     for (const disabled of [`disabled`, `aria-disabled="true"`]) {
-      render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" ${disabled}>Sign in</button></form>`);
+      render(
+        `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" ${disabled}>Sign in</button></form>`,
+      );
       const done = start(await fill("p", { username: "ann", password: "secret" }));
       await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS + SUBMIT_WAIT_MS / 2);
       expect(events, disabled).toEqual([]);
@@ -381,7 +427,9 @@ describe("when it waits or does nothing", () => {
   });
 
   it("gives up quietly on a control that stays disabled, without submitting the form another way", async () => {
-    render(`<form id="f"><input id="p" type="password"><fieldset disabled><button id="go">Sign in</button></fieldset></form>`);
+    render(
+      `<form id="f"><input id="p" type="password"><fieldset disabled><button id="go">Sign in</button></fieldset></form>`,
+    );
     const done = start(await fill("p", { password: "secret" }));
     await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS + SUBMIT_WAIT_MS);
     expect(await done).toBe(false);
@@ -398,13 +446,17 @@ describe("when it waits or does nothing", () => {
   });
 
   it("submits nothing once the page changed a filled value", async () => {
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     const reset = await fill("p", { username: "ann", password: "secret" });
     byId("p").value = "";
     expect(await submit(reset)).toBe(false);
 
     // Nor while it waits for the control.
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`,
+    );
     const done = start(await fill("p", { username: "ann", password: "secret" }));
     await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
     byId("u").value = "bob";
@@ -415,7 +467,9 @@ describe("when it waits or does nothing", () => {
   });
 
   it("compares the fields with what the fill wrote, not with what the page's handlers left", async () => {
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     byId("p").addEventListener("input", () => (byId("p").value = byId("p").value.slice(0, 3)));
     const truncated = await fill("p", { username: "ann", password: "secret" });
     expect(filled.get(byId("p"))).toBe("sec");
@@ -425,7 +479,9 @@ describe("when it waits or does nothing", () => {
 
   it("checks the password step's account again at each try, read-only or not", async () => {
     for (const readonly of ["readonly", ""]) {
-      render(`<form id="f"><input id="u" name="email" ${readonly} value="ann"><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`);
+      render(
+        `<form id="f"><input id="u" name="email" ${readonly} value="ann"><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`,
+      );
       const done = start({ ...(await fill("p", { password: "secret" })), step: { account: "ann" } });
       await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
       byId("u").value = "bob";
@@ -435,7 +491,9 @@ describe("when it waits or does nothing", () => {
       expect(events, readonly).toEqual([]);
     }
     // A step that showed no account, which shows one now.
-    render(`<form id="f"><input id="u" name="email" readonly><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email" readonly><input id="p" type="password"><button id="go" disabled>Sign in</button></form>`,
+    );
     const done = start({ ...(await fill("p", { password: "secret" })), step: { account: "" } });
     await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
     byId("u").value = "bob";
@@ -446,13 +504,17 @@ describe("when it waits or does nothing", () => {
   });
 
   it("checks the form again at each try: a field the page showed since, or fields moved to another form", async () => {
-    render(`<form id="f"><input id="u" autocomplete="username"><input id="p" type="password" style="display:none"><button id="go">Next</button></form>`);
+    render(
+      `<form id="f"><input id="u" autocomplete="username"><input id="p" type="password" style="display:none"><button id="go">Next</button></form>`,
+    );
     const done = start(await fill("u", { username: "ann" }));
     byId("p").style.display = "";
     await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
     expect(await done).toBe(false);
 
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form><form id="g"><button id="go2">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form><form id="g"><button id="go2">Sign in</button></form>`,
+    );
     const moved = start(await fill("p", { username: "ann", password: "secret" }));
     byId("g").prepend(byId("u"), byId("p"));
     await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
@@ -475,7 +537,10 @@ describe("when it waits or does nothing", () => {
     const SIGN_IN = `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form><button id="ext" type="button" form="f"><span id="icon">Send a code</span></button>`;
     const meanwhile: [string, () => void][] = [
       ["a click", () => trusted(byId("u"), new MouseEvent("click", { bubbles: true }))],
-      ["a click on a control of the form outside it", () => trusted(byId("icon"), new MouseEvent("click", { bubbles: true }))],
+      [
+        "a click on a control of the form outside it",
+        () => trusted(byId("icon"), new MouseEvent("click", { bubbles: true })),
+      ],
       ["Enter", () => trusted(byId("p"), new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))],
       ["the page's submit", () => byId<HTMLFormElement>("f").requestSubmit()],
       ["pagehide", () => window.dispatchEvent(new Event("pagehide"))],
@@ -495,7 +560,10 @@ describe("when it waits or does nothing", () => {
       act();
       await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS + SUBMIT_WAIT_MS);
       expect(await done, name).toBe(false);
-      expect(events.filter((it) => it === "click:go"), name).toEqual([]);
+      expect(
+        events.filter((it) => it === "click:go"),
+        name,
+      ).toEqual([]);
       vi.restoreAllMocks();
     }
     // A tab in the background since before: no `visibilitychange` follows.
@@ -515,7 +583,9 @@ describe("when it waits or does nothing", () => {
   });
 
   it("submits nothing once the page signed in on the fill's own events, watched from before the fill", async () => {
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     // An AJAX sign-in as the password changes.
     byId("p").addEventListener("change", () => byId<HTMLFormElement>("f").requestSubmit());
     const filling = await fill("p", { username: "ann", password: "secret" });
@@ -527,23 +597,31 @@ describe("when it waits or does nothing", () => {
 
     // The fill's own events don't count.
     events.length = 0;
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     expect(await submit(await fill("p", { username: "ann", password: "secret" }))).toBe(true);
     expect(events).toEqual(["click:go", "submit:f"]);
   });
 
   it("submits a sign-in form only, after a fill of each login field the user could type in", async () => {
     // The login has no username.
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     expect(await submit(await fill("p", { password: "secret" }))).toBe(false);
 
     // A read-only username shows the account: the password is all there is to fill.
-    render(`<form id="f"><input id="u" name="email" readonly value="ann"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email" readonly value="ann"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     expect(await submit(await fill("p", { password: "secret" }))).toBe(true);
 
     // A username a fill wrote before counts on the password step only.
     events.length = 0;
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     await fill("u", { username: "ann" });
     const password = await fill("p", { password: "secret" });
     expect(await submit(password)).toBe(false);
@@ -552,7 +630,9 @@ describe("when it waits or does nothing", () => {
 
     // A username the site filled with the account the background checked, on the password step only.
     events.length = 0;
-    render(`<form id="f"><input id="u" name="email" value="ann"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email" value="ann"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+    );
     const prefilled = await fill("p", { password: "secret" });
     expect(await submit({ ...prefilled, step: { account: "bob" } })).toBe(false);
     expect(await submit(again(prefilled))).toBe(false);
@@ -561,7 +641,9 @@ describe("when it waits or does nothing", () => {
 
     // A sign-up.
     events.length = 0;
-    render(`<form id="f"><input id="u" name="email"><input id="p" type="password" autocomplete="new-password"><button id="go">Sign up</button></form>`);
+    render(
+      `<form id="f"><input id="u" name="email"><input id="p" type="password" autocomplete="new-password"><button id="go">Sign up</button></form>`,
+    );
     const signUp = await fill("p", { username: "ann" });
     expect(signUp.written).toEqual([byId("u")]);
     expect(filledLogin(signUp, options)).toBeNull();

@@ -20,6 +20,8 @@
     "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc --noEmit -p tsconfig.json",
     "lint": "eslint .",
     "lint:firefox": "web-ext lint --source-dir .output/firefox-mv3",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "render:icons": "node scripts/render-icons.ts"
   },
@@ -40,6 +42,8 @@
     "fake-indexeddb": "6.2.6",
     "globals": "17.14.0",
     "happy-dom": "21.0.4",
+    "prettier": "3.10.1",
+    "prettier-plugin-svelte": "4.1.1",
     "svelte": "5.57.3",
     "svelte-check": "4.7.8",
     "typescript": "6.0.3",

@@ -143,7 +143,11 @@ describe("an app that needs a newer extension", () => {
   it("asks the browser for an update once, and no other status does", async () => {
     const check = vi.fn(async (): Promise<UpdateCheck> => ({ status: "update_available" }));
     const { updater, state } = setup({ requestUpdateCheck: check });
-    for (const status of [{ kind: "update_required" }, { kind: "app_update_required" }, { kind: "unlocked" }] as ExtensionStatus[]) {
+    for (const status of [
+      { kind: "update_required" },
+      { kind: "app_update_required" },
+      { kind: "unlocked" },
+    ] as ExtensionStatus[]) {
       updater.statusChanged(status);
     }
     await answered();

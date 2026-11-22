@@ -8,13 +8,7 @@
 // when the theme changes; per-window themes that other extensions set are
 // ignored, as the theme of the last focused window is read. Every write
 // reaches every content script and page, so it writes only what changed.
-import {
-  parseStoredTheme,
-  THEME_KEY,
-  toStoredTheme,
-  type StoredTheme,
-  type ThemeScheme,
-} from "../ui/storedTheme";
+import { parseStoredTheme, THEME_KEY, toStoredTheme, type StoredTheme, type ThemeScheme } from "../ui/storedTheme";
 import { SerialQueue } from "../util/serial";
 
 /** The parts of Firefox's `theme` API the sync uses. */

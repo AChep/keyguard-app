@@ -156,9 +156,9 @@ describe("options to JSON", () => {
     const root = deep;
     for (let i = 0; i < 20; i++) deep = deep.next = {};
     expect(() => requestOptionsToJSON({ challenge: new Uint8Array(1), extensions: root })).toThrow(TypeError);
-    expect(() => creationOptionsToJSON({ rp: { name: "x" }, user: {}, challenge: new Uint8Array(1), pubKeyCredParams: [] })).toThrow(
-      TypeError,
-    );
+    expect(() =>
+      creationOptionsToJSON({ rp: { name: "x" }, user: {}, challenge: new Uint8Array(1), pubKeyCredParams: [] }),
+    ).toThrow(TypeError);
     expect(() => creationOptionsToJSON(null)).toThrow(TypeError);
   });
 });
@@ -166,7 +166,8 @@ describe("options to JSON", () => {
 describe("credentials from JSON", () => {
   it("rebuilds a registration on the browser's prototypes", () => {
     const json = registrationJSON(ORIGIN, "Y2hhbGxlbmdl");
-    const credential = credentialFromJSON(json, "create", CLASSES) as unknown as Record<string, unknown> & PublicKeyCredential;
+    const credential = credentialFromJSON(json, "create", CLASSES) as unknown as Record<string, unknown> &
+      PublicKeyCredential;
     expect(credential).toBeInstanceOf(FakePublicKeyCredential);
     expect(credential.response).toBeInstanceOf(FakeAttestationResponse);
     expect(credential.id).toBe(CREDENTIAL_ID);
@@ -196,7 +197,9 @@ describe("credentials from JSON", () => {
     // for...in sees the members, as on the browser's objects.
     const names: string[] = [];
     for (const name in credential) names.push(name);
-    expect(names).toEqual(expect.arrayContaining(["id", "rawId", "type", "response", "toJSON", "getClientExtensionResults"]));
+    expect(names).toEqual(
+      expect.arrayContaining(["id", "rawId", "type", "response", "toJSON", "getClientExtensionResults"]),
+    );
   });
 
   it("rebuilds an authentication, with prf and largeBlob outputs as ArrayBuffers", () => {
@@ -212,7 +215,8 @@ describe("credentials from JSON", () => {
       prf: { results: { first: ArrayBuffer; second: ArrayBuffer } };
       largeBlob: { blob: ArrayBuffer };
     };
-    const extensions = json.clientExtensionResults as typeof results & Record<string, Record<string, Record<string, string>>>;
+    const extensions = json.clientExtensionResults as typeof results &
+      Record<string, Record<string, Record<string, string>>>;
     expect(results.prf.results.first).toBeInstanceOf(ArrayBuffer);
     expect(b64(bytesOf(results.prf.results.first))).toBe(extensions.prf.results.first);
     expect(b64(bytesOf(results.prf.results.second))).toBe(extensions.prf.results.second);
@@ -230,7 +234,9 @@ describe("credentials from JSON", () => {
       for (const attachment of ["cross-platform", null, 7]) {
         const credential = credentialFromJSON({ ...json, authenticatorAttachment: attachment }, kind, CLASSES);
         expect(credential.authenticatorAttachment, `${kind} ${String(attachment)}`).toBe("platform");
-        expect(credential.toJSON(), `${kind} ${String(attachment)}`).toMatchObject({ authenticatorAttachment: "platform" });
+        expect(credential.toJSON(), `${kind} ${String(attachment)}`).toMatchObject({
+          authenticatorAttachment: "platform",
+        });
       }
     }
   });
@@ -244,10 +250,16 @@ describe("credentials from JSON", () => {
     expect(credential.authenticatorAttachment).toBe("platform");
     expect((credential.response as AuthenticatorAssertionResponse).userHandle).toBeNull();
     expect(credential.getClientExtensionResults()).toEqual({});
-    expect(credential.toJSON()).toMatchObject({ authenticatorAttachment: "platform", clientExtensionResults: {}, type: "public-key" });
+    expect(credential.toJSON()).toMatchObject({
+      authenticatorAttachment: "platform",
+      clientExtensionResults: {},
+      type: "public-key",
+    });
 
     expect(() => credentialFromJSON({ ...json, rawId: "not base64url!" }, "get", {})).toThrow(TypeError);
-    expect(() => credentialFromJSON({ ...json, response: { ...response, signature: 1 } }, "get", {})).toThrow(TypeError);
+    expect(() => credentialFromJSON({ ...json, response: { ...response, signature: 1 } }, "get", {})).toThrow(
+      TypeError,
+    );
     expect(() => credentialFromJSON(registrationJSON(ORIGIN, "AA"), "create", {})).not.toThrow();
   });
 });
@@ -260,14 +272,18 @@ describe("credential checks", () => {
     expect(credentialProblem(registrationJSON(ORIGIN, challenge), { kind: "create", ...expected })).toBeNull();
     expect(credentialProblem(authenticationJSON(ORIGIN, challenge), { kind: "get", ...expected })).toBeNull();
     // The challenge compares as bytes: padding doesn't matter.
-    expect(credentialProblem(authenticationJSON(ORIGIN, "AQI"), { kind: "get", origin: ORIGIN, challenge: "AQI=" })).toBeNull();
+    expect(
+      credentialProblem(authenticationJSON(ORIGIN, "AQI"), { kind: "get", origin: ORIGIN, challenge: "AQI=" }),
+    ).toBeNull();
   });
 
   it("refuses a credential for another origin, challenge or ceremony", () => {
     expect(credentialProblem(authenticationJSON("https://evil.example", challenge), { kind: "get", ...expected })).toBe(
       "clientDataJSON.origin",
     );
-    expect(credentialProblem(authenticationJSON(ORIGIN, "b3RoZXI"), { kind: "get", ...expected })).toBe("clientDataJSON.challenge");
+    expect(credentialProblem(authenticationJSON(ORIGIN, "b3RoZXI"), { kind: "get", ...expected })).toBe(
+      "clientDataJSON.challenge",
+    );
     expect(credentialProblem(registrationJSON(ORIGIN, challenge), { kind: "get", ...expected })).toBe("signature");
     const registration = registrationJSON(ORIGIN, challenge);
     const asGet = { ...registration, response: { ...(registration.response as object), signature: "AA" } };
@@ -277,17 +293,23 @@ describe("credential checks", () => {
   it("refuses malformed fields", () => {
     const json = authenticationJSON(ORIGIN, challenge);
     const response = json.response as Record<string, unknown>;
-    const problem = (credential: Record<string, unknown>) => credentialProblem(credential, { kind: "get", ...expected });
+    const problem = (credential: Record<string, unknown>) =>
+      credentialProblem(credential, { kind: "get", ...expected });
     expect(problem({ ...json, rawId: toBase64Url(new Uint8Array([9])) })).toBe("id");
     expect(problem({ ...json, type: "password" })).toBe("type");
     expect(problem({ ...json, response: { ...response, userHandle: 5 } })).toBe("userHandle");
     expect(problem({ ...json, clientExtensionResults: { prf: { results: { first: "!" } } } })).toBe("prf.results");
     expect(problem({ ...json, clientExtensionResults: { largeBlob: { blob: 1 } } })).toBe("largeBlob");
-    expect(problem({ ...json, response: { ...response, clientDataJSON: toBase64Url(encode("not json")) } })).toBe("clientDataJSON");
+    expect(problem({ ...json, response: { ...response, clientDataJSON: toBase64Url(encode("not json")) } })).toBe(
+      "clientDataJSON",
+    );
     const registration = registrationJSON(ORIGIN, challenge);
-    const create = (credential: Record<string, unknown>) => credentialProblem(credential, { kind: "create", ...expected });
+    const create = (credential: Record<string, unknown>) =>
+      credentialProblem(credential, { kind: "create", ...expected });
     const registrationResponse = registration.response as Record<string, unknown>;
-    expect(create({ ...registration, response: { ...registrationResponse, publicKeyAlgorithm: "ES256" } })).toBe("publicKeyAlgorithm");
+    expect(create({ ...registration, response: { ...registrationResponse, publicKeyAlgorithm: "ES256" } })).toBe(
+      "publicKeyAlgorithm",
+    );
     expect(create({ ...registration, response: { ...registrationResponse, transports: [1] } })).toBe("transports");
   });
 });

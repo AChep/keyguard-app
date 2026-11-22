@@ -45,8 +45,10 @@
     const result: Field[] = [];
     if (item.username) result.push({ action: "copy_username", label: t("username"), copyLabel: t("copy_username") });
     // Not when the item's collections hide the password.
-    if (copiesPassword(item)) result.push({ action: "copy_password", label: t("password"), copyLabel: t("copy_password") });
-    if (item.has_totp) result.push({ action: "copy_totp", label: t("one_time_password"), copyLabel: t("copy_otp_code") });
+    if (copiesPassword(item))
+      result.push({ action: "copy_password", label: t("password"), copyLabel: t("copy_password") });
+    if (item.has_totp)
+      result.push({ action: "copy_totp", label: t("one_time_password"), copyLabel: t("copy_otp_code") });
     return result;
   });
 
@@ -58,7 +60,8 @@
 
   const chips = $derived.by(() => {
     const result: Chip[] = [];
-    if (unmatched) result.push({ icon: "warning_amber", label: t("browser_extension_search_unmatched"), tone: "chip-error" });
+    if (unmatched)
+      result.push({ icon: "warning_amber", label: t("browser_extension_search_unmatched"), tone: "chip-error" });
     if (last) result.push({ icon: "schedule", label: t("browser_extension_last_used"), tone: "" });
     if (item.reprompt) result.push({ icon: "lock", label: t("additem_auth_reprompt_title"), tone: "chip-tertiary" });
     return result;
@@ -67,7 +70,9 @@
   const passkeyTitle = (passkey: SuggestPasskey) =>
     passkey.user_display_name || passkey.user_name || t("passkey_unknown_username");
   const passkeyText = (passkey: SuggestPasskey) =>
-    passkey.user_display_name && passkey.user_name && passkey.user_name !== passkey.user_display_name ? passkey.user_name : null;
+    passkey.user_display_name && passkey.user_name && passkey.user_name !== passkey.user_display_name
+      ? passkey.user_name
+      : null;
 </script>
 
 <header class="header">

@@ -58,7 +58,7 @@ export function sameOriginWithAncestors(win: Window): boolean {
     for (let i = 0; i < ancestors.length; i++) if (ancestors[i] !== origin) return false;
     return true;
   }
-  for (let current: Window = win; current.top !== current; ) {
+  for (let current: Window = win; current.top !== current;) {
     const parent: Window = current.parent;
     try {
       if (ownOrigin(parent) !== origin) return false;

@@ -10,7 +10,9 @@ class FakePort implements PopupPort {
   broken = false;
   private readonly messageListeners: ((message: unknown) => void)[] = [];
   private readonly disconnectListeners: (() => void)[] = [];
-  readonly onMessage = { addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener) };
+  readonly onMessage = {
+    addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener),
+  };
   readonly onDisconnect = { addListener: (listener: () => void) => void this.disconnectListeners.push(listener) };
 
   postMessage(message: unknown): void {

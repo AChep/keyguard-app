@@ -28,8 +28,7 @@
   const runs = $derived.by(() => {
     const result: { kind: Kind; text: string }[] = [];
     for (const char of Array.from(password ?? "")) {
-      const kind: Kind =
-        char.length > 1 || /\p{L}/u.test(char) ? "letter" : /\p{Nd}/u.test(char) ? "digit" : "symbol";
+      const kind: Kind = char.length > 1 || /\p{L}/u.test(char) ? "letter" : /\p{Nd}/u.test(char) ? "digit" : "symbol";
       const previous = result.at(-1);
       if (previous?.kind === kind) previous.text += char;
       else result.push({ kind, text: char });

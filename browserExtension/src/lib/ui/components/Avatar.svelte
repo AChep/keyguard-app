@@ -34,7 +34,12 @@
     />
   </span>
 {:else}
-  <span class="avatar monogram" style:--avatar-size="{size}px" style:--avatar-accent={monogramAccent(name)} aria-hidden="true">
+  <span
+    class="avatar monogram"
+    style:--avatar-size="{size}px"
+    style:--avatar-accent={monogramAccent(name)}
+    aria-hidden="true"
+  >
     <span class="circle">{initials(name)}</span>
   </span>
 {/if}

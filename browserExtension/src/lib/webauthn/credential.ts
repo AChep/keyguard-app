@@ -33,7 +33,8 @@ function clientDataProblem(value: unknown, expected: ExpectedCredential): string
     return "clientDataJSON";
   }
   if (!isObject(clientData)) return "clientDataJSON";
-  if (clientData.type !== (expected.kind === "create" ? "webauthn.create" : "webauthn.get")) return "clientDataJSON.type";
+  if (clientData.type !== (expected.kind === "create" ? "webauthn.create" : "webauthn.get"))
+    return "clientDataJSON.type";
   if (clientData.origin !== expected.origin) return "clientDataJSON.origin";
   const challenge = bytes(clientData.challenge);
   const asked = bytes(expected.challenge);
@@ -48,7 +49,10 @@ function extensionsProblem(value: unknown): string | null {
   if (prf !== undefined) {
     if (!isObject(prf)) return "prf";
     const results = prf.results;
-    if (results !== undefined && (!isObject(results) || !isBytes(results.first) || !(results.second === undefined || isBytes(results.second)))) {
+    if (
+      results !== undefined &&
+      (!isObject(results) || !isBytes(results.first) || !(results.second === undefined || isBytes(results.second)))
+    ) {
       return "prf.results";
     }
   }

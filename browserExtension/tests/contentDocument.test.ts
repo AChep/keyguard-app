@@ -37,7 +37,9 @@ const stops: (() => void)[] = [];
 function startDocument(html = FORM): () => void {
   render(html);
   const invalidated: (() => void)[] = [];
-  contentScript.main({ onInvalidated: (callback: () => void) => void invalidated.push(callback) } as unknown as ContentScriptContext);
+  contentScript.main({
+    onInvalidated: (callback: () => void) => void invalidated.push(callback),
+  } as unknown as ContentScriptContext);
   const stop = () => {
     for (const callback of invalidated.splice(0)) callback();
   };
@@ -48,9 +50,11 @@ function startDocument(html = FORM): () => void {
 /** `tabs.sendMessage`: the command reaches the frame's content script, which answers. */
 function deliver(command: ContentCommand): Promise<unknown> {
   return new Promise((resolve) => {
-    void fakeBrowser.runtime.onMessage.trigger(command, { id: fakeBrowser.runtime.id }, resolve).then((results: unknown[]) => {
-      if (!results.includes(true)) resolve(undefined);
-    });
+    void fakeBrowser.runtime.onMessage
+      .trigger(command, { id: fakeBrowser.runtime.id }, resolve)
+      .then((results: unknown[]) => {
+        if (!results.includes(true)) resolve(undefined);
+      });
   });
 }
 
@@ -103,14 +107,16 @@ beforeEach(() => {
     probeTimeoutMs: 200,
   });
   // The background: content scripts' messages come with an empty sender here.
-  fakeBrowser.runtime.onMessage.addListener((message: unknown, sender: { id?: string }, sendResponse: (response: unknown) => void) => {
-    if (sender.id !== undefined) return false;
-    tokens.push((message as { doc: string }).doc);
-    messages.push(message as { kind: string });
-    if (holdSteps && (message as { kind: string }).kind === "password_step") return true;
-    void pages.onContentMessage(message, SENDER).then(sendResponse);
-    return true;
-  });
+  fakeBrowser.runtime.onMessage.addListener(
+    (message: unknown, sender: { id?: string }, sendResponse: (response: unknown) => void) => {
+      if (sender.id !== undefined) return false;
+      tokens.push((message as { doc: string }).doc);
+      messages.push(message as { kind: string });
+      if (holdSteps && (message as { kind: string }).kind === "password_step") return true;
+      void pages.onContentMessage(message, SENDER).then(sendResponse);
+      return true;
+    },
+  );
 });
 
 afterEach(() => {
@@ -162,7 +168,10 @@ describe("the document token", () => {
     const second = new Set(tokens);
     expect(first.size).toBe(1);
     expect(second.size).toBe(1);
-    expect([...first, ...second]).toEqual([expect.stringMatching(/^[0-9a-f]{32}$/), expect.stringMatching(/^[0-9a-f]{32}$/)]);
+    expect([...first, ...second]).toEqual([
+      expect.stringMatching(/^[0-9a-f]{32}$/),
+      expect.stringMatching(/^[0-9a-f]{32}$/),
+    ]);
     expect([...first][0]).not.toBe([...second][0]);
   });
 
@@ -206,24 +215,39 @@ describe("the document token", () => {
       { kind: "guard", popup: "menu" },
       { kind: "guard", popup: "save_bar" },
     ];
-    for (const stamp of [{ doc: STALE, origin }, { doc: own!, origin: "https://evil.example" }, { origin }, { doc: own! }]) {
+    for (const stamp of [
+      { doc: STALE, origin },
+      { doc: own!, origin: "https://evil.example" },
+      { origin },
+      { doc: own! },
+    ]) {
       for (const command of answered) {
-        expect(await deliver({ ...command, ...stamp } as ContentCommand), `${command.kind} ${JSON.stringify(stamp)}`).toEqual({
+        expect(
+          await deliver({ ...command, ...stamp } as ContentCommand),
+          `${command.kind} ${JSON.stringify(stamp)}`,
+        ).toEqual({
           ok: false,
           reason: "origin",
         });
       }
     }
     // Its own token and origin get past it: no menu or save bar is open to check.
-    expect(await deliver({ kind: "guard", popup: "menu", doc: own!, origin })).toEqual({ ok: false, reason: "obscured" });
-    expect(await deliver({ kind: "guard", popup: "save_bar", doc: own!, origin })).toEqual({ ok: false, reason: "obscured" });
+    expect(await deliver({ kind: "guard", popup: "menu", doc: own!, origin })).toEqual({
+      ok: false,
+      reason: "obscured",
+    });
+    expect(await deliver({ kind: "guard", popup: "save_bar", doc: own!, origin })).toEqual({
+      ok: false,
+      reason: "obscured",
+    });
     expect(byId("password").value).toBe("");
     expect(await deliver({ ...answered[0], doc: own!, origin } as ContentCommand)).toEqual({ ok: true });
     expect(byId("password").value).toBe("pw");
   });
 
   it("checks every command for one document, and answers those that expect it", () => {
-    for (const kind of ["fill", "fill_totp", "fill_password", "guard"]) expect(documentCommandOf(kind), kind).toBe("answer");
+    for (const kind of ["fill", "fill_totp", "fill_password", "guard"])
+      expect(documentCommandOf(kind), kind).toBe("answer");
     for (const kind of ["menu_resize", "menu_close", "save_bar_resize", "save_bar_close"]) {
       expect(documentCommandOf(kind), kind).toBe("notify");
     }
@@ -336,7 +360,14 @@ describe("a changing page", () => {
       },
     });
     const own = tokens.at(-1)!;
-    const fill = { kind: "fill", doc: own, origin: "https://login.example.com", target: "focused", username: "ann", password: "pw" } as const;
+    const fill = {
+      kind: "fill",
+      doc: own,
+      origin: "https://login.example.com",
+      target: "focused",
+      username: "ann",
+      password: "pw",
+    } as const;
     // Without focus in a field, a fill for the focused one takes the last.
     await deliver(fill);
     expect(reads).toBeGreaterThan(0);
@@ -378,11 +409,20 @@ describe("the password step", () => {
   }
 
   /** The content scripts' `password_step` reports, in order. */
-  const reports = () => messages.filter((it) => it.kind === "password_step") as unknown as { step: string; account?: string }[];
+  const reports = () =>
+    messages.filter((it) => it.kind === "password_step") as unknown as { step: string; account?: string }[];
 
   /** A fill of target `step` with the token of [report], for the document that sent it last. */
   const stepFill = (report: { step: string }, password = "pw") =>
-    ({ kind: "fill", target: "step", step: report.step, username: "bob", password, doc: tokens.at(-1)!, origin: ORIGIN }) as const;
+    ({
+      kind: "fill",
+      target: "step",
+      step: report.step,
+      username: "bob",
+      password,
+      doc: tokens.at(-1)!,
+      origin: ORIGIN,
+    }) as const;
 
   /**
    * The popup fills the username step of a new document, which then
@@ -404,7 +444,13 @@ describe("the password step", () => {
     expect(byId("account").value).toBe("ann");
     const fills = sent.filter((it) => it.message.kind === "fill").map((it) => it.message);
     expect(reports()).toEqual([
-      { kind: "password_step", step: expect.stringMatching(/^[0-9a-f]{32}$/), url: PAGE, account: "ann", doc: expect.stringMatching(/^[0-9a-f]{32}$/) },
+      {
+        kind: "password_step",
+        step: expect.stringMatching(/^[0-9a-f]{32}$/),
+        url: PAGE,
+        account: "ann",
+        doc: expect.stringMatching(/^[0-9a-f]{32}$/),
+      },
     ]);
     expect(fills).toEqual([
       expect.objectContaining({ target: "page", username: "ann", password: "secret" }),
@@ -424,7 +470,9 @@ describe("the password step", () => {
   });
 
   it("fills the password that a single-page app shows after the username, and never the username", async () => {
-    startDocument(`<form><input id="username" autocomplete="username"><input id="password" type="password" style="visibility: hidden"></form>`);
+    startDocument(
+      `<form><input id="username" autocomplete="username"><input id="password" type="password" style="visibility: hidden"></form>`,
+    );
     fillPrompt = async () => ({ username: "ann", password: "secret" });
     await pages.fillTab(7, PAGE, "h1");
     expect([byId("username").value, byId("password").value]).toEqual(["ann", ""]);
@@ -437,7 +485,9 @@ describe("the password step", () => {
   it("asks again once a username fill was answered, for a step shown during the fill: one shown before waits for focus", async () => {
     fillPrompt = async () => ({ username: "ann", password: "secret" });
     // A single-page app shows the step by a style, which the watcher doesn't see, as the username is filled.
-    const stop = startDocument(`<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`);
+    const stop = startDocument(
+      `<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`,
+    );
     byId("username").addEventListener("input", () => {
       byId("password").style.visibility = "";
       byId("password").focus();
@@ -483,8 +533,12 @@ describe("the password step", () => {
     const [first, second] = reports();
     expect(await deliver(stepFill(first!))).toEqual({ ok: true });
     expect([byId("p1").value, byId("p2").value]).toEqual(["pw", ""]);
-    expect(Array.from(document.querySelectorAll<HTMLInputElement>("[name=username]"), (it) => it.value)).toEqual(["ann", "ann"]);
-    for (const step of [first!, { step: "0".repeat(32) }]) expect(await deliver(stepFill(step))).toEqual({ ok: false, reason: "no_form" });
+    expect(Array.from(document.querySelectorAll<HTMLInputElement>("[name=username]"), (it) => it.value)).toEqual([
+      "ann",
+      "ann",
+    ]);
+    for (const step of [first!, { step: "0".repeat(32) }])
+      expect(await deliver(stepFill(step))).toEqual({ ok: false, reason: "no_form" });
     // Nor once its form shows another account than the background was told.
     document.querySelectorAll<HTMLInputElement>("[name=username]")[1]!.value = "bob";
     expect(await deliver(stepFill(second!))).toEqual({ ok: false, reason: "no_form" });
@@ -563,7 +617,9 @@ describe("the password step", () => {
   it("asks on a return to the tab for a step shown as the username was filled, the tab put in the background before the look after the fill", async () => {
     holdSteps = true;
     fillPrompt = async () => ({ username: "ann", password: "secret" });
-    startDocument(`<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`);
+    startDocument(
+      `<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`,
+    );
     byId("username").addEventListener("input", () => (byId("password").style.visibility = ""));
     await pages.fillTab(7, PAGE, "h1");
     expect([byId("username").value, byId("password").value]).toEqual(["ann", ""]);
@@ -636,7 +692,9 @@ describe("the password step", () => {
 
   it("signs in on a step whose username the site filled with the account, with the option on", async () => {
     await new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: true });
-    await signIn(`<form id="f"><input id="account" name="username" value="ann"><input id="password" type="password"><button id="go">Sign in</button></form>`);
+    await signIn(
+      `<form id="f"><input id="account" name="username" value="ann"><input id="password" type="password"><button id="go">Sign in</button></form>`,
+    );
     const events = recordSignIn();
     await until(() => events.length === 2);
     expect(events).toEqual(["click", "submit"]);
@@ -655,7 +713,9 @@ describe("the password step", () => {
       const stop = startDocument(html);
       document.querySelector("input")!.focus();
       await deliver({ kind: "save_bar_show" });
-      expect(await deliver({ ...fill, doc: tokens.at(-1)! }), html).toEqual(step ? { ok: true, passwordStep: true } : { ok: true });
+      expect(await deliver({ ...fill, doc: tokens.at(-1)! }), html).toEqual(
+        step ? { ok: true, passwordStep: true } : { ok: true },
+      );
       stop();
     }
   });
@@ -716,7 +776,10 @@ describe("the sign-in after a fill", () => {
     const fill = { kind: "fill", target: "page", username: "ann", password: "pw", doc: own, origin: ORIGIN } as const;
     expect(await deliver({ ...fill, submit: true })).toEqual({ ok: true });
     // Any fill, even one that finds nothing to fill.
-    expect(await deliver({ kind: "fill_totp", target: "page", code: "123456", doc: own, origin: ORIGIN })).toEqual({ ok: false, reason: "obscured" });
+    expect(await deliver({ kind: "fill_totp", target: "page", code: "123456", doc: own, origin: ORIGIN })).toEqual({
+      ok: false,
+      reason: "obscured",
+    });
     await deliver({ ...fill, submit: "yes" } as unknown as ContentCommand);
     await scanned();
     expect(events).toEqual([]);
@@ -733,7 +796,8 @@ describe("an update of the extension", () => {
   }
 
   // The save bar's iframe; at about:blank here.
-  const settings = (window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }).happyDOM.settings;
+  const settings = (window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }).happyDOM
+    .settings;
   const id = fakeBrowser.runtime.id;
   beforeEach(() => {
     settings.enableIframePageLoading = true;

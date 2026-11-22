@@ -45,7 +45,8 @@ describe("embedded pages", () => {
     const win = frameWindow(parent);
     const port = new FakePort();
     connectEmbedded("save-bar", win, () => port);
-    const post = (data: unknown, source: Window) => win.dispatchEvent(new MessageEvent("message", { data, source: source as never }));
+    const post = (data: unknown, source: Window) =>
+      win.dispatchEvent(new MessageEvent("message", { data, source: source as never }));
 
     post({ type: BIND_MESSAGE, token: TOKEN }, other);
     post({ type: BIND_MESSAGE, token: "short" }, parent);

@@ -32,13 +32,15 @@ export const TOP_LAYER = "data-top-layer";
  * closed shadow roots come from [shadowRoot], and the elements with
  * [TOP_LAYER] are in the top layer.
  */
-export function testLayout(options: {
-  boxes?: Map<Element, Box>;
-  hit?: (x: number, y: number) => Element | null;
-  topHit?: (x: number, y: number) => Element | null;
-  viewport?: { width: number; height: number };
-  shadowRoot?: (element: Element) => ShadowRoot | null;
-} = {}): Layout {
+export function testLayout(
+  options: {
+    boxes?: Map<Element, Box>;
+    hit?: (x: number, y: number) => Element | null;
+    topHit?: (x: number, y: number) => Element | null;
+    viewport?: { width: number; height: number };
+    shadowRoot?: (element: Element) => ShadowRoot | null;
+  } = {},
+): Layout {
   return {
     rendered: displayed,
     rect: (element) => options.boxes?.get(element) ?? DEFAULT_BOX,

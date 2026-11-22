@@ -141,7 +141,11 @@ export interface PageDeps {
   options: OptionsStore;
   passkeys: ConditionalPasskeys;
   /** `tabs.sendMessage` to one frame, resolving with its answer. */
-  sendToFrame(tabId: number, message: ContentCommand, target: { frameId: number; documentId?: string }): Promise<unknown>;
+  sendToFrame(
+    tabId: number,
+    message: ContentCommand,
+    target: { frameId: number; documentId?: string },
+  ): Promise<unknown>;
   /** `tabs.sendMessage` to every frame of a tab; rejects when none has a content script. */
   sendToTab(tabId: number, message: ContentCommand): Promise<unknown>;
   /** Injects the content script into a tab's top frame, as for tabs open before the install. */
@@ -429,7 +433,9 @@ export class PageController {
   private async isSaveBlocked(frame: FrameRef): Promise<boolean> {
     try {
       // No kinds: the app matches no logins, and answers with the blocks only.
-      return (await this.deps.app.request("suggest", { url: frame.url, kinds: [], ...privateWindow(frame.privateWindow) })).save_blocked;
+      return (
+        await this.deps.app.request("suggest", { url: frame.url, kinds: [], ...privateWindow(frame.privateWindow) })
+      ).save_blocked;
     } catch {
       return false;
     }
@@ -458,11 +464,14 @@ export class PageController {
         if (!(await this.deps.options.options()).inlineMenu) return { error: "not_allowed" };
         // One menu per frame: a new one replaces the old.
         for (const menu of this.menus) if (sameFrame(menu.frame, frame)) this.end(menu, { notify: false });
-        for (const [token, issued] of this.tokens) if (issued.kind === "menu" && sameFrame(issued.frame, frame)) this.drop(token);
+        for (const [token, issued] of this.tokens)
+          if (issued.kind === "menu" && sameFrame(issued.frame, frame)) this.drop(token);
         // For the page the user is on, see [currentUrl].
         const page = { ...frame, url: currentUrl(frame, request.url) ?? frame.url };
         const prefetch = this.prefetchMenu(page, request.webauthn);
-        return { token: this.issue({ kind: "menu", frame: page, role: request.role, webauthn: request.webauthn, prefetch }) };
+        return {
+          token: this.issue({ kind: "menu", frame: page, role: request.role, webauthn: request.webauthn, prefetch }),
+        };
       }
       case "save_candidate":
         await this.offerSave(frame, request.candidate);
@@ -472,7 +481,11 @@ export class PageController {
         return null;
       case "password_step":
         // For the page the user is on, as for menu_open.
-        await this.passwordStep({ ...frame, url: currentUrl(frame, request.url) ?? frame.url }, request.step, request.account);
+        await this.passwordStep(
+          { ...frame, url: currentUrl(frame, request.url) ?? frame.url },
+          request.step,
+          request.account,
+        );
         return null;
       case "save_bar_open":
         if (frame.frameId !== 0 || this.pendingSave(frame.tabId) === null) return null;
@@ -480,12 +493,14 @@ export class PageController {
       case "menu_focus":
         // Only the menu of the sender's document; one still binding gets it once bound.
         for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.post(menu.port, { kind: "focus" });
-        for (const issued of this.tokens.values()) if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.focus = true;
+        for (const issued of this.tokens.values())
+          if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.focus = true;
         return null;
       case "menu_shown":
         // As for menu_focus. The menu's click gate starts now: the frame was hidden till then.
         for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.post(menu.port, { kind: "shown" });
-        for (const issued of this.tokens.values()) if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.shown = true;
+        for (const issued of this.tokens.values())
+          if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.shown = true;
         return null;
       case "focus_report":
       case "top_report":
@@ -599,7 +614,8 @@ export class PageController {
   /** A frame's conditional passkey request came or went: its `webauthn` menus list passkeys or stop. */
   conditionalChanged(frame: FrameRef): void {
     for (const issued of this.tokens.values()) {
-      if (issued.kind === "menu" && issued.webauthn === true && sameFrame(issued.frame, frame)) this.dropPrefetch(issued);
+      if (issued.kind === "menu" && issued.webauthn === true && sameFrame(issued.frame, frame))
+        this.dropPrefetch(issued);
     }
     for (const menu of this.menus) if (menu.webauthn && sameFrame(menu.frame, frame)) void this.refreshMenu(menu);
   }
@@ -664,7 +680,8 @@ export class PageController {
     // The early requests are the menu's now: closing it cancels them.
     const prefetch = issued.prefetch;
     issued.prefetch = undefined;
-    if (prefetch !== undefined) menu.abort.signal.addEventListener("abort", () => prefetch.abort.abort(), { once: true });
+    if (prefetch !== undefined)
+      menu.abort.signal.addEventListener("abort", () => prefetch.abort.abort(), { once: true });
     void this.refreshMenu(menu, prefetch);
     return menu;
   }
@@ -687,7 +704,10 @@ export class PageController {
     const latest = () => refresh === menu.refreshes && !menu.abort.signal.aborted;
     const status = this.deps.app.snapshot;
     const early =
-      prefetch !== undefined && status.kind === "unlocked" && prefetch.sessionId === this.deps.app.sessionId && !prefetch.abort.signal.aborted
+      prefetch !== undefined &&
+      status.kind === "unlocked" &&
+      prefetch.sessionId === this.deps.app.sessionId &&
+      !prefetch.abort.signal.aborted
         ? prefetch.fetch
         : null;
     if (early === null) prefetch?.abort.abort();
@@ -701,7 +721,11 @@ export class PageController {
     }
     if (menu.items.size === 0 && menu.passkeys.size === 0) this.showMenu(menu, { kind: "loading" });
     const host = hostOf(menu.frame.url);
-    const { logins, passkeys, icon: iconRequest } = early ?? this.fetchMenu(menu.frame, menu.webauthn, menu.abort.signal);
+    const {
+      logins,
+      passkeys,
+      icon: iconRequest,
+    } = early ?? this.fetchMenu(menu.frame, menu.webauthn, menu.abort.signal);
     let response: ResponseOf<"suggest">;
     let icon: string | null;
     try {
@@ -769,7 +793,8 @@ export class PageController {
    * [PASSKEY_WAIT_MS], the request is cancelled and lists none.
    */
   private async suggestPasskeys(frame: FrameRef, webauthn: boolean, signal: AbortSignal): Promise<MenuPasskey[]> {
-    const conditional = webauthn && this.deps.app.supports("passkeys") ? this.deps.passkeys.conditionalFor(frame) : null;
+    const conditional =
+      webauthn && this.deps.app.supports("passkeys") ? this.deps.passkeys.conditionalFor(frame) : null;
     if (conditional === null) return [];
     const abort = new AbortController();
     const cancel = () => abort.abort();
@@ -829,7 +854,11 @@ export class PageController {
         if (menu.role !== "new-password") return this.post(menu.port, { kind: "error", error: "invalid_request" });
         return this.act(menu, async (signal) => {
           await this.guard(frame);
-          const { password } = await this.deps.app.request("generate", { url: frame.url, ...privateWindow(frame.privateWindow) }, signal);
+          const { password } = await this.deps.app.request(
+            "generate",
+            { url: frame.url, ...privateWindow(frame.privateWindow) },
+            signal,
+          );
           await this.fill(frame, { kind: "fill_password", target: "menu", password });
         });
       case "unlock":
@@ -994,13 +1023,20 @@ export class PageController {
    * the tab remembers the fill, with [item] for "Fill TOTP". See
    * [submitsAfterFill] for the sign-in that may follow.
    */
-  private async fillLogin(frame: FrameRef, handle: string, item: MenuItem | undefined, target: FillTarget, signal?: AbortSignal) {
+  private async fillLogin(
+    frame: FrameRef,
+    handle: string,
+    item: MenuItem | undefined,
+    target: FillTarget,
+    signal?: AbortSignal,
+  ) {
     const page = await this.pageOf(frame);
     const values = fillValues(await this.deps.app.request("fill", { handle, ...page }, signal));
     const submit = await this.submitsAfterFill(frame);
     const usernameAlone = await this.fill(frame, { kind: "fill", target, ...values, ...(submit ? { submit } : {}) });
     // The username alone of a login with a password, in the top frame, as on a username-first step.
-    const passwordStep = frame.frameId === 0 && values.password !== undefined && usernameAlone ? (values.username ?? null) : null;
+    const passwordStep =
+      frame.frameId === 0 && values.password !== undefined && usernameAlone ? (values.username ?? null) : null;
     this.rememberFill(frame, handle, item, passwordStep);
   }
 
@@ -1016,7 +1052,10 @@ export class PageController {
   }
 
   /** The tab of [frame] when [option] is on and it's the active tab, read in that order; `null` else, or when a read fails. */
-  private async activeTabWith(frame: FrameRef, option: "fillPasswordStep" | "submitAfterFill"): Promise<TabInfo | null> {
+  private async activeTabWith(
+    frame: FrameRef,
+    option: "fillPasswordStep" | "submitAfterFill",
+  ): Promise<TabInfo | null> {
     try {
       if (!(await this.deps.options.options())[option]) return null;
       const tab = await this.deps.tab(frame.tabId);
@@ -1128,7 +1167,12 @@ export class PageController {
    * The match for [url], a page in a private window or not, to fill: on a
    * sign-in step of tab [tabId], the login used last, see [lastFirst].
    */
-  private async bestItem(url: string, isPrivate: boolean | undefined, signal: AbortSignal, tabId?: number): Promise<SuggestItem | null> {
+  private async bestItem(
+    url: string,
+    isPrivate: boolean | undefined,
+    signal: AbortSignal,
+    tabId?: number,
+  ): Promise<SuggestItem | null> {
     const response = await this.deps.app.request("suggest", { url, ...privateWindow(isPrivate) }, signal);
     if (response.blocked) return null;
     const last = tabId === undefined ? null : this.lastFirst(tabId, url, response.items).last;
@@ -1203,7 +1247,11 @@ export class PageController {
    * [tabId] to [report] until it returns true or the time is up. False, at
    * once, when [send] fails.
    */
-  private probeFrames(tabId: number, send: (probe: string) => Promise<unknown>, report: Probe["report"]): Promise<boolean> {
+  private probeFrames(
+    tabId: number,
+    send: (probe: string) => Promise<unknown>,
+    report: Probe["report"],
+  ): Promise<boolean> {
     const probe = this.randomToken();
     return new Promise((resolve) => {
       const done = (sent: boolean) => {
@@ -1250,7 +1298,10 @@ export class PageController {
     const memory = this.fills.get(tabId);
     if (memory === undefined) return null;
     const age = this.now() - memory.at;
-    if (memory.sessionId !== this.deps.app.sessionId || age > Math.max(TOTP_WINDOW_MS, CONTINUE_WINDOW_MS, PASSWORD_STEP_WINDOW_MS)) {
+    if (
+      memory.sessionId !== this.deps.app.sessionId ||
+      age > Math.max(TOTP_WINDOW_MS, CONTINUE_WINDOW_MS, PASSWORD_STEP_WINDOW_MS)
+    ) {
       this.fills.delete(tabId);
       return null;
     }
@@ -1323,7 +1374,13 @@ export class PageController {
     const { password } = await this.deps.app.request("fill", { handle: memory.handle, ...page }, signal);
     const submit = await this.submitsAfterFill(frame);
     if (!(await this.stepHolds(frame, memory))) return;
-    await this.fill(frame, { kind: "fill", target: "step", step: token, ...fillValues({ password }), ...(submit ? { submit } : {}) });
+    await this.fill(frame, {
+      kind: "fill",
+      target: "step",
+      step: token,
+      ...fillValues({ password }),
+      ...(submit ? { submit } : {}),
+    });
     this.rememberFill(frame, memory.handle, memory.totp ?? undefined, null);
   }
 
@@ -1365,7 +1422,15 @@ export class PageController {
       if (response.blocked) return { kind: "blocked", host: url.hostname };
       this.list(tabId, "suggest", response.items, tab);
       const { items, last } = this.lastFirst(tabId, url.href, response.items);
-      return { kind: "items", origin: url.origin, host: url.hostname, truncated: response.truncated, items, last, icon: await iconRequest };
+      return {
+        kind: "items",
+        origin: url.origin,
+        host: url.hostname,
+        truncated: response.truncated,
+        items,
+        last,
+        icon: await iconRequest,
+      };
     });
   }
 
@@ -1381,7 +1446,11 @@ export class PageController {
       if (url === null) return { kind: "unsupported" };
       if (query === null) return { kind: "items", origin: url.origin, truncated: false, items: [] };
       return await this.deps.tabs.run(tabId, undefined, async (tab): Promise<PageSearch> => {
-        const response = await this.deps.app.request("search", { query, url: url.href, ...privateWindow(info.incognito) }, abort.signal);
+        const response = await this.deps.app.request(
+          "search",
+          { query, url: url.href, ...privateWindow(info.incognito) },
+          abort.signal,
+        );
         if (response.blocked) return { kind: "blocked", host: url.hostname };
         this.list(tabId, "search", response.items, tab);
         return { kind: "items", origin: url.origin, truncated: response.truncated, items: response.items };
@@ -1442,7 +1511,9 @@ export class PageController {
     const recent = this.usernames.get(frame.tabId);
     const username =
       candidate.username ??
-      (recent !== undefined && this.now() - recent.at <= USERNAME_TTL_MS && recent.origin === frame.origin ? recent.username : undefined);
+      (recent !== undefined && this.now() - recent.at <= USERNAME_TTL_MS && recent.origin === frame.origin
+        ? recent.username
+        : undefined);
     const save: PendingSave = {
       offer: ++this.offers,
       frame,
@@ -1457,7 +1528,8 @@ export class PageController {
     setTimeout(() => {
       if (this.saves.get(frame.tabId) !== save) return;
       this.saves.delete(frame.tabId);
-      for (const bar of this.saveBars) if (bar.frame.tabId === frame.tabId && !bar.busy) this.end(bar, { notify: true });
+      for (const bar of this.saveBars)
+        if (bar.frame.tabId === frame.tabId && !bar.busy) this.end(bar, { notify: true });
     }, SAVE_TTL_MS);
     let shown = false;
     for (const bar of this.saveBars) {
@@ -1491,7 +1563,13 @@ export class PageController {
     }
     // One bar per tab: a newer one replaces the old.
     for (const bar of this.saveBars) if (bar.frame.tabId === issued.frame.tabId) this.end(bar, { notify: true });
-    const bar: SaveBarSession = { kind: "save_bar", port, frame: issued.frame, busy: false, abort: new AbortController() };
+    const bar: SaveBarSession = {
+      kind: "save_bar",
+      port,
+      frame: issued.frame,
+      busy: false,
+      abort: new AbortController(),
+    };
     this.saveBars.add(bar);
     this.post(port, { kind: "bound" });
     this.showSaveBar(bar, save);
@@ -1499,7 +1577,13 @@ export class PageController {
   }
 
   private showSaveBar(bar: SaveBarSession, save: PendingSave) {
-    this.post(bar.port, { kind: "view", offer: save.offer, host: save.host, username: save.candidate.username ?? null, icon: save.icon });
+    this.post(bar.port, {
+      kind: "view",
+      offer: save.offer,
+      host: save.host,
+      username: save.candidate.username ?? null,
+      icon: save.icon,
+    });
   }
 
   private async onSaveBarRequest(bar: SaveBarSession, request: SaveBarRequest) {
@@ -1554,7 +1638,11 @@ export class PageController {
         // later offer's check sees. A bar that closes first cancels, as for save.
         await this.act(bar, async (signal) => {
           await this.guard(bar.frame, "save_bar");
-          await this.requestUnlocked("never_save", { url: save.frame.url, ...privateWindow(save.frame.privateWindow) }, signal);
+          await this.requestUnlocked(
+            "never_save",
+            { url: save.frame.url, ...privateWindow(save.frame.privateWindow) },
+            signal,
+          );
           if (this.saves.get(tabId) === save) this.saves.delete(tabId);
           this.end(bar, { notify: true });
         });
@@ -1566,7 +1654,11 @@ export class PageController {
   }
 
   /** A request of the save bar: when the vault locked since the offer, it unlocks and asks again. */
-  private async requestUnlocked<T extends RequestType>(type: T, fields: RequestOf<T>, signal: AbortSignal): Promise<ResponseOf<T>> {
+  private async requestUnlocked<T extends RequestType>(
+    type: T,
+    fields: RequestOf<T>,
+    signal: AbortSignal,
+  ): Promise<ResponseOf<T>> {
     try {
       return await this.deps.app.request(type, fields, signal);
     } catch (error) {

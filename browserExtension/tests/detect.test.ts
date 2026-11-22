@@ -109,7 +109,9 @@ describe("detect", () => {
   });
 
   it("finds a single new password by its hint", () => {
-    render(`<form><input id="u" autocomplete="email" type="email"><input id="p" type="password" autocomplete="new-password"></form>`);
+    render(
+      `<form><input id="u" autocomplete="email" type="email"><input id="p" type="password" autocomplete="new-password"></form>`,
+    );
     const form = formOf("p");
     expect(form.kind).toBe("new-password");
     expect(form.newPasswords).toEqual([byId("p")]);
@@ -212,7 +214,10 @@ describe("detect", () => {
     expect(inShadow.username).toBe(byId("u", open));
 
     expect(detectForms(document, detectOptions)).toHaveLength(1);
-    const reachable = { ...detectOptions, shadowRootOf: (e: Element) => e.shadowRoot ?? (e === closedHost ? closed : null) };
+    const reachable = {
+      ...detectOptions,
+      shadowRootOf: (e: Element) => e.shadowRoot ?? (e === closedHost ? closed : null),
+    };
     const forms = detectForms(document, reachable);
     expect(forms.map((it) => it.kind)).toEqual(["login", "login"]);
     expect(forms[1]!.currentPassword).toBe(byId("cp", closed));
@@ -229,7 +234,10 @@ describe("detect", () => {
     const innerHost = byId<HTMLElement>("inner", open);
     const closed = innerHost.attachShadow({ mode: "closed" });
     closed.innerHTML = `<input id="cu" name="email"><input id="cp" type="password" autocomplete="new-password"><input id="cc" type="password" autocomplete="new-password">`;
-    const options: DetectOptions = { ...detectOptions, shadowRootOf: (e) => e.shadowRoot ?? (e === innerHost ? closed : null) };
+    const options: DetectOptions = {
+      ...detectOptions,
+      shadowRootOf: (e) => e.shadowRoot ?? (e === innerHost ? closed : null),
+    };
     // The walk it replaces: every input under the root, through shadow roots, then those of its own tree.
     const walked = (input: HTMLInputElement) => {
       const root = formRootOf(input) as Document | ShadowRoot;
@@ -262,8 +270,16 @@ describe("detect", () => {
       expect(ids(form), id).toEqual(ids(walked(input)));
     }
     expect(ids(detectFormOf(byId("p"), options))).toMatchObject({ kind: "login", username: "u", currentPassword: "p" });
-    expect(ids(detectFormOf(byId("sp", open), options))).toMatchObject({ kind: "login", username: "su", currentPassword: "sp" });
-    expect(ids(detectFormOf(byId("cp", closed), options))).toMatchObject({ kind: "new-password", username: "cu", newPasswords: ["cp", "cc"] });
+    expect(ids(detectFormOf(byId("sp", open), options))).toMatchObject({
+      kind: "login",
+      username: "su",
+      currentPassword: "sp",
+    });
+    expect(ids(detectFormOf(byId("cp", closed), options))).toMatchObject({
+      kind: "new-password",
+      username: "cu",
+      newPasswords: ["cp", "cc"],
+    });
   });
 
   it("skips the extension's own UI", () => {
@@ -315,7 +331,9 @@ describe("detect", () => {
   });
 
   it("takes no read-only username step: it shows the account, as on a profile page", () => {
-    render(`<form><input id="email" name="email" type="email" readonly value="ann@example.com"><button>Save</button></form>`);
+    render(
+      `<form><input id="email" name="email" type="email" readonly value="ann@example.com"><button>Save</button></form>`,
+    );
     expect(detectFormOf(byId("email"), detectOptions)).toBeNull();
   });
 

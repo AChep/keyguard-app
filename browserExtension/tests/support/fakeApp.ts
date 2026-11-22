@@ -46,7 +46,13 @@ export function nodePairingCode(input: {
   extensionNonce: Uint8Array;
 }): string {
   const [first, second] = [...input.keys].sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)));
-  const info = Buffer.concat([Buffer.from("keyguard-browser-sas/v1"), first!, second!, input.appNonce, input.extensionNonce]);
+  const info = Buffer.concat([
+    Buffer.from("keyguard-browser-sas/v1"),
+    first!,
+    second!,
+    input.appNonce,
+    input.extensionNonce,
+  ]);
   const okm = Buffer.from(nodeCrypto.hkdfSync("sha256", Buffer.alloc(0), input.handshakeHash, info, 4));
   return String(okm.readUInt32BE(0) % 1_000_000).padStart(6, "0");
 }

@@ -73,7 +73,12 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
   const credentials = win.navigator?.credentials;
   const Container = win.CredentialsContainer;
   const PublicKeyCredential = win.PublicKeyCredential;
-  if (win.isSecureContext !== true || !credentials || typeof Container !== "function" || typeof PublicKeyCredential !== "function") {
+  if (
+    win.isSecureContext !== true ||
+    !credentials ||
+    typeof Container !== "function" ||
+    typeof PublicKeyCredential !== "function"
+  ) {
     return false;
   }
   const NativeDOMException = win.DOMException;
@@ -199,7 +204,10 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
   // region Requests
 
   function domError(name: WebAuthnErrorName): DOMException {
-    return new NativeDOMException(ERROR_MESSAGES[name] ?? ERROR_MESSAGES.NotAllowedError, ERROR_MESSAGES[name] ? name : "NotAllowedError");
+    return new NativeDOMException(
+      ERROR_MESSAGES[name] ?? ERROR_MESSAGES.NotAllowedError,
+      ERROR_MESSAGES[name] ? name : "NotAllowedError",
+    );
   }
 
   function abortReason(signal: AbortSignal): unknown {
@@ -237,7 +245,7 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
   }
 
   function thenOf(value: unknown, fulfilled: (value: unknown) => void, rejected: (error: unknown) => void) {
-    apply(promiseThen, apply(promiseResolve, NativePromise, [value]), [fulfilled, rejected]);
+    void apply(promiseThen, apply(promiseResolve, NativePromise, [value]), [fulfilled, rejected]);
   }
 
   function credentialOf(result: WebAuthnResult | undefined, kind: "create" | "get"): PublicKeyCredential | null {
@@ -254,7 +262,13 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
    * Keyguard passes. A document without focus gets the browser's at once,
    * which refuses it: Keyguard prompts for the page the user is on only.
    */
-  function modal(original: Fn, thisArg: unknown, args: unknown[], request: Extract<PageRequest, { kind: "get" | "create" }>, signal: AbortSignal | undefined) {
+  function modal(
+    original: Fn,
+    thisArg: unknown,
+    args: unknown[],
+    request: Extract<PageRequest, { kind: "get" | "create" }>,
+    signal: AbortSignal | undefined,
+  ) {
     if (!focused()) return apply(original, thisArg, args);
     return new NativePromise((resolve, reject) => {
       let settled = false;
@@ -406,7 +420,8 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
     }
     const mediation = options.mediation === undefined ? "optional" : options.mediation;
     const signal = options.signal as AbortSignal | undefined;
-    const known = mediation === "silent" || mediation === "optional" || mediation === "conditional" || mediation === "required";
+    const known =
+      mediation === "silent" || mediation === "optional" || mediation === "conditional" || mediation === "required";
     let json: Json;
     try {
       if (!known || signal?.aborted === true) return apply(original, thisArg, args);
@@ -430,7 +445,10 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
     const signal = options.signal as AbortSignal | undefined;
     let json: Json;
     try {
-      if ((mediation !== undefined && mediation !== "optional" && mediation !== "required") || signal?.aborted === true) {
+      if (
+        (mediation !== undefined && mediation !== "optional" && mediation !== "required") ||
+        signal?.aborted === true
+      ) {
         return apply(original, thisArg, args);
       }
       json = creationOptionsToJSON(options.publicKey);
@@ -442,28 +460,36 @@ export function installWebAuthn(win: Window & typeof globalThis, timeoutMs = BRI
 
   wrap(PublicKeyCredential, "isConditionalMediationAvailable", orKeyguard);
   wrap(PublicKeyCredential, "isUserVerifyingPlatformAuthenticatorAvailable", orKeyguard);
-  wrap(PublicKeyCredential, "getClientCapabilities", (original, thisArg, args) =>
-    new NativePromise((resolve, reject) => {
-      let browser: unknown;
-      try {
-        browser = apply(original, thisArg, args);
-      } catch (error) {
-        reject(error);
-        return;
-      }
-      thenOf(
-        browser,
-        (capabilities) =>
-          available((yes) =>
-            resolve(
-              yes && isRecord(capabilities)
-                ? { ...capabilities, conditionalGet: true, passkeyPlatformAuthenticator: true, userVerifyingPlatformAuthenticator: true }
-                : capabilities,
+  wrap(
+    PublicKeyCredential,
+    "getClientCapabilities",
+    (original, thisArg, args) =>
+      new NativePromise((resolve, reject) => {
+        let browser: unknown;
+        try {
+          browser = apply(original, thisArg, args);
+        } catch (error) {
+          reject(error);
+          return;
+        }
+        thenOf(
+          browser,
+          (capabilities) =>
+            available((yes) =>
+              resolve(
+                yes && isRecord(capabilities)
+                  ? {
+                      ...capabilities,
+                      conditionalGet: true,
+                      passkeyPlatformAuthenticator: true,
+                      userVerifyingPlatformAuthenticator: true,
+                    }
+                  : capabilities,
+              ),
             ),
-          ),
-        reject,
-      );
-    }),
+          reject,
+        );
+      }),
   );
 
   // endregion

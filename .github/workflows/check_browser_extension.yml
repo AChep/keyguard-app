@@ -81,6 +81,8 @@ jobs:
         run: pnpm typecheck
       - name: "Lint"
         run: pnpm lint
+      - name: "Check formatting"
+        run: pnpm format:check
       - name: "Test"
         run: pnpm test
       # The builds fail on a bundled npm package outside the license policy.

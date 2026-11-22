@@ -59,7 +59,9 @@ export interface ObservableStorageArea extends OptionsArea {
  */
 function userOptions(value: unknown): Partial<ExtensionOptions> {
   if (!isObject(value) || (value.version !== undefined && value.version !== 1)) return {};
-  return Object.fromEntries(OPTION_KEYS.filter((key) => typeof value[key] === "boolean").map((key) => [key, value[key]]));
+  return Object.fromEntries(
+    OPTION_KEYS.filter((key) => typeof value[key] === "boolean").map((key) => [key, value[key]]),
+  );
 }
 
 /** Options from a stored value, with defaults for what's missing or malformed. */

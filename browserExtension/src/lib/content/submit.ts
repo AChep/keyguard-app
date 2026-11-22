@@ -9,7 +9,16 @@
 // the user acts, the form is submitted another way, or the page hides.
 // A click of the content script isn't trusted: the save tracker
 // (./save.ts) offers nothing for it.
-import { collectElements, detectFormOf, formInputs, isElement, type DetectedForm, type DetectOptions, type FormKind, type FormRoot } from "./detect";
+import {
+  collectElements,
+  detectFormOf,
+  formInputs,
+  isElement,
+  type DetectedForm,
+  type DetectOptions,
+  type FormKind,
+  type FormRoot,
+} from "./detect";
 import { shownAccount, type CanFill, type FilledValue, type LoginValues } from "./fill";
 import { isWithin, parentOf, shownStyle, transparency, type Layout } from "./guards";
 import { isFormSubmitter, textStart } from "./save";
@@ -102,10 +111,7 @@ export interface LoginFill {
 
 /** What a submit does now: click a control, submit a form that shows none, wait for a control to turn usable, or nothing. */
 type SubmitAction =
-  | { kind: "click"; control: HTMLElement }
-  | { kind: "request"; form: HTMLFormElement }
-  | { kind: "wait" }
-  | null;
+  { kind: "click"; control: HTMLElement } | { kind: "request"; form: HTMLFormElement } | { kind: "wait" } | null;
 
 /**
  * The fields of [form], [fill]'s or the one detected again since, that must
@@ -118,13 +124,22 @@ type SubmitAction =
  * could type in holds no value of these fills, as a username the login has
  * none for.
  */
-export function filledLogin(fill: LoginFill, options: SubmitOptions, form = fill.form): Map<HTMLInputElement, string> | null {
+export function filledLogin(
+  fill: LoginFill,
+  options: SubmitOptions,
+  form = fill.form,
+): Map<HTMLInputElement, string> | null {
   const { step } = fill;
   const logins = [form.username, form.currentPassword];
   if (!SUBMIT_KINDS.has(form.kind) || fill.written.length === 0) return null;
   const fields = new Map<HTMLInputElement, string>();
   for (const input of fill.written) {
-    const value = input === form.username ? fill.values.username : input === form.currentPassword ? fill.values.password : undefined;
+    const value =
+      input === form.username
+        ? fill.values.username
+        : input === form.currentPassword
+          ? fill.values.password
+          : undefined;
     if (value === undefined) return null;
     fields.set(input, value);
   }
@@ -158,7 +173,9 @@ function attempt(fill: LoginFill, options: SubmitOptions): SubmitAction {
   if (form === null || form.root !== fill.form.root || form.kind !== fill.form.kind) return null;
   if (fill.step !== undefined && shownAccount(form) !== fill.step.account) return null;
   const fields = filledLogin(fill, options, form);
-  return fields !== null && holdsFill(fields) ? submitAction(form, [...fields.keys()], options, fill.step !== undefined) : null;
+  return fields !== null && holdsFill(fields)
+    ? submitAction(form, [...fields.keys()], options, fill.step !== undefined)
+    : null;
 }
 
 /**
@@ -179,7 +196,12 @@ function attempt(fill: LoginFill, options: SubmitOptions): SubmitAction {
  * whose label says it signs in does, see [saysSignIn]. The control waits
  * while it's disabled or faded.
  */
-function submitAction(form: DetectedForm, fields: readonly HTMLInputElement[], options: SubmitOptions, step: boolean): SubmitAction {
+function submitAction(
+  form: DetectedForm,
+  fields: readonly HTMLInputElement[],
+  options: SubmitOptions,
+  step: boolean,
+): SubmitAction {
   const signIn = step || form.kind !== "password";
   const owner = isElement(form.root) ? form.root : null;
   // Each control is read once: it comes up again at each ancestor of the fields.
@@ -209,7 +231,11 @@ function submitAction(form: DetectedForm, fields: readonly HTMLInputElement[], o
   const wrappers = ownWrappers(fields);
   // The only control near the fields is taken whatever its words, but not past a field's own.
   let lone = true;
-  for (let node = commonAncestor(fields); node !== null && (owner === null || isWithin(node, owner)); node = parentOf(node)) {
+  for (
+    let node = commonAncestor(fields);
+    node !== null && (owner === null || isWithin(node, owner));
+    node = parentOf(node)
+  ) {
     const controls = controlsIn(node, options).filter(qualifies);
     if (controls.length === 0) continue;
     const own = controls.filter((control) => wrappers.some((wrapper) => isWithin(control, wrapper)));
@@ -230,7 +256,12 @@ function submitAction(form: DetectedForm, fields: readonly HTMLInputElement[], o
  * page's handlers of the fill's events may sign in on their own. Resolves
  * with whether it submitted; [watch] ends with it.
  */
-export async function submitAfterFill(fill: LoginFill, options: SubmitOptions, signal: AbortSignal, watch: SignInWatch): Promise<boolean> {
+export async function submitAfterFill(
+  fill: LoginFill,
+  options: SubmitOptions,
+  signal: AbortSignal,
+  watch: SignInWatch,
+): Promise<boolean> {
   const stop = AbortSignal.any([signal, watch.signal]);
   try {
     if (filledLogin(fill, options) === null || !(await pause(SUBMIT_DELAY_MS, stop))) return false;
@@ -269,10 +300,15 @@ export function watchSignIn(root: FormRoot): SignInWatch {
   const options = { capture: true, signal: watch.signal };
   root.addEventListener("submit", stop, options);
   root.addEventListener("click", (event) => event.isTrusted && stop(), options);
-  root.addEventListener("keydown", (event) => event.isTrusted && (event as KeyboardEvent).key === "Enter" && stop(), options);
+  root.addEventListener(
+    "keydown",
+    (event) => event.isTrusted && (event as KeyboardEvent).key === "Enter" && stop(),
+    options,
+  );
   if (isElement(root)) {
     // A control that names the form in its `form` attribute.
-    const owned = (node: EventTarget) => (node as Node).nodeType === Node.ELEMENT_NODE && (node as HTMLButtonElement).form === root;
+    const owned = (node: EventTarget) =>
+      (node as Node).nodeType === Node.ELEMENT_NODE && (node as HTMLButtonElement).form === root;
     doc.addEventListener("click", (event) => event.isTrusted && event.composedPath().some(owned) && stop(), options);
   }
   doc.addEventListener("visibilitychange", () => doc.visibilityState === "hidden" && stop(), options);
@@ -339,7 +375,10 @@ function ownWrappers(fields: readonly HTMLInputElement[]): Element[] {
 /** The controls under [node] and in its own shadow root, see [isControl]. */
 function controlsIn(node: Element, options: SubmitOptions): HTMLElement[] {
   const shadow = options.shadowRootOf?.(node) ?? node.shadowRoot;
-  return [...collectElements(node, isControl, options), ...(shadow === null ? [] : collectElements(shadow, isControl, options))];
+  return [
+    ...collectElements(node, isControl, options),
+    ...(shadow === null ? [] : collectElements(shadow, isControl, options)),
+  ];
 }
 
 /**
@@ -350,7 +389,12 @@ function controlsIn(node: Element, options: SubmitOptions): HTMLElement[] {
  * else, and isn't of another form. A generated class alone, as an icon
  * button's, isn't a label.
  */
-function mayTake(control: HTMLElement, owner: HTMLFormElement | null, options: SubmitOptions, words: (control: Element) => ControlWords): boolean {
+function mayTake(
+  control: HTMLElement,
+  owner: HTMLFormElement | null,
+  options: SubmitOptions,
+  words: (control: Element) => ControlWords,
+): boolean {
   // A `[role=button]` has no form owner: the `<form>` around it is its form.
   const form = "form" in control ? (control.form as HTMLFormElement | null) : control.closest("form");
   if ((form !== null && form !== owner) || shownStyle(control, options.layout) === null) return false;
@@ -419,7 +463,10 @@ interface ControlWords {
 
 function readWords(control: Element): ControlWords {
   const label = wordsIn(labelTexts(control));
-  return { label, all: new Set([...label, ...wordsIn([control.id, control.getAttribute("name"), control.getAttribute("class")])]) };
+  return {
+    label,
+    all: new Set([...label, ...wordsIn([control.id, control.getAttribute("name"), control.getAttribute("class")])]),
+  };
 }
 
 /** [read], once per argument. */
@@ -441,7 +488,13 @@ function labelTexts(control: Element): (string | null)[] {
       const label = root.getElementById?.(id);
       return label ? textStart(label) : null;
     });
-  return [textStart(control), control.getAttribute("value"), control.getAttribute("aria-label"), ...labelledBy, control.getAttribute("title")];
+  return [
+    textStart(control),
+    control.getAttribute("value"),
+    control.getAttribute("aria-label"),
+    ...labelledBy,
+    control.getAttribute("title"),
+  ];
 }
 
 function wordsIn(texts: readonly (string | null)[]): Set<string> {

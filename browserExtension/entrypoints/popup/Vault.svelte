@@ -109,10 +109,12 @@
       if (result === null) return { kind: "loading" };
       if (result.kind !== "items") {
         // The tab left the page since the popup opened.
-        const text = result.kind === "blocked" ? "browser_extension_site_blocked_text" : "browser_extension_page_unsupported_text";
+        const text =
+          result.kind === "blocked" ? "browser_extension_site_blocked_text" : "browser_extension_page_unsupported_text";
         return { kind: "empty", icon: "block", text: t(text) };
       }
-      if (result.items.length === 0) return { kind: "empty", icon: "search_off", text: t("browser_extension_search_empty") };
+      if (result.items.length === 0)
+        return { kind: "empty", icon: "search_off", text: t("browser_extension_search_empty") };
       const note = result.truncated
         ? tp("browser_extension_search_truncated_plural", result.items.length, result.items.length)
         : null;
@@ -124,7 +126,12 @@
       case "unsupported":
         return { kind: "empty", icon: "block", text: t("browser_extension_page_unsupported_text") };
       case "blocked":
-        return { kind: "empty", icon: "block", text: t("browser_extension_site_blocked_text"), header: { host: page.host } };
+        return {
+          kind: "empty",
+          icon: "block",
+          text: t("browser_extension_site_blocked_text"),
+          header: { host: page.host },
+        };
       case "items": {
         const header = { host: page.host, count: count(page.items) };
         if (page.items.length === 0) return { kind: "empty", icon: "search_off", text: t("items_empty_label"), header };
@@ -225,7 +232,7 @@
     }
     if (generatorOpen || selected === null || !actions.includes(key.action)) return;
     event.preventDefault();
-    if (busy === null) run(selected, key.action);
+    if (busy === null) void run(selected, key.action);
   }
 
   // The actions, as the popup always had them.
@@ -284,7 +291,7 @@
   }
 
   const onaction = (action: PopupAction) => {
-    if (selected !== null) run(selected, action);
+    if (selected !== null) void run(selected, action);
   };
 </script>
 
@@ -302,7 +309,9 @@
       aria-expanded={!(narrow && drilled)}
       aria-controls={LISTBOX_ID}
       aria-autocomplete="list"
-      aria-activedescendant={selected !== null && !(narrow && drilled) ? optionId(LISTBOX_ID, selectedIndex) : undefined}
+      aria-activedescendant={selected !== null && !(narrow && drilled)
+        ? optionId(LISTBOX_ID, selectedIndex)
+        : undefined}
       placeholder={t("vault_main_search_placeholder")}
       aria-label={t("vault_main_search_placeholder")}
       maxlength={SEARCH_QUERY_MAX}
@@ -348,7 +357,12 @@
 
     <section class="detail-pane" aria-label={generatorOpen ? t("generator_header_password_title") : selected?.name}>
       <div class="back-bar">
-        <button class="icon-btn" aria-label={t("browser_extension_back")} title={t("browser_extension_back")} onclick={back}>
+        <button
+          class="icon-btn"
+          aria-label={t("browser_extension_back")}
+          title={t("browser_extension_back")}
+          onclick={back}
+        >
           <Icon name="arrow_back" />
         </button>
       </div>

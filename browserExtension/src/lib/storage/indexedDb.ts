@@ -53,7 +53,10 @@ export class IndexedDbArea implements StorageArea {
     return this.database;
   }
 
-  private async run<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest | void): Promise<T | undefined> {
+  private async run<T>(
+    mode: IDBTransactionMode,
+    action: (store: IDBObjectStore) => IDBRequest | void,
+  ): Promise<T | undefined> {
     const database = await this.open();
     return new Promise<T | undefined>((resolve, reject) => {
       let transaction: IDBTransaction;

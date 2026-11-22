@@ -79,7 +79,11 @@ async function fillEach(fields: HTMLInputElement[], values: string[], canFill: C
 }
 
 /** A login: the username, then the current password, so focus ends on the password. */
-export async function fillLogin(form: DetectedForm, values: LoginValues, canFill: CanFill): Promise<HTMLInputElement[]> {
+export async function fillLogin(
+  form: DetectedForm,
+  values: LoginValues,
+  canFill: CanFill,
+): Promise<HTMLInputElement[]> {
   const filled: HTMLInputElement[] = [];
   const username = form.username;
   if (values.username !== undefined && username !== null && canFill(username)) {
@@ -108,12 +112,17 @@ export function hasWritableLogin(form: DetectedForm): boolean {
  * ones first. A form of read-only fields only, which may turn writable on
  * focus, is the last resort.
  */
-export function pageForm(recent: DetectedForm | null, all: () => DetectedForm[], canFill: CanFill): DetectedForm | null {
+export function pageForm(
+  recent: DetectedForm | null,
+  all: () => DetectedForm[],
+  canFill: CanFill,
+): DetectedForm | null {
   if (recent !== null && hasWritableLogin(recent)) return recent;
   const forms = all()
     .filter((form) => PAGE_FORM_KINDS.includes(form.kind))
     .filter((form) => [form.username, form.currentPassword].some((field) => field !== null && canFill(field)));
-  const rank = (form: DetectedForm) => (hasWritableLogin(form) ? 0 : PAGE_FORM_KINDS.length) + PAGE_FORM_KINDS.indexOf(form.kind);
+  const rank = (form: DetectedForm) =>
+    (hasWritableLogin(form) ? 0 : PAGE_FORM_KINDS.length) + PAGE_FORM_KINDS.indexOf(form.kind);
   forms.sort((a, b) => rank(a) - rank(b));
   return forms[0] ?? null;
 }
@@ -131,7 +140,8 @@ export function isPasswordStep(form: DetectedForm, canFill: CanFill, filledValue
   const { username, currentPassword: password } = form;
   if ((form.kind !== "login" && form.kind !== "password") || password === null) return false;
   if (password.value !== "" || !canFill(password)) return false;
-  const changed = (input: HTMLInputElement | null) => input !== null && (filledValue(input) ?? input.value) !== input.value;
+  const changed = (input: HTMLInputElement | null) =>
+    input !== null && (filledValue(input) ?? input.value) !== input.value;
   if (changed(username) || changed(password)) return false;
   return username === null || !canFill(username) || username.value !== "";
 }
@@ -144,7 +154,11 @@ export function shownAccount(form: DetectedForm): string {
 /** A generated password into the new password and its confirmations. */
 export function fillNewPassword(form: DetectedForm, password: string, canFill: CanFill): Promise<HTMLInputElement[]> {
   const fields = form.newPasswords.filter(canFill);
-  return fillEach(fields, fields.map(() => password), canFill);
+  return fillEach(
+    fields,
+    fields.map(() => password),
+    canFill,
+  );
 }
 
 /** A one-time code: into one field, or one character per box. */

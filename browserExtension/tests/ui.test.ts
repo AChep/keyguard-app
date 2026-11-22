@@ -7,12 +7,20 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { ContentUi } from "../src/lib/content/ui";
 import { BIND_MESSAGE } from "../src/lib/page/messages";
-import { frameColors, THEME_TOKENS, type FrameColors, type StoredTheme, type ThemeTokens } from "../src/lib/ui/storedTheme";
+import {
+  frameColors,
+  THEME_TOKENS,
+  type FrameColors,
+  type StoredTheme,
+  type ThemeTokens,
+} from "../src/lib/ui/storedTheme";
 import { byId, render } from "./support/dom";
 
 // The menu and the save bar are iframes; at about:blank here.
 beforeAll(() => {
-  (window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }).happyDOM.settings.enableIframePageLoading = true;
+  (
+    window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }
+  ).happyDOM.settings.enableIframePageLoading = true;
 });
 
 const frames = new Map<number, FrameRequestCallback>();
@@ -48,7 +56,10 @@ afterEach(() => {
 });
 
 /** The origins the extension's pages may run as: Chromium's dynamic one, and the extension's own. */
-const EXTENSION_ORIGINS = ["chrome-extension://3f1c9e0a-dynamic", "chrome-extension://abcdefghijklmnopabcdefghijklmnop"];
+const EXTENSION_ORIGINS = [
+  "chrome-extension://3f1c9e0a-dynamic",
+  "chrome-extension://abcdefghijklmnopabcdefghijklmnop",
+];
 
 function setup(options: { arrowDownPressed?: (ui: ContentUi, field: HTMLInputElement) => boolean } = {}) {
   let dismissed = 0;
@@ -233,7 +244,8 @@ describe("menu size", () => {
     render(`<input id="field">`);
     const field = byId("field");
     let box = { left: 10, top: 100, width: 200, height: 30 };
-    field.getBoundingClientRect = () => ({ ...box, right: box.left + box.width, bottom: box.top + box.height }) as DOMRect;
+    field.getBoundingClientRect = () =>
+      ({ ...box, right: box.left + box.width, bottom: box.top + box.height }) as DOMRect;
     const { ui } = setup();
     // A 300×250 embedded sign-in frame.
     viewport(300, 250);
@@ -269,7 +281,9 @@ describe("showing the menu", () => {
    */
   function hidden(ui: ContentUi): boolean[] {
     const element = ui.menuElement!;
-    const noClicks = [element, element.querySelector("iframe")!].map((it) => getComputedStyle(it).pointerEvents === "none");
+    const noClicks = [element, element.querySelector("iframe")!].map(
+      (it) => getComputedStyle(it).pointerEvents === "none",
+    );
     return [element.classList.contains("pending"), ...noClicks];
   }
 
@@ -321,7 +335,12 @@ describe("save bar size", () => {
     ui.openSaveBar("token", "save-bar.html");
     const bar = shadow.querySelector<HTMLElement>(".popup.save-bar")!;
     // Until its page tells its height.
-    expect([bar.style.width, bar.style.height, bar.style.top, bar.style.right]).toEqual(["400px", "204px", "16px", "16px"]);
+    expect([bar.style.width, bar.style.height, bar.style.top, bar.style.right]).toEqual([
+      "400px",
+      "204px",
+      "16px",
+      "16px",
+    ]);
 
     ui.resizeSaveBar(203.4);
     expect(bar.style.height).toBe("203px");
@@ -551,7 +570,11 @@ describe("following the field", () => {
 
 describe("keyboard", () => {
   /** A key pressed in [target]; by the user unless [trusted] is false, as the page's own events are. */
-  function press(target: Element, key: string, { trusted = true, ...init }: KeyboardEventInit & { trusted?: boolean } = {}) {
+  function press(
+    target: Element,
+    key: string,
+    { trusted = true, ...init }: KeyboardEventInit & { trusted?: boolean } = {},
+  ) {
     const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, composed: true, ...init });
     if (trusted) Object.defineProperty(event, "isTrusted", { value: true });
     target.dispatchEvent(event);
@@ -653,12 +676,16 @@ describe("binding the pages", () => {
     const menu = frameOf(ui.menuElement!);
     expect(menu.post).not.toHaveBeenCalled();
     menu.frame.dispatchEvent(new Event("load"));
-    expect(menu.post.mock.calls).toEqual(EXTENSION_ORIGINS.map((origin) => [{ type: BIND_MESSAGE, token: "a".repeat(32) }, origin]));
+    expect(menu.post.mock.calls).toEqual(
+      EXTENSION_ORIGINS.map((origin) => [{ type: BIND_MESSAGE, token: "a".repeat(32) }, origin]),
+    );
 
     ui.openSaveBar("b".repeat(32), "save-bar.html");
     const bar = frameOf(ui.saveBarElement!);
     bar.frame.dispatchEvent(new Event("load"));
-    expect(bar.post.mock.calls).toEqual(EXTENSION_ORIGINS.map((origin) => [{ type: BIND_MESSAGE, token: "b".repeat(32) }, origin]));
+    expect(bar.post.mock.calls).toEqual(
+      EXTENSION_ORIGINS.map((origin) => [{ type: BIND_MESSAGE, token: "b".repeat(32) }, origin]),
+    );
     // Never to any origin, which a frame the page navigated would have.
     for (const [, origin] of [...menu.post.mock.calls, ...bar.post.mock.calls]) expect(origin).not.toBe("*");
   });
@@ -669,7 +696,9 @@ describe("binding the pages", () => {
     ui.openMenu(byId("field"), "a".repeat(32), "inline-menu.html");
     const { frame, post } = frameOf(ui.menuElement!);
     const source = frame.contentWindow!;
-    window.dispatchEvent(new MessageEvent("message", { data: { type: "keyguard:ready" }, origin: EXTENSION_ORIGINS[1], source }));
+    window.dispatchEvent(
+      new MessageEvent("message", { data: { type: "keyguard:ready" }, origin: EXTENSION_ORIGINS[1], source }),
+    );
     expect(post).not.toHaveBeenCalled();
   });
 

@@ -139,7 +139,12 @@ describe("NativeCryptoClient", () => {
     expect(client.callBytes("noise_key_pair", keyPair)).toEqual(Uint8Array.of(4, 5));
     expect(request!.every((byte) => byte === 0)).toBe(true);
     expect(returned!.every((byte) => byte === 0)).toBe(true);
-    expect(client.openHandle("noise_handshake.stream_open", { case: "noiseHandshake", value: create(NoiseHandshakeStreamOpenRequestSchema, {}) })).toBe(9n);
+    expect(
+      client.openHandle("noise_handshake.stream_open", {
+        case: "noiseHandshake",
+        value: create(NoiseHandshakeStreamOpenRequestSchema, {}),
+      }),
+    ).toBe(9n);
   });
 
   it("checks the ABI version and the Noise capability first", () => {
@@ -151,12 +156,31 @@ describe("NativeCryptoClient", () => {
   });
 
   it.each([
-    ["an error status", response({ protocolVersion: 3, status: create(NativeStatusSchema, { code: NativeErrorCode.AUTHENTICATION_FAILED }) }), "AUTHENTICATION_FAILED"],
-    ["an unknown error status", response({ protocolVersion: 3, status: create(NativeStatusSchema, { code: 99 as NativeErrorCode }) }), "INTERNAL"],
+    [
+      "an error status",
+      response({
+        protocolVersion: 3,
+        status: create(NativeStatusSchema, { code: NativeErrorCode.AUTHENTICATION_FAILED }),
+      }),
+      "AUTHENTICATION_FAILED",
+    ],
+    [
+      "an unknown error status",
+      response({ protocolVersion: 3, status: create(NativeStatusSchema, { code: 99 as NativeErrorCode }) }),
+      "INTERNAL",
+    ],
     ["another protocol version", response({ protocolVersion: 2, status: OK }), "UNSUPPORTED_PROTOCOL"],
-    ["a missing status", response({ protocolVersion: 3, result: { case: "bytesValue", value: Uint8Array.of(1) } }), "MALFORMED_RESPONSE"],
+    [
+      "a missing status",
+      response({ protocolVersion: 3, result: { case: "bytesValue", value: Uint8Array.of(1) } }),
+      "MALFORMED_RESPONSE",
+    ],
     ["a missing result", response({ protocolVersion: 3, status: OK }), "MALFORMED_RESPONSE"],
-    ["a result of another type", response({ protocolVersion: 3, status: OK, result: { case: "int32Value", value: 1 } }), "MALFORMED_RESPONSE"],
+    [
+      "a result of another type",
+      response({ protocolVersion: 3, status: OK, result: { case: "int32Value", value: 1 } }),
+      "MALFORMED_RESPONSE",
+    ],
     ["bytes that aren't protobuf", Uint8Array.of(0xff, 0xff, 0xff), "MALFORMED_RESPONSE"],
   ])("maps %s to its error code", (_, bytes, code) => {
     const client = new NativeCryptoClient(bridge({ call: () => bytes }));
@@ -167,12 +191,17 @@ describe("NativeCryptoClient", () => {
 
   it("refuses a zero handle and a non-empty close", () => {
     const zero = new NativeCryptoClient(
-      bridge({ streamOpen: () => response({ protocolVersion: 3, status: OK, result: { case: "uint64Value", value: 0n } }) }),
+      bridge({
+        streamOpen: () => response({ protocolVersion: 3, status: OK, result: { case: "uint64Value", value: 0n } }),
+      }),
     );
     const open = { case: "noiseHandshake", value: create(NoiseHandshakeStreamOpenRequestSchema, {}) } as const;
     expect(failure(() => zero.openHandle("open", open)).code).toBe("MALFORMED_RESPONSE");
     const close = new NativeCryptoClient(
-      bridge({ streamClose: () => response({ protocolVersion: 3, status: OK, result: { case: "bytesValue", value: Uint8Array.of(1) } }) }),
+      bridge({
+        streamClose: () =>
+          response({ protocolVersion: 3, status: OK, result: { case: "bytesValue", value: Uint8Array.of(1) } }),
+      }),
     );
     expect(failure(() => close.closeHandle(1n)).code).toBe("MALFORMED_RESPONSE");
   });

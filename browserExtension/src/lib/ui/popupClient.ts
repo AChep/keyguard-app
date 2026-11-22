@@ -44,7 +44,8 @@ export class PopupClient {
 
   constructor(
     private readonly onStatus: (status: ExtensionStatus) => void,
-    private readonly connect: () => PopupPort = () => browser.runtime.connect({ name: POPUP_PORT }) as unknown as PopupPort,
+    private readonly connect: () => PopupPort = () =>
+      browser.runtime.connect({ name: POPUP_PORT }) as unknown as PopupPort,
   ) {
     this.open();
   }

@@ -11,7 +11,13 @@ import {
   type ExtensionStatus,
   type PopupMessage,
 } from "../src/lib/background/api";
-import { ClipboardWriter, clipboardRoute, OFFSCREEN_PAGE, type ClipboardDeps, type OffscreenApi } from "../src/lib/background/clipboard";
+import {
+  ClipboardWriter,
+  clipboardRoute,
+  OFFSCREEN_PAGE,
+  type ClipboardDeps,
+  type OffscreenApi,
+} from "../src/lib/background/clipboard";
 import { BackgroundController, callErrorOf } from "../src/lib/background/controller";
 import { isOwnPage, TabWatch } from "../src/lib/background/frames";
 import { PageController, type PagePort } from "../src/lib/background/pages";
@@ -44,7 +50,13 @@ interface FilteredEvent<T> {
 function isCall(message: unknown, calls: CallHandlers): message is PopupMessage {
   if (!isObject(message)) return false;
   const { kind, id, method, args } = message;
-  return kind === "call" && Number.isSafeInteger(id) && typeof method === "string" && Object.hasOwn(calls, method) && isObject(args);
+  return (
+    kind === "call" &&
+    Number.isSafeInteger(id) &&
+    typeof method === "string" &&
+    Object.hasOwn(calls, method) &&
+    isObject(args)
+  );
 }
 
 /** Answers a popup's call. */
@@ -283,7 +295,8 @@ export default defineBackground(() => {
       void reinjectContentScripts({
         contentScripts: browser.runtime.getManifest().content_scripts ?? [],
         tabs: (query) => browser.tabs.query(query),
-        inject: (tabId, files, allFrames) => browser.scripting.executeScript({ target: { tabId, allFrames }, files: files as never[] }),
+        inject: (tabId, files, allFrames) =>
+          browser.scripting.executeScript({ target: { tabId, allFrames }, files: files as never[] }),
       });
     }
   });

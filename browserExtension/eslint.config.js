@@ -22,8 +22,21 @@ export default defineConfig(
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser,
+      },
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.svelte"],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: [".svelte"],
       },
+    },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
     },
   },
 );

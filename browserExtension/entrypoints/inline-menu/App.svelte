@@ -135,7 +135,8 @@
   }
 
   /** The second line of a row: its parts in one line. */
-  const joined = (...parts: (string | undefined)[]) => parts.filter((part) => part !== undefined && part !== "").join(" · ");
+  const joined = (...parts: (string | undefined)[]) =>
+    parts.filter((part) => part !== undefined && part !== "").join(" · ");
 </script>
 
 <svelte:window onkeydown={onKeydown} onfocus={onFocus} onblur={onBlur} />
@@ -172,7 +173,11 @@
       </p>
     </div>
     <div class="actions">
-      <button class="btn btn-filled btn-xs" disabled={busy || view.unlocking} onclick={(event) => act(event, { kind: "unlock" })}>
+      <button
+        class="btn btn-filled btn-xs"
+        disabled={busy || view.unlocking}
+        onclick={(event) => act(event, { kind: "unlock" })}
+      >
         <Icon name="lock_open" />
         {t("autofill_unlock_keyguard")}
       </button>
@@ -189,17 +194,29 @@
     {@const generate = PASSWORD_GENERATOR && view.role === "new-password"}
     {@const actions = view.passkeys.length > 0 || view.totp !== null || generate}
     {#each view.passkeys as passkey (passkey.handle)}
-      <button class="row" role="menuitem" disabled={busy} onclick={(event) => act(event, { kind: "passkey", handle: passkey.handle })}>
+      <button
+        class="row"
+        role="menuitem"
+        disabled={busy}
+        onclick={(event) => act(event, { kind: "passkey", handle: passkey.handle })}
+      >
         <span class="tile tertiary"><Icon name="key" size={20} /></span>
         <span class="row-content">
-          <span class="row-title">{passkey.user_display_name || passkey.user_name || t("passkey_unknown_username")}</span>
+          <span class="row-title"
+            >{passkey.user_display_name || passkey.user_name || t("passkey_unknown_username")}</span
+          >
           <span class="row-text">{joined(passkey.item, passkey.account)}</span>
         </span>
       </button>
     {/each}
     {#if view.totp}
       {@const remembered = view.totp}
-      <button class="row" role="menuitem" disabled={busy} onclick={(event) => act(event, { kind: "totp", handle: remembered.handle })}>
+      <button
+        class="row"
+        role="menuitem"
+        disabled={busy}
+        onclick={(event) => act(event, { kind: "totp", handle: remembered.handle })}
+      >
         <span class="tile primary"><Icon name="two_fa" size={20} /></span>
         <span class="row-content">
           <span class="row-title">{t("browser_extension_menu_fill_totp")}</span>
@@ -231,7 +248,9 @@
         {#if markers.length > 0 || last}
           <span class="trailing">
             {#each markers as marker (marker.icon)}
-              <span class="marker" title={marker.label}><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span>
+              <span class="marker" title={marker.label}
+                ><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span
+              >
             {/each}
             {#if last}
               <span class="chip">{t("browser_extension_last_used")}</span>
@@ -244,7 +263,9 @@
       <p class="empty body-medium">{t("autofill_no_matching_logins")}</p>
     {/if}
     {#if view.truncated}
-      <p class="note body-small">{tp("browser_extension_logins_truncated_plural", view.items.length, view.items.length)}</p>
+      <p class="note body-small">
+        {tp("browser_extension_logins_truncated_plural", view.items.length, view.items.length)}
+      </p>
     {/if}
   {/if}
   {#if error}

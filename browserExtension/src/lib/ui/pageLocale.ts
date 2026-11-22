@@ -14,6 +14,8 @@ export function messageDirection(getMessage: (name: string) => string): "ltr" | 
 /** Sets the language, the direction and the title of a page of the extension. */
 export function localizePage(doc: Document): void {
   doc.documentElement.lang = browser.i18n.getUILanguage();
-  doc.documentElement.dir = messageDirection((name) => (browser.i18n as unknown as { getMessage(name: string): string }).getMessage(name));
+  doc.documentElement.dir = messageDirection((name) =>
+    (browser.i18n as unknown as { getMessage(name: string): string }).getMessage(name),
+  );
   doc.title = t("browser_extension_name");
 }

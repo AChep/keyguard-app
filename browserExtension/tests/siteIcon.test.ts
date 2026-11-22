@@ -38,7 +38,10 @@ describe("siteIconUrl on Chromium", () => {
   });
 
   it("uses the tab's URL for a frame of its site", () => {
-    const icon = siteIconUrl({ url: "https://accounts.example.com/embedded", tabUrl: "https://www.example.com/" }, CHROMIUM);
+    const icon = siteIconUrl(
+      { url: "https://accounts.example.com/embedded", tabUrl: "https://www.example.com/" },
+      CHROMIUM,
+    );
     expect(new URL(icon!).searchParams.get("pageUrl")).toBe("https://www.example.com/");
   });
 
@@ -48,7 +51,13 @@ describe("siteIconUrl on Chromium", () => {
   });
 
   it("gives none for pages that aren't http(s)", () => {
-    for (const tabUrl of ["chrome://settings/", "file:///home/ann/a.html", "about:blank", "data:text/html,x", "chrome-extension://abc/page.html"]) {
+    for (const tabUrl of [
+      "chrome://settings/",
+      "file:///home/ann/a.html",
+      "about:blank",
+      "data:text/html,x",
+      "chrome-extension://abc/page.html",
+    ]) {
       expect(siteIconUrl({ url: tabUrl, tabUrl }, CHROMIUM), tabUrl).toBeNull();
     }
     expect(siteIconUrl({ url: "about:blank", tabUrl: PAGE }, CHROMIUM)).toBeNull();
@@ -57,7 +66,9 @@ describe("siteIconUrl on Chromium", () => {
   });
 
   it("gives none for a frame of another site than its tab, nor of another scheme", () => {
-    expect(siteIconUrl({ url: "https://auth.idp.example/login", tabUrl: "https://shop.example.com/cart" }, CHROMIUM)).toBeNull();
+    expect(
+      siteIconUrl({ url: "https://auth.idp.example/login", tabUrl: "https://shop.example.com/cart" }, CHROMIUM),
+    ).toBeNull();
     expect(siteIconUrl({ url: "http://login.example.com/", tabUrl: PAGE }, CHROMIUM)).toBeNull();
   });
 });
@@ -77,7 +88,11 @@ describe("siteIconUrl on Firefox", () => {
     expect(siteIconUrl({ url: PAGE, tabUrl: PAGE, favIconUrl: "data:image/svg+xml,%3Csvg/%3E" }, FIREFOX)).toBe(
       "data:image/svg+xml,%3Csvg/%3E",
     );
-    for (const favIconUrl of ["data:text/html,<script>alert(1)</script>", "data:,image/png", "data:application/octet-stream;base64,AA=="]) {
+    for (const favIconUrl of [
+      "data:text/html,<script>alert(1)</script>",
+      "data:,image/png",
+      "data:application/octet-stream;base64,AA==",
+    ]) {
       expect(siteIconUrl({ url: PAGE, tabUrl: PAGE, favIconUrl }, FIREFOX), favIconUrl).toBeNull();
     }
   });
@@ -99,7 +114,9 @@ describe("siteIconUrl on Firefox", () => {
   });
 
   it("gives none for a frame of another site than its tab, or a page that isn't http(s)", () => {
-    expect(siteIconUrl({ url: "https://auth.idp.example/login", tabUrl: PAGE, favIconUrl: FAVICON }, FIREFOX)).toBeNull();
+    expect(
+      siteIconUrl({ url: "https://auth.idp.example/login", tabUrl: PAGE, favIconUrl: FAVICON }, FIREFOX),
+    ).toBeNull();
     expect(siteIconUrl({ url: "about:blank", tabUrl: "about:blank", favIconUrl: FAVICON }, FIREFOX)).toBeNull();
   });
 });

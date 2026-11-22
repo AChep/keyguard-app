@@ -14,7 +14,10 @@ export type ScriptContext = Pick<ContentScriptContext, "isInvalid">;
  * [send] for a script the extension may orphan: it never throws, and resolves
  * `undefined` when the call fails or the extension is gone.
  */
-export function orphanSafe<M, R>(ctx: ScriptContext, send: (message: M) => Promise<R>): (message: M) => Promise<R | undefined> {
+export function orphanSafe<M, R>(
+  ctx: ScriptContext,
+  send: (message: M) => Promise<R>,
+): (message: M) => Promise<R | undefined> {
   return async (message) => {
     if (ctx.isInvalid) return undefined;
     try {

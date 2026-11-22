@@ -19,8 +19,21 @@ import {
   type ResponseOf,
   type VaultState,
 } from "../protocol/messages";
-import { isCancelled, ProtocolError, ProtocolSession, SessionClosed, type Handshake, type SessionEnd } from "../protocol/session";
-import { NativeConnection, type ConnectionListener, type Disconnect, type HostStatus, type NativePort } from "../native/connection";
+import {
+  isCancelled,
+  ProtocolError,
+  ProtocolSession,
+  SessionClosed,
+  type Handshake,
+  type SessionEnd,
+} from "../protocol/session";
+import {
+  NativeConnection,
+  type ConnectionListener,
+  type Disconnect,
+  type HostStatus,
+  type NativePort,
+} from "../native/connection";
 import { NONCE_SIZE, pairingCode, pairingCommit } from "../pairing/code";
 import { PairingStore, type Pairing, type StorageArea } from "../pairing/store";
 import { fromBase64, randomBytes, toBase64 } from "../util/bytes";
@@ -354,7 +367,9 @@ export class BackgroundController implements ConnectionListener {
     } catch (error) {
       if (this.session === active && this.current.kind === "locked") {
         this.setStatus(
-          isCancelled(error) ? { kind: "locked", unlocking: false } : { kind: "locked", unlocking: false, error: callErrorOf(error) },
+          isCancelled(error)
+            ? { kind: "locked", unlocking: false }
+            : { kind: "locked", unlocking: false, error: callErrorOf(error) },
         );
       }
       throw error;
@@ -432,7 +447,9 @@ export class BackgroundController implements ConnectionListener {
       pinnedAppKey: pairing?.appKey ?? null,
       send: (frame) => this.connection.send(frame),
       onEvent: (event) => {
-        this.onEvent(active, event).catch((error: unknown) => console.error("Keyguard: failed to apply an event", error));
+        this.onEvent(active, event).catch((error: unknown) =>
+          console.error("Keyguard: failed to apply an event", error),
+        );
       },
       onEnd: (end) => this.onSessionEnd(active, end),
     });
@@ -451,7 +468,10 @@ export class BackgroundController implements ConnectionListener {
     protocol.start();
     try {
       active.handshake = await protocol.established;
-      const hello = await this.sessionRequest(active, "hello", { protocol: PROTOCOL_VERSIONS.max, capabilities: CAPABILITIES });
+      const hello = await this.sessionRequest(active, "hello", {
+        protocol: PROTOCOL_VERSIONS.max,
+        capabilities: CAPABILITIES,
+      });
       if (this.session === active) await this.afterHello(active, hello);
     } catch (error) {
       if (this.session !== active || error instanceof SessionClosed) return;

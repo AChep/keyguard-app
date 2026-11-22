@@ -369,7 +369,14 @@ describe("themeTokens", () => {
   it("takes the first accent, skipping a transparent one", () => {
     const colors = { popup: "#ffffff", popup_text: "#15141a" };
     const red = tokensOf(
-      { colors: { ...colors, tab_line: "transparent", toolbar_field_border_focus: "#d70022", icons_attention: "#00b3f4" } },
+      {
+        colors: {
+          ...colors,
+          tab_line: "transparent",
+          toolbar_field_border_focus: "#d70022",
+          icons_attention: "#00b3f4",
+        },
+      },
       false,
     );
     expect(hueDistance(hue(red["primary-container"]), hue("#d70022"))).toBeLessThan(5);

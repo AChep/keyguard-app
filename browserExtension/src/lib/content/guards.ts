@@ -62,7 +62,10 @@ export function isFillable(input: HTMLInputElement, layout: Pick<Layout, "render
 }
 
 /** The computed style of a fillable field, for the checks after; `null` when it isn't fillable. */
-function fillableStyle(input: HTMLInputElement, layout: Pick<Layout, "rendered" | "style">): CSSStyleDeclaration | null {
+function fillableStyle(
+  input: HTMLInputElement,
+  layout: Pick<Layout, "rendered" | "style">,
+): CSSStyleDeclaration | null {
   if (!input.isConnected || input.disabled || input.type === "hidden" || isIgnored(input)) return null;
   return shownStyle(input, layout);
 }
@@ -99,7 +102,10 @@ const MAX_SLOTS = 32;
  * parent's closed root, and `undefined` means it has too many slots to tell.
  */
 export function flatParentOf(element: Element): Element | null;
-export function flatParentOf(element: Element, shadowRootOf: (element: Element) => ShadowRoot | null): Element | null | undefined;
+export function flatParentOf(
+  element: Element,
+  shadowRootOf: (element: Element) => ShadowRoot | null,
+): Element | null | undefined;
 export function flatParentOf(
   element: Element,
   shadowRootOf?: (element: Element) => ShadowRoot | null,
@@ -200,7 +206,8 @@ export function popupExposure(host: Element, popup: HTMLElement, layout: Layout,
   // From the page, every node of the closed shadow root is the host. In a
   // dialog in a shadow root of the page, the document hits that root's host;
   // look through.
-  const top = host.getRootNode() === host.ownerDocument ? layout.topHit(point.x, point.y) : layout.hit(point.x, point.y);
+  const top =
+    host.getRootNode() === host.ownerDocument ? layout.topHit(point.x, point.y) : layout.hit(point.x, point.y);
   if (top !== host) return "obscured";
   return pageTopLayer(host, layout, doc) ? "obscured" : null;
 }
@@ -385,7 +392,7 @@ const MAX_FRAME_DEPTH = 32;
  */
 export function sameOriginFrames(win: Pick<Window, "frameElement">): Element[] | null {
   const frames: Element[] = [];
-  for (let current: Pick<Window, "frameElement"> | null = win; current !== null; ) {
+  for (let current: Pick<Window, "frameElement"> | null = win; current !== null;) {
     let frame: Element | null | undefined;
     try {
       frame = current.frameElement;
@@ -444,7 +451,11 @@ export function frameExposure(
   doc: Document,
 ): { x: number; y: number } | null {
   if (!layout.rendered(frame) || transparency(frame, layout) !== null) return null;
-  for (let node: Element | null | undefined = frame; node !== null; node = flatParentOf(node, (it) => layout.shadowRoot(it))) {
+  for (
+    let node: Element | null | undefined = frame;
+    node !== null;
+    node = flatParentOf(node, (it) => layout.shadowRoot(it))
+  ) {
     if (node === undefined || !onlyTranslates(layout.style(node))) return null;
   }
   // The frame's viewport starts inside its border and padding.

@@ -164,7 +164,8 @@ function extensionValue(value: unknown, depth: number): unknown {
       return number(value, "extensions");
     case "object": {
       if (value === null) return null;
-      if (isView(value) || apply(objectToString, value, []) === "[object ArrayBuffer]") return base64Url(value, "extensions");
+      if (isView(value) || apply(objectToString, value, []) === "[object ArrayBuffer]")
+        return base64Url(value, "extensions");
       if (isArray(value)) return list(value, "extensions", (it) => extensionValue(it, depth + 1));
       const out: Json = {};
       const names = keys(value);
@@ -209,7 +210,9 @@ export function creationOptionsToJSON(value: unknown): Json {
   optional(json, "authenticatorSelection", options.authenticatorSelection, (it) => {
     const selection = record(it, "authenticatorSelection");
     const out: Json = {};
-    optional(out, "authenticatorAttachment", selection.authenticatorAttachment, (v) => string(v, "authenticatorAttachment"));
+    optional(out, "authenticatorAttachment", selection.authenticatorAttachment, (v) =>
+      string(v, "authenticatorAttachment"),
+    );
     optional(out, "residentKey", selection.residentKey, (v) => string(v, "residentKey"));
     optional(out, "requireResidentKey", selection.requireResidentKey, (v) => boolean(v, "requireResidentKey"));
     optional(out, "userVerification", selection.userVerification, (v) => string(v, "userVerification"));
@@ -312,18 +315,27 @@ function extensionResults(json: Json): Json {
  * the app says, as other password managers report their passkeys: some sites
  * take another attachment for a security key.
  */
-export function credentialFromJSON(value: unknown, kind: "create" | "get", classes: CredentialClasses): PublicKeyCredential {
+export function credentialFromJSON(
+  value: unknown,
+  kind: "create" | "get",
+  classes: CredentialClasses,
+): PublicKeyCredential {
   const json = copyJson(record(value, "the credential")) as Json;
   const response = record(json.response, "response");
-  const clientExtensionResults = json.clientExtensionResults === undefined ? {} : record(json.clientExtensionResults, "clientExtensionResults");
+  const clientExtensionResults =
+    json.clientExtensionResults === undefined ? {} : record(json.clientExtensionResults, "clientExtensionResults");
   // Decoded once now, so a malformed result fails here and not in a getter.
   extensionResults(clientExtensionResults);
   const clientDataJSON = buffer(response.clientDataJSON, "clientDataJSON");
   let responseObject: Json;
   if (kind === "create") {
     const authenticatorData = buffer(response.authenticatorData, "authenticatorData");
-    const publicKey = response.publicKey === undefined || response.publicKey === null ? null : buffer(response.publicKey, "publicKey");
-    const transports = response.transports === undefined ? [] : list(response.transports, "transports", (it) => string(it, "transports"));
+    const publicKey =
+      response.publicKey === undefined || response.publicKey === null ? null : buffer(response.publicKey, "publicKey");
+    const transports =
+      response.transports === undefined
+        ? []
+        : list(response.transports, "transports", (it) => string(it, "transports"));
     const algorithm = number(response.publicKeyAlgorithm, "publicKeyAlgorithm");
     responseObject = make(classes.AuthenticatorAttestationResponse, {
       clientDataJSON,
@@ -338,9 +350,13 @@ export function credentialFromJSON(value: unknown, kind: "create" | "get", class
       clientDataJSON,
       authenticatorData: buffer(response.authenticatorData, "authenticatorData"),
       signature: buffer(response.signature, "signature"),
-      userHandle: response.userHandle === undefined || response.userHandle === null ? null : buffer(response.userHandle, "userHandle"),
+      userHandle:
+        response.userHandle === undefined || response.userHandle === null
+          ? null
+          : buffer(response.userHandle, "userHandle"),
     };
-    if (response.attestationObject !== undefined) members.attestationObject = buffer(response.attestationObject, "attestationObject");
+    if (response.attestationObject !== undefined)
+      members.attestationObject = buffer(response.attestationObject, "attestationObject");
     responseObject = make(classes.AuthenticatorAssertionResponse, members);
   }
   const id = string(json.id, "id");

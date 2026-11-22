@@ -61,7 +61,11 @@ function stringsIn(value: unknown, seen = new Set<unknown>()): string[] {
   if (typeof value !== "object" || value === null || value instanceof Node || seen.has(value)) return [];
   seen.add(value);
   const children =
-    value instanceof Map ? [...value.keys(), ...value.values()] : value instanceof Set || Array.isArray(value) ? [...value] : Object.values(value);
+    value instanceof Map
+      ? [...value.keys(), ...value.values()]
+      : value instanceof Set || Array.isArray(value)
+        ? [...value]
+        : Object.values(value);
   return children.flatMap((child) => stringsIn(child, seen));
 }
 
@@ -77,7 +81,9 @@ describe("save candidates", () => {
   });
 
   it("takes a sign-up's password only when the confirmation matches", () => {
-    render(`<form><input id="u" autocomplete="username" value="ann"><input id="p1" type="password" value="new"><input id="p2" type="password" value="nwe"></form>`);
+    render(
+      `<form><input id="u" autocomplete="username" value="ann"><input id="p1" type="password" value="new"><input id="p2" type="password" value="nwe"></form>`,
+    );
     const form = detectFormOf(byId("p1"), detectOptions)!;
     expect(saveCandidateOf(form, () => undefined)).toBeNull();
     byId("p2").value = "new";
@@ -85,7 +91,9 @@ describe("save candidates", () => {
   });
 
   it("sends the previous password of a change", () => {
-    render(`<form><input id="c" type="password" autocomplete="current-password" value="old"><input id="n" type="password" autocomplete="new-password" value="new"></form>`);
+    render(
+      `<form><input id="c" type="password" autocomplete="current-password" value="old"><input id="n" type="password" autocomplete="new-password" value="new"></form>`,
+    );
     const form = detectFormOf(byId("c"), detectOptions)!;
     expect(saveCandidateOf(form, () => undefined)).toEqual({ password: "new", previous_password: "old" });
     byId("n").value = "old";
@@ -119,7 +127,9 @@ describe("save tracker", () => {
 
   it("reports on a sign-in button of a script form, once with its submit", async () => {
     const { reports } = setup();
-    render(`<div><input id="u" name="login"><input id="p" type="password"><div id="go" role="button">Sign in</div></div>`);
+    render(
+      `<div><input id="u" name="login"><input id="p" type="password"><div id="go" role="button">Sign in</div></div>`,
+    );
     byId("u").value = "ann";
     type(byId("p"), "pw1");
     byId<HTMLElement>("go").dispatchEvent(user(new MouseEvent("click", { bubbles: true, composed: true })));
@@ -129,7 +139,9 @@ describe("save tracker", () => {
 
   it("doesn't take a show-password toggle for a submit", () => {
     const { reports } = setup();
-    render(`<form><input id="p" type="password"><button id="eye" type="button" aria-label="Show password">👁</button><button id="toggle" type="button" aria-pressed="false">Sign in</button></form>`);
+    render(
+      `<form><input id="p" type="password"><button id="eye" type="button" aria-label="Show password">👁</button><button id="toggle" type="button" aria-pressed="false">Sign in</button></form>`,
+    );
     type(byId("p"), "pw1");
     for (const id of ["eye", "toggle"]) {
       byId<HTMLElement>(id).dispatchEvent(user(new MouseEvent("click", { bubbles: true, composed: true })));
@@ -168,7 +180,9 @@ describe("save tracker", () => {
 
   it("offers a password the user generated", async () => {
     const { tracker, reports } = setup();
-    render(`<form id="f"><input id="u" autocomplete="username"><input id="p1" type="password" autocomplete="new-password"><input id="p2" type="password" autocomplete="new-password"></form>`);
+    render(
+      `<form id="f"><input id="u" autocomplete="username"><input id="p1" type="password" autocomplete="new-password"><input id="p2" type="password" autocomplete="new-password"></form>`,
+    );
     type(byId("u"), "bob");
     // Filled by the extension: the page's events aren't trusted, the user's click was.
     for (const id of ["p1", "p2"]) {
@@ -181,7 +195,9 @@ describe("save tracker", () => {
 
   it("reports what's left when the page goes away right after a click in its form, as on a button it doesn't know", () => {
     const { tracker, reports } = setup();
-    render(`<form><input id="u" name="email"><input id="p" type="password"><span id="go" class="icon-arrow"></span></form>`);
+    render(
+      `<form><input id="u" name="email"><input id="p" type="password"><span id="go" class="icon-arrow"></span></form>`,
+    );
     byId("u").value = "ann";
     type(byId("p"), "pw1");
     click(byId("go"));
@@ -266,7 +282,9 @@ describe("save tracker", () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     try {
       // A password the user typed, then the fill's.
-      render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+      render(
+        `<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`,
+      );
       type(byId("p"), "typed");
       expect(await fillAndSubmit("p", { username: "ann", password: "secret" })).toBe(true);
       tracker.flush();

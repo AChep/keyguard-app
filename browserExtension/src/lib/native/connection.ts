@@ -17,12 +17,7 @@ export const NATIVE_HOST_NAME =
   import.meta.env.MODE === "development" ? "com.artemchep.keyguard.dev" : "com.artemchep.keyguard";
 
 export type HostStatus =
-  | "ready"
-  | "app_unavailable"
-  | "update_required"
-  | "integration_disabled"
-  | "unverified_host"
-  | "too_many_sessions";
+  "ready" | "app_unavailable" | "update_required" | "integration_disabled" | "unverified_host" | "too_many_sessions";
 
 const HOST_STATUSES: ReadonlySet<string> = new Set<HostStatus>([
   "ready",

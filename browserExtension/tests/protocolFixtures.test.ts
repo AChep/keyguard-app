@@ -9,10 +9,24 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import type { JsonObject } from "../src/lib/protocol/framing";
-import { checkVersion, parseEvent, parseResponse, PROTOCOL_VERSIONS, type RequestType } from "../src/lib/protocol/messages";
+import {
+  checkVersion,
+  parseEvent,
+  parseResponse,
+  PROTOCOL_VERSIONS,
+  type RequestType,
+} from "../src/lib/protocol/messages";
 import { credentialProblem } from "../src/lib/webauthn/credential";
 import { credentialFromJSON } from "../src/lib/webauthn/json";
-import { errors, events, exchanges, frozen, requestFields, responseFields, supportedVersions } from "./support/fixtures";
+import {
+  errors,
+  events,
+  exchanges,
+  frozen,
+  requestFields,
+  responseFields,
+  supportedVersions,
+} from "./support/fixtures";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 /** Not a [RequestType]: the session sends it itself. */
@@ -40,12 +54,21 @@ function checks(): Check[] {
     result.push({ what: `events.json ${String(event.event)}`, code: `${literal(event)} satisfies ProtocolEvent;` });
   }
   for (const { id: _, ok: _ok, ...fields } of errors) {
-    result.push({ what: `errors.json ${String(fields.error)}`, code: `${literal(fields)} satisfies { error: ProtocolErrorCode };` });
+    result.push({
+      what: `errors.json ${String(fields.error)}`,
+      code: `${literal(fields)} satisfies { error: ProtocolErrorCode };`,
+    });
   }
   const types = Object.keys(exchanges).filter((type) => type !== CANCEL);
   result.push({ what: "request types", code: `${all(types)} satisfies Record<RequestType, true>;` });
-  result.push({ what: "events", code: `${all(events.map((it) => String(it.event)))} satisfies Record<ProtocolEvent["event"], true>;` });
-  result.push({ what: "error codes", code: `${all(errors.map((it) => String(it.error)))} satisfies Record<ProtocolErrorCode, true>;` });
+  result.push({
+    what: "events",
+    code: `${all(events.map((it) => String(it.event)))} satisfies Record<ProtocolEvent["event"], true>;`,
+  });
+  result.push({
+    what: "error codes",
+    code: `${all(errors.map((it) => String(it.error)))} satisfies Record<ProtocolErrorCode, true>;`,
+  });
   return result;
 }
 
@@ -69,21 +92,27 @@ function typeErrors(checks: Check[]): string[] {
   const { getSourceFile, fileExists, readFile } = host;
   const isCheck = (name: string) => resolve(name) === file;
   host.getSourceFile = (name, language, ...rest) =>
-    isCheck(name) ? ts.createSourceFile(name, source, language, true) : getSourceFile.call(host, name, language, ...rest);
+    isCheck(name)
+      ? ts.createSourceFile(name, source, language, true)
+      : getSourceFile.call(host, name, language, ...rest);
   host.fileExists = (name) => isCheck(name) || fileExists.call(host, name);
   host.readFile = (name) => (isCheck(name) ? source : readFile.call(host, name));
   const program = ts.createProgram([file], options, host);
   const sourceFile = program.getSourceFile(file)!;
-  return [...program.getSyntacticDiagnostics(sourceFile), ...program.getSemanticDiagnostics(sourceFile)].map((diagnostic) => {
-    const line = sourceFile.getLineAndCharacterOfPosition(diagnostic.start ?? 0).line;
-    const what = line === 0 ? "imports" : checks[line - 1]!.what;
-    return `${what}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, " ")}`;
-  });
+  return [...program.getSyntacticDiagnostics(sourceFile), ...program.getSemanticDiagnostics(sourceFile)].map(
+    (diagnostic) => {
+      const line = sourceFile.getLineAndCharacterOfPosition(diagnostic.start ?? 0).line;
+      const what = line === 0 ? "imports" : checks[line - 1]!.what;
+      return `${what}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, " ")}`;
+    },
+  );
 }
 
 describe("protocol fixtures", () => {
   it("keeps the v1 compatibility snapshot fixed independently of the current fixtures", () => {
-    const digest = createHash("sha256").update(JSON.stringify(frozen(1))).digest("hex");
+    const digest = createHash("sha256")
+      .update(JSON.stringify(frozen(1)))
+      .digest("hex");
     expect(digest).toBe("f827486734aafe619e7957fe3509e781ab9c1e4069b24abea5ad12351e1a46a8");
   });
 
@@ -136,7 +165,10 @@ describe("protocol fixtures", () => {
       const credential = responseFields(type).credential as JsonObject;
       expect(credentialProblem(credential, { kind, origin, challenge: options.challenge }), type).toBeNull();
       // The page sees a platform authenticator, whatever the app says.
-      expect(credentialFromJSON(credential, kind, {}).toJSON(), type).toEqual({ ...credential, authenticatorAttachment: "platform" });
+      expect(credentialFromJSON(credential, kind, {}).toJSON(), type).toEqual({
+        ...credential,
+        authenticatorAttachment: "platform",
+      });
     }
   });
 });

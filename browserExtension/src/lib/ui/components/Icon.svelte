@@ -12,7 +12,15 @@
   let { name, size = 24, class: className = "" }: Props = $props();
 </script>
 
-<svg class="icon {className}" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+<svg
+  class="icon {className}"
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+>
   <path d={ICONS[name]} />
 </svg>
 

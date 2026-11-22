@@ -149,7 +149,13 @@ export class PasskeyController {
               this.reply(port, FALLBACK);
               return;
             }
-            conditional = { port, frame, options: request.options, rpId: rpIdOf(request.options, frame.origin), signal };
+            conditional = {
+              port,
+              frame,
+              options: request.options,
+              rpId: rpIdOf(request.options, frame.origin),
+              signal,
+            };
             this.conditionals.add(conditional);
             this.deps.conditionalChanged(frame);
             return;
@@ -235,7 +241,11 @@ export class PasskeyController {
     } finally {
       for (const it of signals) it.removeEventListener("abort", abort);
     }
-    const problem = credentialProblem(credential, { kind: "get", origin: conditional.frame.origin, challenge: conditional.options.challenge });
+    const problem = credentialProblem(credential, {
+      kind: "get",
+      origin: conditional.frame.origin,
+      challenge: conditional.options.challenge,
+    });
     if (problem !== null) {
       console.warn(`Keyguard: the app's passkey doesn't fit the request: ${problem}`);
       throw new CallFailure("invalid_response");
@@ -275,7 +285,8 @@ export class PasskeyController {
     signal: AbortSignal,
     background: boolean,
   ): Promise<WebAuthnResult | "conditional"> {
-    if (request.kind === "available") return { kind: "available", available: frame !== null && (await this.available()) };
+    if (request.kind === "available")
+      return { kind: "available", available: frame !== null && (await this.available()) };
     if (frame === null || !(await this.available())) return FALLBACK;
     // Version 1 serves no cross-origin frames (protocol §5), so they don't prompt.
     if (!sameOriginWithAncestors(frame, request.same_origin_with_ancestors)) return FALLBACK;
@@ -308,14 +319,23 @@ export class PasskeyController {
           : (
               await app.request(
                 "passkey_create",
-                { origin: frame.origin, options: request.options, same_origin_with_ancestors: true, ...privateWindow(frame.privateWindow) },
+                {
+                  origin: frame.origin,
+                  options: request.options,
+                  same_origin_with_ancestors: true,
+                  ...privateWindow(frame.privateWindow),
+                },
                 signal,
               )
             ).credential;
     } catch (error) {
       return errorResult(error);
     }
-    const problem = credentialProblem(credential, { kind: request.kind, origin: frame.origin, challenge: request.options.challenge });
+    const problem = credentialProblem(credential, {
+      kind: request.kind,
+      origin: frame.origin,
+      challenge: request.options.challenge,
+    });
     if (problem !== null) {
       console.warn(`Keyguard: the app's passkey doesn't fit the request: ${problem}`);
       return { kind: "error", name: "NotAllowedError" };

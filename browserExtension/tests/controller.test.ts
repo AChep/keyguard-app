@@ -57,11 +57,24 @@ const PRIVATE_TAB = 3;
 function frameSender(tabId: number, tabUrl: string, page: FramePage): MessageSenderLike {
   const frameId = page.top_origin === undefined ? 0 : 4;
   const tab = { id: tabId, url: tabUrl, ...(tabId === PRIVATE_TAB ? { incognito: true } : {}) };
-  return { id: EXTENSION_ID, tab, frameId, documentId: `doc-${frameId}`, url: page.url, origin: new URL(page.url).origin };
+  return {
+    id: EXTENSION_ID,
+    tab,
+    frameId,
+    documentId: `doc-${frameId}`,
+    url: page.url,
+    origin: new URL(page.url).origin,
+  };
 }
 
 function setup(
-  options: { handler?: Handler; connectorMissing?: boolean; capabilities?: string[]; noise?: NativeCryptoNoise; backoffMs?: number } = {},
+  options: {
+    handler?: Handler;
+    connectorMissing?: boolean;
+    capabilities?: string[];
+    noise?: NativeCryptoNoise;
+    backoffMs?: number;
+  } = {},
 ) {
   const ports: FakeNativePort[] = [];
   const hosts: FakeHost[] = [];
@@ -140,7 +153,8 @@ function setup(
     options: new OptionsStore(fakeBrowser.storage.local),
     passkeys: { conditionalFor: () => null, pick: async () => undefined },
     sendToFrame: async (tabId, message) => {
-      if (message.kind === "fill") fills.push([tabId, message.origin, { username: message.username, password: message.password }]);
+      if (message.kind === "fill")
+        fills.push([tabId, message.origin, { username: message.username, password: message.password }]);
       return { ok: true };
     },
     sendToTab: async (tabId, message) => {
@@ -166,7 +180,23 @@ function setup(
   const host = () => hosts.at(-1)!;
   const status = () => controller.snapshot;
   const waitFor = (kind: ExtensionStatus["kind"]) => until(() => status().kind === kind, kind);
-  return { controller, pages, ports, hosts, host, statuses, status, waitFor, app, fills, formFrames, copies, tabWatch, writes, holdWrites };
+  return {
+    controller,
+    pages,
+    ports,
+    hosts,
+    host,
+    statuses,
+    status,
+    waitFor,
+    app,
+    fills,
+    formFrames,
+    copies,
+    tabWatch,
+    writes,
+    holdWrites,
+  };
 }
 
 /** Pairs with the app, which needs its vault unlocked for that; then locks it. */
@@ -183,7 +213,10 @@ async function pair(context: ReturnType<typeof setup>) {
 /** Pairs, then reconnects to an app that answers `hello` with [reply]; `identity` is the stored key and pin. */
 async function reconnectWithHello(reply: (app: FakeApp) => Reply, options: { backoffMs?: number } = {}) {
   let answering = false;
-  const context = setup({ ...options, handler: (request, app) => (answering && request.type === "hello" ? reply(app) : undefined) });
+  const context = setup({
+    ...options,
+    handler: (request, app) => (answering && request.type === "hello" ? reply(app) : undefined),
+  });
   await pair(context);
   const identity = await stored();
   answering = true;
@@ -193,7 +226,12 @@ async function reconnectWithHello(reply: (app: FakeApp) => Reply, options: { bac
 }
 
 /** A `hello` answer with [protocol]. */
-const helloWith = (protocol: number) => (app: FakeApp) => ({ protocol, capabilities: [], paired: app.paired, vault: app.vault });
+const helloWith = (protocol: number) => (app: FakeApp) => ({
+  protocol,
+  capabilities: [],
+  paired: app.paired,
+  vault: app.vault,
+});
 
 /** Starts a session on the last port, which the app refuses: the extension ends it and reconnects with backoff. */
 async function refuseSession(context: ReturnType<typeof setup>) {
@@ -218,7 +256,12 @@ describe("BackgroundController", () => {
     const app = context.host().ready();
     await context.waitFor("not_paired");
     // Only the highest protocol version and the capabilities the extension implements.
-    expect(app.requests[0]).toEqual({ id: 1, type: "hello", protocol: PROTOCOL_VERSIONS.max, capabilities: ["passkeys", "save"] });
+    expect(app.requests[0]).toEqual({
+      id: 1,
+      type: "hello",
+      protocol: PROTOCOL_VERSIONS.max,
+      capabilities: ["passkeys", "save"],
+    });
 
     app.vault = "unlocked";
     await context.controller.calls.pair({});
@@ -456,7 +499,9 @@ describe("BackgroundController", () => {
 
   it.each(["hello", "unlock"])("keeps the pin and reconnects after an app update required by %s", async (type) => {
     let needsUpdate = false;
-    const context = setup({ handler: (request) => needsUpdate && request.type === type ? { error: "update_required" } : undefined });
+    const context = setup({
+      handler: (request) => (needsUpdate && request.type === type ? { error: "update_required" } : undefined),
+    });
     await pair(context);
     const identity = await stored();
     needsUpdate = true;
@@ -730,12 +775,18 @@ describe("BackgroundController", () => {
 
     await expect(context.pages.calls.fill({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).resolves.toBeNull();
     // The content script of the top frame fills, with the tab's URL from the browser.
-    expect(app.requests.filter((it) => it.type === "fill")).toMatchObject([{ handle: "h1", url: "https://login.example.com/sign-in?next=1" }]);
+    expect(app.requests.filter((it) => it.type === "fill")).toMatchObject([
+      { handle: "h1", url: "https://login.example.com/sign-in?next=1" },
+    ]);
     expect(context.fills).toEqual([[1, "https://login.example.com", { username: "ann", password: "secret" }]]);
     // The background copies: the popup may close while the app prompts.
-    await expect(context.controller.calls.copy_password({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).resolves.toBeNull();
+    await expect(
+      context.controller.calls.copy_password({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN }),
+    ).resolves.toBeNull();
     expect(context.copies).toEqual(["secret"]);
-    await expect(context.controller.calls.copy_totp({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).rejects.toMatchObject({
+    await expect(
+      context.controller.calls.copy_totp({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN }),
+    ).rejects.toMatchObject({
       code: "invalid_request",
     });
     expect(context.copies).toEqual(["secret"]);
@@ -746,7 +797,10 @@ describe("BackgroundController", () => {
     // The tab went on to another origin than the popup's list is for.
     const released = app.requests.length;
     for (const call of ["copy_password", "copy_totp"] as const) {
-      await expect(context.controller.calls[call]({ tabId: 1, handle: "h1", origin: "https://evil.example" }), call).rejects.toMatchObject({
+      await expect(
+        context.controller.calls[call]({ tabId: 1, handle: "h1", origin: "https://evil.example" }),
+        call,
+      ).rejects.toMatchObject({
         code: "origin",
       });
     }
@@ -756,7 +810,10 @@ describe("BackgroundController", () => {
 
   it("copies no password of an item whose collections hide it, nor of one the popup didn't list", async () => {
     const item = { name: "Example", account: "Work", has_password: true, has_totp: false, reprompt: false };
-    const items = [{ ...item, handle: "h1", password_hidden: true }, { ...item, handle: "h2" }];
+    const items = [
+      { ...item, handle: "h1", password_hidden: true },
+      { ...item, handle: "h2" },
+    ];
     const context = setup({
       handler: (request) => {
         switch (request.type) {
@@ -773,7 +830,10 @@ describe("BackgroundController", () => {
     await context.pages.calls.suggest({ tabId: 1 });
     const app = context.host().app!;
     for (const handle of ["h1", "unlisted"]) {
-      await expect(context.controller.calls.copy_password({ tabId: 1, handle, origin: LOGIN_ORIGIN }), handle).rejects.toMatchObject({
+      await expect(
+        context.controller.calls.copy_password({ tabId: 1, handle, origin: LOGIN_ORIGIN }),
+        handle,
+      ).rejects.toMatchObject({
         code: "not_allowed",
       });
     }
@@ -782,7 +842,9 @@ describe("BackgroundController", () => {
     // Its fill still releases the password.
     await expect(context.pages.calls.fill({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).resolves.toBeNull();
     expect(context.fills).toEqual([[1, "https://login.example.com", { username: "ann", password: "secret" }]]);
-    await expect(context.controller.calls.copy_password({ tabId: 1, handle: "h2", origin: LOGIN_ORIGIN })).resolves.toBeNull();
+    await expect(
+      context.controller.calls.copy_password({ tabId: 1, handle: "h2", origin: LOGIN_ORIGIN }),
+    ).resolves.toBeNull();
     expect(context.copies).toEqual(["secret"]);
   });
 
@@ -795,7 +857,10 @@ describe("BackgroundController", () => {
       has_totp: false,
       reprompt: false,
     }));
-    const context = setup({ handler: (request) => (request.type === "suggest" ? { blocked: false, save_blocked: false, truncated: false, items } : undefined) });
+    const context = setup({
+      handler: (request) =>
+        request.type === "suggest" ? { blocked: false, save_blocked: false, truncated: false, items } : undefined,
+    });
     await pair(context);
     await expect(context.pages.calls.suggest({ tabId: 1 })).resolves.toMatchObject({
       items: [{ handle: "h1" }, { handle: "h2" }],
@@ -820,7 +885,9 @@ describe("BackgroundController", () => {
       handler: (request) => {
         switch (request.type) {
           case "fill":
-            return request.handle === github!.handle ? { username: "ann", password: "secret" } : { error: "invalid_request" };
+            return request.handle === github!.handle
+              ? { username: "ann", password: "secret" }
+              : { error: "invalid_request" };
           case "totp":
             return { code: "123456" };
           default:
@@ -836,14 +903,29 @@ describe("BackgroundController", () => {
       truncated: false,
       items: searched.items,
     });
-    expect(app.requests.at(-1)).toEqual({ id: app.requests.at(-1)!.id, type: "search", query: "git", url: "https://login.example.com/sign-in?next=1" });
+    expect(app.requests.at(-1)).toEqual({
+      id: app.requests.at(-1)!.id,
+      type: "search",
+      query: "git",
+      url: "https://login.example.com/sign-in?next=1",
+    });
 
-    await expect(context.pages.calls.fill({ tabId: 1, handle: github!.handle, origin: LOGIN_ORIGIN })).resolves.toBeNull();
-    expect(app.requests.at(-1)).toMatchObject({ type: "fill", handle: github!.handle, url: "https://login.example.com/sign-in?next=1" });
+    await expect(
+      context.pages.calls.fill({ tabId: 1, handle: github!.handle, origin: LOGIN_ORIGIN }),
+    ).resolves.toBeNull();
+    expect(app.requests.at(-1)).toMatchObject({
+      type: "fill",
+      handle: github!.handle,
+      url: "https://login.example.com/sign-in?next=1",
+    });
     expect(context.fills).toEqual([[1, "https://login.example.com", { username: "ann", password: "secret" }]]);
     await context.controller.calls.copy_totp({ tabId: 1, handle: github!.handle, origin: LOGIN_ORIGIN });
     expect(context.copies).toEqual(["123456"]);
-    expect(app.requests.at(-1)).toMatchObject({ type: "totp", handle: github!.handle, url: "https://login.example.com/sign-in?next=1" });
+    expect(app.requests.at(-1)).toMatchObject({
+      type: "totp",
+      handle: github!.handle,
+      url: "https://login.example.com/sign-in?next=1",
+    });
   });
 
   it("names a page of a private window in each request of the popup, and no other", async () => {
@@ -874,7 +956,11 @@ describe("BackgroundController", () => {
       const requests = app.requests.slice(from);
       expect(requests.map((it) => it.type)).toEqual(["suggest", "search", "fill", "fill", "totp", "generate"]);
       for (const request of requests) {
-        if (tabId === PRIVATE_TAB) expect(request, String(request.type)).toMatchObject({ url: "https://login.example.com/sign-in?private=1", private_window: true });
+        if (tabId === PRIVATE_TAB)
+          expect(request, String(request.type)).toMatchObject({
+            url: "https://login.example.com/sign-in?private=1",
+            private_window: true,
+          });
         else expect(request, String(request.type)).not.toHaveProperty("private_window");
       }
     }
@@ -901,7 +987,8 @@ describe("BackgroundController", () => {
 
   it("cancels the popup's search when a newer one comes", async () => {
     const context = setup({
-      handler: (request) => (request.type === "search" && request.query !== "github" ? new Promise(() => undefined) : undefined),
+      handler: (request) =>
+        request.type === "search" && request.query !== "github" ? new Promise(() => undefined) : undefined,
     });
     await pair(context);
     const app = context.host().app!;
@@ -935,7 +1022,9 @@ describe("BackgroundController", () => {
   });
 
   it("asks the app to fill for the frame with the form, and for nothing without one", async () => {
-    const context = setup({ handler: (request) => (request.type === "fill" ? { username: "ann", password: "secret" } : undefined) });
+    const context = setup({
+      handler: (request) => (request.type === "fill" ? { username: "ann", password: "secret" } : undefined),
+    });
     await pair(context);
     const app = context.host().app!;
     // A sign-in page that the tab's page embeds.
@@ -946,7 +1035,9 @@ describe("BackgroundController", () => {
     ]);
 
     context.formFrames[1] = null;
-    await expect(context.pages.calls.fill({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).rejects.toMatchObject({ code: "no_form" });
+    await expect(context.pages.calls.fill({ tabId: 1, handle: "h1", origin: LOGIN_ORIGIN })).rejects.toMatchObject({
+      code: "no_form",
+    });
     expect(app.requests.filter((it) => it.type === "fill")).toHaveLength(1);
   });
 
@@ -1011,7 +1102,9 @@ describe("BackgroundController", () => {
     let answer: () => void = () => undefined;
     const context = setup({
       handler: (request) =>
-        request.type === "unlock" ? new Promise((resolve) => (answer = () => resolve({ vault: "unlocked" }))) : undefined,
+        request.type === "unlock"
+          ? new Promise((resolve) => (answer = () => resolve({ vault: "unlocked" })))
+          : undefined,
     });
     await pair(context);
     expect(context.controller.busy).toBe(false);
@@ -1024,7 +1117,9 @@ describe("BackgroundController", () => {
   });
 
   it("cancels a shared unlock once no caller waits, and shows no error", async () => {
-    const context = setup({ handler: (request) => (request.type === "unlock" ? new Promise(() => undefined) : undefined) });
+    const context = setup({
+      handler: (request) => (request.type === "unlock" ? new Promise(() => undefined) : undefined),
+    });
     await pair(context);
     const app = context.host().app!;
     const menu = new AbortController();
@@ -1040,7 +1135,10 @@ describe("BackgroundController", () => {
     await expect(fromBar).rejects.toMatchObject({ code: "cancelled" });
     await until(() => app.cancels.length === 1, "the cancel");
     expect(app.cancels).toEqual([app.requests.find((it) => it.type === "unlock")!.id]);
-    await until(() => context.status().kind === "locked" && !(context.status() as { unlocking: boolean }).unlocking, "the status");
+    await until(
+      () => context.status().kind === "locked" && !(context.status() as { unlocking: boolean }).unlocking,
+      "the status",
+    );
     expect(context.status()).toEqual({ kind: "locked", unlocking: false });
 
     // The popup closes as the app prompts: its unlock isn't cancelled.
@@ -1055,7 +1153,9 @@ describe("BackgroundController", () => {
   });
 
   it("cancels the popup's fill when its tab closes or leaves the page's origin", async () => {
-    const context = setup({ handler: (request) => (request.type === "fill" ? new Promise(() => undefined) : undefined) });
+    const context = setup({
+      handler: (request) => (request.type === "fill" ? new Promise(() => undefined) : undefined),
+    });
     await pair(context);
     const app = context.host().app!;
     const fillIds = () => app.requests.filter((it) => it.type === "fill").map((it) => it.id);

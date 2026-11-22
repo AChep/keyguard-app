@@ -100,14 +100,14 @@ export class ExtensionUpdater {
     if (status.kind !== "extension_update_required" || check === undefined || this.checked) return;
     this.checked = true;
     // A check that throws at once fails as one that rejects.
-    void new Promise<UpdateCheck>((resolve) => resolve(check()))
-      .then(
-        ({ status }) => {
-          // `throttled` or `no_update`: the browser's own checks find the update later.
-          if (status !== "update_available") console.warn(`Keyguard: the app needs a newer extension; the update check says ${status}`);
-        },
-        (error: unknown) => console.warn("Keyguard: the update check failed", error),
-      );
+    void new Promise<UpdateCheck>((resolve) => resolve(check())).then(
+      ({ status }) => {
+        // `throttled` or `no_update`: the browser's own checks find the update later.
+        if (status !== "update_available")
+          console.warn(`Keyguard: the app needs a newer extension; the update check says ${status}`);
+      },
+      (error: unknown) => console.warn("Keyguard: the update check failed", error),
+    );
   }
 
   private idle(): boolean {
@@ -152,7 +152,9 @@ export interface ReinjectDeps {
  * skipped.
  */
 export async function reinjectContentScripts(deps: ReinjectDeps): Promise<void> {
-  const scripts = deps.contentScripts.filter(({ world, js, matches }) => world !== "MAIN" && js?.length && matches?.length);
+  const scripts = deps.contentScripts.filter(
+    ({ world, js, matches }) => world !== "MAIN" && js?.length && matches?.length,
+  );
   await Promise.all(
     scripts.map(async ({ matches = [], js = [], all_frames }) => {
       const tabs = await deps.tabs({ url: matches, discarded: false });

@@ -119,7 +119,10 @@ export function frameOf(sender: MessageSenderLike | undefined, extensionId: stri
 }
 
 /** The options of `tabs.sendMessage` that reach exactly this frame and document. */
-export function frameTarget(frame: Pick<FrameRef, "frameId" | "documentId">, documentIds: boolean): {
+export function frameTarget(
+  frame: Pick<FrameRef, "frameId" | "documentId">,
+  documentIds: boolean,
+): {
   frameId: number;
   documentId?: string;
 } {
@@ -137,7 +140,9 @@ export function frameTarget(frame: Pick<FrameRef, "frameId" | "documentId">, doc
 export function isOwnPage(sender: MessageSenderLike | undefined, extensionId: string, path: string): boolean {
   if (sender?.id !== extensionId) return false;
   const url = parseUrl(sender.url);
-  return url !== null && (url.protocol === "chrome-extension:" || url.protocol === "moz-extension:") && url.pathname === path;
+  return (
+    url !== null && (url.protocol === "chrome-extension:" || url.protocol === "moz-extension:") && url.pathname === path
+  );
 }
 
 /** The same frame of a tab, whatever document it shows. */

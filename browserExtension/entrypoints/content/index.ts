@@ -244,7 +244,10 @@ function startContentScript(ctx: ContentScriptContext) {
   }
 
   /** The form of [input], [form] when detected already, and the input's role in it. */
-  function roleOf(input: HTMLInputElement, form = detectFormOf(input, detect)): { form: DetectedForm; role: FieldRole } | null {
+  function roleOf(
+    input: HTMLInputElement,
+    form = detectFormOf(input, detect),
+  ): { form: DetectedForm; role: FieldRole } | null {
     const role = form === null ? null : roleIn(form, input);
     return form === null || role === null ? null : { form, role };
   }
@@ -328,7 +331,12 @@ function startContentScript(ctx: ContentScriptContext) {
     { form, role }: { form: DetectedForm; role: FieldRole },
     keyboard: boolean,
   ) {
-    const result = await send<MenuOpenResult>({ kind: "menu_open", role, webauthn: form.webauthn.includes(field), url: location.href });
+    const result = await send<MenuOpenResult>({
+      kind: "menu_open",
+      role,
+      webauthn: form.webauthn.includes(field),
+      url: location.href,
+    });
     if (result === undefined || !("token" in result) || signal.aborted || !field.isConnected) return;
     ui.openMenu(field, result.token, MENU_PAGE);
     topLayer.start();
@@ -344,12 +352,16 @@ function startContentScript(ctx: ContentScriptContext) {
     return pageForm(recent, () => detectForms(doc, detect), canFill);
   }
 
-  function targetForm(command: FillCommand): { form: DetectedForm; field: HTMLInputElement | null; report?: StepReport } | null {
+  function targetForm(
+    command: FillCommand,
+  ): { form: DetectedForm; field: HTMLInputElement | null; report?: StepReport } | null {
     switch (command.target) {
       case "menu":
       case "focused": {
         const field =
-          command.target === "menu" ? ui.menuField : (inputOf(deepActiveElement()) ?? (lastField?.isConnected ? lastField : null));
+          command.target === "menu"
+            ? ui.menuField
+            : (inputOf(deepActiveElement()) ?? (lastField?.isConnected ? lastField : null));
         const form = field === null ? null : roleOf(field)?.form;
         return form ? { form, field } : null;
       }
@@ -398,7 +410,11 @@ function startContentScript(ctx: ContentScriptContext) {
           // A password step's username is the one on the page. Its field must
           // still be the step the user sees, up to the moment it's written.
           values = report ? { password: command.password } : { username: command.username, password: command.password };
-          fields = await fillLogin(form, values, report ? (input) => input === report.field && passwordSteps.formOf(report) !== null : canFill);
+          fields = await fillLogin(
+            form,
+            values,
+            report ? (input) => input === report.field && passwordSteps.formOf(report) !== null : canFill,
+          );
           for (const input of fields) filled.set(input, input.value);
           break;
         case "fill_totp":
@@ -422,7 +438,8 @@ function startContentScript(ctx: ContentScriptContext) {
     if (command.kind !== "fill") return { result: { ok: true } };
     const wrote = (input: HTMLInputElement | null) => input !== null && fields.includes(input);
     // The username alone of a username step, or of a sign-in form whose password it couldn't write.
-    const arms = wrote(form.username) && !wrote(form.currentPassword) && (form.kind === "username" || form.kind === "login");
+    const arms =
+      wrote(form.username) && !wrote(form.currentPassword) && (form.kind === "username" || form.kind === "login");
     return {
       result: arms ? { ok: true, passwordStep: true } : { ok: true },
       after: () => {
@@ -439,7 +456,8 @@ function startContentScript(ctx: ContentScriptContext) {
 
   /** Firefox's `runtime.getFrameId`; Chromium has IntersectionObserver v2 instead. */
   const runtime = browser.runtime as unknown as { getFrameId?(target: Element | Window): number };
-  const frameIdOf = typeof runtime.getFrameId === "function" ? (target: Element | Window) => runtime.getFrameId!(target) : null;
+  const frameIdOf =
+    typeof runtime.getFrameId === "function" ? (target: Element | Window) => runtime.getFrameId!(target) : null;
 
   /**
    * Checks that the same-origin ancestors show this frame at [point] of its
@@ -481,7 +499,8 @@ function startContentScript(ctx: ContentScriptContext) {
     const shown = popup === "save_bar" ? ui.saveBarElement : ui.menuElement;
     const field = popup === "save_bar" ? null : ui.menuField;
     if (shown === null || (popup === "menu" && field === null)) return { ok: false, reason: "obscured" };
-    const refusal = (field === null ? null : fieldExposure(field, guardLayout)) ?? popupExposure(ui.host, shown, guardLayout, doc);
+    const refusal =
+      (field === null ? null : fieldExposure(field, guardLayout)) ?? popupExposure(ui.host, shown, guardLayout, doc);
     if (refusal !== null) return { ok: false, reason: refusal };
     if (topLayer.seenWithin(MIN_VISIBLE_MS)) return { ok: false, reason: "obscured" };
     const result = checkAncestors(popupCenter(shown, guardLayout));
@@ -633,7 +652,11 @@ function startContentScript(ctx: ContentScriptContext) {
         // focused frame is the one whose active element isn't a frame.
         if (doc.hasFocus() && !(active instanceof Element && /^(iframe|frame|object|embed)$/.test(active.localName))) {
           const input = inputOf(active);
-          void send({ kind: "focus_report", probe: command.probe, role: input === null ? null : (roleOf(input)?.role ?? null) });
+          void send({
+            kind: "focus_report",
+            probe: command.probe,
+            role: input === null ? null : (roleOf(input)?.role ?? null),
+          });
         }
         return false;
       }
@@ -641,7 +664,12 @@ function startContentScript(ctx: ContentScriptContext) {
         // The popup's fill picks among the frames with a form; see PageController.fillTab.
         const form = bestPageForm();
         if (form !== null) {
-          void send({ kind: "form_report", probe: command.probe, focused_at: focusedAt, writable: hasWritableLogin(form) });
+          void send({
+            kind: "form_report",
+            probe: command.probe,
+            focused_at: focusedAt,
+            writable: hasWritableLogin(form),
+          });
         }
         sendResponse(null);
         return false;
@@ -653,10 +681,18 @@ function startContentScript(ctx: ContentScriptContext) {
       case "frame_guard": {
         // Only the document that holds the frame answers, with a message of its own.
         const check = parseFrameCheck(command);
-        const frame = check === null || frameIdOf === null ? null : frameElementOf(doc, ui.host, guardLayout, check.frame, frameIdOf);
+        const frame =
+          check === null || frameIdOf === null
+            ? null
+            : frameElementOf(doc, ui.host, guardLayout, check.frame, frameIdOf);
         if (check === null || frame === null) return false;
         const result = frameGuard(frame, check);
-        void send({ kind: "frame_report", probe: command.probe, ok: result.ok, ...(result.ok && result.parent ? { parent: result.parent } : {}) });
+        void send({
+          kind: "frame_report",
+          probe: command.probe,
+          ok: result.ok,
+          ...(result.ok && result.parent ? { parent: result.parent } : {}),
+        });
         return false;
       }
       default:

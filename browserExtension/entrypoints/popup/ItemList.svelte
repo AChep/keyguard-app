@@ -53,7 +53,8 @@
   /** The small icons after a row's title: what else the login has. */
   function markersOf(item: Item): Marker[] {
     const markers: Marker[] = [];
-    if ("matched" in item && !item.matched) markers.push({ icon: "warning_amber", label: t("browser_extension_search_unmatched") });
+    if ("matched" in item && !item.matched)
+      markers.push({ icon: "warning_amber", label: t("browser_extension_search_unmatched") });
     if (item.has_totp) markers.push({ icon: "two_fa", label: t("one_time_password") });
     if (item.reprompt) markers.push({ icon: "lock", label: t("additem_auth_reprompt_title") });
     if ("passkeys" in item && item.passkeys?.length) markers.push({ icon: "key", label: t("passkeys") });
@@ -126,7 +127,9 @@
             {#if markers.length > 0}
               <span class="markers">
                 {#each markers as marker (marker.icon)}
-                  <span title={marker.label}><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span>
+                  <span title={marker.label}
+                    ><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span
+                  >
                 {/each}
               </span>
             {/if}

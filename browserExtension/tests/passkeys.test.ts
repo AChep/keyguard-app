@@ -64,7 +64,9 @@ class FakePort implements PagePort {
   disconnected = false;
   private readonly messageListeners: ((message: unknown) => void)[] = [];
   private readonly disconnectListeners: (() => void)[] = [];
-  readonly onMessage = { addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener) };
+  readonly onMessage = {
+    addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener),
+  };
   readonly onDisconnect = { addListener: (listener: () => void) => void this.disconnectListeners.push(listener) };
 
   constructor(readonly sender: MessageSenderLike) {}
@@ -98,7 +100,12 @@ const getRequest = (fields: Record<string, unknown> = {}) => ({
 });
 const createRequest = (fields: Record<string, unknown> = {}) => ({
   kind: "create",
-  options: { challenge: CHALLENGE, rp: { name: "Example" }, user: { id: "AA", name: "ann", displayName: "Ann" }, pubKeyCredParams: [] },
+  options: {
+    challenge: CHALLENGE,
+    rp: { name: "Example" },
+    user: { id: "AA", name: "ann", displayName: "Ann" },
+    pubKeyCredParams: [],
+  },
   same_origin_with_ancestors: true,
   ...fields,
 });
@@ -139,7 +146,10 @@ function setup(options: { status?: ExtensionStatus; capabilities?: string[] } = 
       if (custom !== undefined) return custom;
       const challenge = (fields.options as { challenge: string }).challenge;
       const origin = fields.origin as string;
-      return { credential: type === "passkey_get" ? authenticationJSON(origin, challenge) : registrationJSON(origin, challenge) };
+      return {
+        credential:
+          type === "passkey_get" ? authenticationJSON(origin, challenge) : registrationJSON(origin, challenge),
+      };
     }) as AppAccess["request"],
   };
   const storage = new SlowStorage();
@@ -173,7 +183,9 @@ function setup(options: { status?: ExtensionStatus; capabilities?: string[] } = 
 describe("passkey requests", () => {
   it("takes the origin from the sender, never from the request", async () => {
     const { send, requests } = setup();
-    const port = await send(getRequest({ origin: "https://bank.example", options: { challenge: CHALLENGE, origin: "x" } }));
+    const port = await send(
+      getRequest({ origin: "https://bank.example", options: { challenge: CHALLENGE, origin: "x" } }),
+    );
     expect(requests).toEqual([
       {
         type: "passkey_get",
@@ -187,8 +199,15 @@ describe("passkey requests", () => {
 
     // Firefox reports no `origin`: the frame's URL gives it.
     const { send: sendFirefox, requests: firefox } = setup();
-    await sendFirefox(createRequest(), contentSender({ origin: undefined, documentId: undefined, url: "https://www.example.com/a?b" }));
-    expect(firefox[0]).toMatchObject({ type: "passkey_create", origin: "https://www.example.com", same_origin_with_ancestors: true });
+    await sendFirefox(
+      createRequest(),
+      contentSender({ origin: undefined, documentId: undefined, url: "https://www.example.com/a?b" }),
+    );
+    expect(firefox[0]).toMatchObject({
+      type: "passkey_create",
+      origin: "https://www.example.com",
+      same_origin_with_ancestors: true,
+    });
   });
 
   it("says when the page is in a private window, also for a pick in the menu", async () => {
@@ -217,7 +236,11 @@ describe("passkey requests", () => {
     ]) {
       expect((await send(message)).posted).toEqual([{ kind: "fallback" }]);
     }
-    for (const sender of [contentSender({ id: "other" }), contentSender({ origin: "null" }), contentSender({ tab: undefined })]) {
+    for (const sender of [
+      contentSender({ id: "other" }),
+      contentSender({ origin: "null" }),
+      contentSender({ tab: undefined }),
+    ]) {
       expect((await send(getRequest(), sender)).posted).toEqual([{ kind: "fallback" }]);
       expect((await send({ kind: "available" }, sender)).posted).toEqual([{ kind: "available", available: false }]);
     }
@@ -232,7 +255,11 @@ describe("passkey requests", () => {
       ["the app lacks passkeys", (context) => void context.state.capabilities.delete("passkeys")],
       ["a cross-origin ancestor", () => undefined, { same_origin_with_ancestors: false }],
       // Silent mediation shows nothing, not even the unlock prompt.
-      ["silent mediation", (context) => void (context.state.status = { kind: "locked", unlocking: false }), { mediation: "silent" }],
+      [
+        "silent mediation",
+        (context) => void (context.state.status = { kind: "locked", unlocking: false }),
+        { mediation: "silent" },
+      ],
     ];
     for (const [name, prepare, fields] of cases) {
       fakeBrowser.reset();
@@ -247,17 +274,27 @@ describe("passkey requests", () => {
     // A subframe that claims same-origin ancestors must share the tab's origin.
     fakeBrowser.reset();
     const context = setup();
-    const subframeOf = (url?: string) => contentSender({ frameId: 4, tab: { id: 7, ...(url !== undefined ? { url } : {}) } });
-    expect((await context.send(getRequest(), subframeOf("https://portal.example/"))).posted).toEqual([{ kind: "fallback" }]);
+    const subframeOf = (url?: string) =>
+      contentSender({ frameId: 4, tab: { id: 7, ...(url !== undefined ? { url } : {}) } });
+    expect((await context.send(getRequest(), subframeOf("https://portal.example/"))).posted).toEqual([
+      { kind: "fallback" },
+    ]);
     // A tab whose URL the browser didn't report.
     expect((await context.send(getRequest(), subframeOf())).posted).toEqual([{ kind: "fallback" }]);
-    expect((await context.send(getRequest(), subframeOf("https://login.example.com/home"))).posted[0]).toMatchObject({ kind: "credential" });
+    expect((await context.send(getRequest(), subframeOf("https://login.example.com/home"))).posted[0]).toMatchObject({
+      kind: "credential",
+    });
   });
 
   it("lets the browser create on a cross-platform authenticator: Keyguard reports platform", async () => {
     const context = setup();
     const selection = (authenticatorAttachment: string) =>
-      createRequest({ options: { ...createRequest().options, authenticatorSelection: { authenticatorAttachment, residentKey: "required" } } });
+      createRequest({
+        options: {
+          ...createRequest().options,
+          authenticatorSelection: { authenticatorAttachment, residentKey: "required" },
+        },
+      });
     expect((await context.send(selection("cross-platform"))).posted).toEqual([{ kind: "fallback" }]);
     expect(context.requests).toEqual([]);
     expect((await context.send(selection("platform"))).posted[0]).toMatchObject({ kind: "credential" });
@@ -274,7 +311,9 @@ describe("passkey requests", () => {
     // A conditional one waits for a pick in the inline menu.
     const conditional = await context.send(getRequest({ mediation: "conditional" }), background);
     expect(conditional.posted).toEqual([]);
-    expect(context.passkeys.conditionalFor({ tabId: 7, frameId: 0, documentId: "doc-0", url: PAGE, origin: ORIGIN })).not.toBeNull();
+    expect(
+      context.passkeys.conditionalFor({ tabId: 7, frameId: 0, documentId: "doc-0", url: PAGE, origin: ORIGIN }),
+    ).not.toBeNull();
     const active = contentSender({ tab: { id: 7, url: PAGE, active: true } });
     expect((await context.send(getRequest(), active)).posted[0]).toMatchObject({ kind: "credential" });
   });
@@ -307,7 +346,10 @@ describe("passkey requests", () => {
       // The session ended: Keyguard is gone, the browser takes over.
       [new SessionClosed({ reason: "closed" }), { kind: "fallback" }],
       // A credential for another origin is a bug that mustn't reach the page.
-      [{ credential: authenticationJSON("https://evil.example", CHALLENGE) }, { kind: "error", name: "NotAllowedError" }],
+      [
+        { credential: authenticationJSON("https://evil.example", CHALLENGE) },
+        { kind: "error", name: "NotAllowedError" },
+      ],
     ];
     for (const [answer, expected] of cases) {
       const context = setup();
@@ -320,7 +362,11 @@ describe("passkey requests", () => {
     const context = setup();
     let answer: () => void = () => undefined;
     context.state.app = (request) =>
-      new Promise((resolve) => (answer = () => resolve({ credential: registrationJSON(ORIGIN, (request.options as { challenge: string }).challenge) })));
+      new Promise(
+        (resolve) =>
+          (answer = () =>
+            resolve({ credential: registrationJSON(ORIGIN, (request.options as { challenge: string }).challenge) })),
+      );
     const port = new FakePort(contentSender());
     context.passkeys.connect(port);
     port.emit(createRequest());
@@ -429,7 +475,10 @@ describe("conditional requests", () => {
   it("hands waiting requests to the browser when the session ends or loses passkeys", async () => {
     const context = setup();
     const port = await context.send(getRequest({ mediation: "conditional" }));
-    const subframe = await context.send(getRequest({ mediation: "conditional" }), contentSender({ frameId: 4, documentId: "doc-4" }));
+    const subframe = await context.send(
+      getRequest({ mediation: "conditional" }),
+      contentSender({ frameId: 4, documentId: "doc-4" }),
+    );
     // The vault locks: the app's unlock prompt comes at the pick.
     context.state.status = { kind: "locked", unlocking: false };
     context.passkeys.statusChanged();
@@ -515,7 +564,8 @@ describe("conditional requests", () => {
     const context = setup();
     const port = await context.send(getRequest({ mediation: "conditional" }));
     let answer: () => void = () => undefined;
-    context.state.app = () => new Promise((resolve) => (answer = () => resolve({ credential: authenticationJSON(ORIGIN, CHALLENGE) })));
+    context.state.app = () =>
+      new Promise((resolve) => (answer = () => resolve({ credential: authenticationJSON(ORIGIN, CHALLENGE) })));
     const pick = context.passkeys.pick(frame(), "pk-1");
     await settle();
     port.close();
@@ -561,7 +611,9 @@ describe("with the app session", () => {
     const controller = new BackgroundController({
       connectNative: () => {
         const port = new FakeNativePort();
-        hosts.push(new FakeHost(port, () => ({ noise, origin, keys: appKeys, pairedKeys, vault: "unlocked", handler })));
+        hosts.push(
+          new FakeHost(port, () => ({ noise, origin, keys: appKeys, pairedKeys, vault: "unlocked", handler })),
+        );
         return port;
       },
       lastError: () => undefined,
@@ -575,7 +627,12 @@ describe("with the app session", () => {
       onStatus: () => passkeys.statusChanged(),
       initialBackoffMs: 1,
     });
-    const passkeys = new PasskeyController({ extensionId: ID, app: controller, options, conditionalChanged: () => undefined });
+    const passkeys = new PasskeyController({
+      extensionId: ID,
+      app: controller,
+      options,
+      conditionalChanged: () => undefined,
+    });
     controller.start();
     hosts[0]!.ready();
     for (let i = 0; i < 200 && controller.snapshot.kind !== "not_paired"; i++) await settle();

@@ -1,5 +1,7 @@
 use crate::ffi::with_ffi_boundary;
 use std::ffi::c_int;
+use windows::core::HRESULT;
+use windows::Win32::Foundation::ERROR_NOT_FOUND;
 use windows::Win32::System::ErrorReporting::{
     WerGetFlags, WerSetFlags, WER_FAULT_REPORTING, WER_FAULT_REPORTING_FLAG_NOHEAP,
 };
@@ -7,7 +9,12 @@ use windows::Win32::System::Threading::GetCurrentProcess;
 
 fn current_flags() -> Result<WER_FAULT_REPORTING, String> {
     // SAFETY: The pseudo-handle is valid for the current process and needs no cleanup.
-    unsafe { WerGetFlags(GetCurrentProcess()) }.map_err(|e| format!("WerGetFlags: {e}"))
+    match unsafe { WerGetFlags(GetCurrentProcess()) } {
+        Ok(flags) => Ok(flags),
+        // WerGetFlags fails with ERROR_NOT_FOUND until the process sets its first flag.
+        Err(e) if e.code() == HRESULT::from_win32(ERROR_NOT_FOUND.0) => Ok(WER_FAULT_REPORTING(0)),
+        Err(e) => Err(format!("WerGetFlags: {e}")),
+    }
 }
 
 #[cfg_attr(not(test), no_mangle)]

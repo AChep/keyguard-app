@@ -134,6 +134,56 @@ jobs:
         working-directory: .github
         run: python3 -m unittest discover -s . -p 'test_*.py'
 
+  check-desktop-gui:
+    name: Desktop window lifecycle (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-15]
+    env:
+      KEYGUARD_REQUIRE_GUI_TESTS: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Parse installer lifecycle test
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile(
+            (Join-Path $PWD 'scripts/test_windows_msi_install.ps1'), [ref]$tokens, [ref]$errors)
+          if ($errors.Count) { throw ($errors | Out-String) }
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_rust
+      - name: Install Linux display server
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+      - name: Run real desktop window tests
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            xvfb-run -a ./gradlew :desktopApp:jvmTest --tests '*DesktopStartupWindowGuiTest*' --tests '*ShowingWindowsTest*'
+          elif [[ "$RUNNER_OS" == Windows ]]; then
+            ./gradlew.bat :desktopApp:jvmTest --tests '*DesktopStartupWindowGuiTest*' --tests '*ShowingWindowsTest*'
+          else
+            ./gradlew :desktopApp:jvmTest --tests '*DesktopStartupWindowGuiTest*' --tests '*ShowingWindowsTest*'
+          fi
+      - name: Upload desktop lifecycle results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: desktop-gui-${{ matrix.os }}
+          path: |
+            desktopApp/build/test-results/jvmTest/**
+            desktopApp/build/reports/tests/jvmTest/**
+          if-no-files-found: error
+          retention-days: 21
+
   check-kmp-host-tests:
     name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ${{ matrix.runner || 'ubuntu-latest' }}
@@ -200,6 +250,7 @@ jobs:
               :util:ffi:desktopTest
               :util:io:desktopTest
               :util:instance:desktopTest
+              :util:launch-at-login:desktopTest
               :util:windows-passkeys:checkComposeFree
               :util:windows-passkeys:desktopTest
               :util:fido2:checkComposeFree

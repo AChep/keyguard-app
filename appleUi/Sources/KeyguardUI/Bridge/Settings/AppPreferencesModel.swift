@@ -88,6 +88,8 @@ final class AppPreferencesModel: SnapshotObserving {
 
     func setCloseToTray(_ value: Bool) { core.setCloseToTray(value: value) }
 
+    func setStartInBackground(_ value: Bool) { core.setStartInBackground(value: value) }
+
     func setTwoPanelPortrait(_ value: Bool) { core.setTwoPanelPortrait(value: value) }
 
     func setTwoPanelLandscape(_ value: Bool) { core.setTwoPanelLandscape(value: value) }

@@ -59,6 +59,12 @@ fun rememberSettingsGpgItems(
                 ),
             ),
             SettingPaneItem.Group(
+                key = "gpg_agent.launch_at_login",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.LAUNCH_AT_LOGIN),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "gpg_agent.history",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.GPG_AGENT_HISTORY),

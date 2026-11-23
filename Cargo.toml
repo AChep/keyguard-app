@@ -24,6 +24,7 @@ members = [
     "util/ffi/rust/crates/*",
     "util/fido2/rust/crates/*",
     "util/instance/rust/crates/*",
+    "util/launch-at-login/rust/crates/*",
     "util/io/rust/crates/*",
     "util/webrtc/rust/crates/*",
     "util/windows-passkeys/rust/crates/*",

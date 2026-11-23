@@ -78,6 +78,7 @@ import com.artemchep.keyguard.common.usecase.GetLaunchAtLogin
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.NumberFormatter
+import com.artemchep.keyguard.common.usecase.OpenLaunchAtLoginSettings
 import com.artemchep.keyguard.common.usecase.PutLaunchAtLogin
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.UpgradeBackupEncryption
@@ -85,7 +86,10 @@ import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
+import com.artemchep.keyguard.common.usecase.impl.GetLaunchAtLoginImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
+import com.artemchep.keyguard.common.usecase.impl.OpenLaunchAtLoginSettingsImpl
+import com.artemchep.keyguard.common.usecase.impl.PutLaunchAtLoginImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.UpgradeBackupEncryptionImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
@@ -341,11 +345,18 @@ internal class MacosPlatformModule {
         single<GpgAgentStatusService> {
             GpgAgentStatusServiceImpl()
         }
+        single<com.artemchep.keyguard.common.service.startup.LaunchAtLoginService> {
+            MacosLaunchAtLoginService(get())
+        }
+        // Bound only where the service is: Android, iOS and Wear have no login item.
         single<GetLaunchAtLogin> {
-            GetLaunchAtLoginMacos
+            GetLaunchAtLoginImpl(get())
         }
         single<PutLaunchAtLogin> {
-            PutLaunchAtLoginMacos
+            PutLaunchAtLoginImpl(get())
+        }
+        single<OpenLaunchAtLoginSettings> {
+            OpenLaunchAtLoginSettingsImpl(get())
         }
 
         single<RunBackupNow> {

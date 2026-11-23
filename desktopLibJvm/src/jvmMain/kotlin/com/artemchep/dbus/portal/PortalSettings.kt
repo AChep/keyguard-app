@@ -1,5 +1,7 @@
 package com.artemchep.dbus.portal
 
+import com.artemchep.dbus.newSessionConnection
+import com.artemchep.dbus.unwrapVariant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +12,6 @@ import org.freedesktop.dbus.DBusMatchRule
 import org.freedesktop.dbus.annotations.DBusInterfaceName
 import org.freedesktop.dbus.annotations.DBusMemberName
 import org.freedesktop.dbus.connections.impl.DBusConnection
-import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder
 import org.freedesktop.dbus.interfaces.DBusInterface
 import org.freedesktop.dbus.interfaces.DBusSigHandler
 import org.freedesktop.dbus.messages.DBusSignal
@@ -76,11 +77,6 @@ public fun observePortalColorSchemeDbus(): Flow<PortalColorScheme> = callbackFlo
     .distinctUntilChanged()
     .flowOn(Dispatchers.IO)
 
-private fun newSessionConnection(): DBusConnection =
-    DBusConnectionBuilder.forSessionBus()
-        .withShared(false)
-        .build()
-
 private fun readPortalColorScheme(connection: DBusConnection): PortalColorScheme? {
     val settings = connection.getRemoteObject(
         PORTAL_DEST,
@@ -125,13 +121,6 @@ internal fun Any?.toPortalColorScheme(): PortalColorScheme? =
         is UInt32 -> portalColorSchemeOfValue(value.toLong())
         is Number -> portalColorSchemeOfValue(value.toLong())
         else -> null
-    }
-
-private tailrec fun Any?.unwrapVariant(): Any? =
-    if (this is Variant<*>) {
-        value.unwrapVariant()
-    } else {
-        this
     }
 
 private fun portalColorSchemeOfValue(value: Long): PortalColorScheme =

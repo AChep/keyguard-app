@@ -9,15 +9,24 @@ fn line(text: &str) {
 
 fn main() {
     let arguments: Vec<_> = std::env::args().skip(1).collect();
-    if arguments.len() != 4 {
+    let ownership_only = arguments.get(4).is_some_and(|mode| mode == "ownership");
+    if arguments.len() != 4 && !(arguments.len() == 5 && ownership_only) {
         line("ERROR -1");
         return;
     }
     let timeout = arguments[3].parse().unwrap_or(0);
-    let handle = bridge::acquire_or_activate(&arguments[0], &arguments[1], &arguments[2], timeout);
+    let handle = if ownership_only {
+        bridge::acquire_ownership(&arguments[0], &arguments[2], timeout)
+    } else {
+        bridge::acquire_or_activate(&arguments[0], &arguments[1], &arguments[2], timeout)
+    };
     if handle <= 0 {
         if handle == 0 {
-            line("ACTIVATED");
+            line(if ownership_only {
+                "CONTENDED"
+            } else {
+                "ACTIVATED"
+            });
         } else {
             line(&format!("ERROR {handle}"));
         }
@@ -37,6 +46,11 @@ fn main() {
         }
         bridge::close(handle);
     });
+    if ownership_only {
+        // Ownership-only mode intentionally has no listener or activation wait.
+        let _ = input.join();
+        return;
+    }
     loop {
         match bridge::wait_event(handle) {
             1 => line("ACTIVATION"),

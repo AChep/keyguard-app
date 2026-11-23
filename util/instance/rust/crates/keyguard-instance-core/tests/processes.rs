@@ -55,11 +55,20 @@ struct Process {
 
 impl Process {
     fn start(directory: &Directory, identity: &str, timeout: u64) -> Self {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_instance-fixture"))
+        Self::start_mode(directory, identity, timeout, false)
+    }
+
+    fn start_mode(directory: &Directory, identity: &str, timeout: u64, ownership: bool) -> Self {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_instance-fixture"));
+        command
             .arg(directory.path())
             .arg(runtime())
             .arg(identity)
-            .arg(timeout.to_string())
+            .arg(timeout.to_string());
+        if ownership {
+            command.arg("ownership");
+        }
+        let mut child = command
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
@@ -92,6 +101,85 @@ impl Process {
         self.child.kill().unwrap();
         self.child.wait().unwrap();
     }
+}
+
+#[test]
+fn simultaneous_ownership_only_processes_elect_one_primary_without_an_endpoint() {
+    let directory = Directory::new();
+    let processes: Vec<_> = (0..8)
+        .map(|_| Process::start_mode(&directory, "app", 500, true))
+        .collect();
+    let outcomes: Vec<_> = processes.iter().map(Process::line).collect();
+    assert_eq!(
+        outcomes
+            .iter()
+            .filter(|result| *result == "PRIMARY")
+            .count(),
+        1,
+        "{outcomes:?}"
+    );
+    assert_eq!(
+        outcomes
+            .iter()
+            .filter(|result| *result == "CONTENDED")
+            .count(),
+        7,
+        "{outcomes:?}"
+    );
+    assert!(directory.0.join(APP_LOCK_FILE).is_file());
+    assert!(!directory.0.join(APP_ENDPOINT_FILE).exists());
+}
+
+#[test]
+fn ownership_only_and_full_protocol_processes_share_the_same_lease() {
+    let directory = Directory::new();
+    let mut full = Process::start(&directory, "app", 5000);
+    assert_eq!(full.line(), "PRIMARY");
+    let ownership = Process::start_mode(&directory, "app", 200, true);
+    assert_eq!(ownership.line(), "CONTENDED");
+    assert!(
+        full.output.recv_timeout(Duration::from_millis(75)).is_err(),
+        "ownership-only contention activated GUI"
+    );
+    full.command("close");
+    assert!(full.child.wait().unwrap().success());
+    let mut ownership = Process::start_mode(&directory, "app", 5000, true);
+    assert_eq!(ownership.line(), "PRIMARY");
+    assert!(!directory.0.join(APP_ENDPOINT_FILE).exists());
+    let full = Process::start(&directory, "app", 200);
+    assert_eq!(
+        full.line(),
+        "ERROR -3",
+        "full protocol must not create a second primary"
+    );
+    ownership.kill();
+    let replacement = Process::start(&directory, "app", 5000);
+    assert_eq!(replacement.line(), "PRIMARY");
+}
+
+#[cfg(unix)]
+#[test]
+fn ownership_only_process_uses_long_coordination_path_and_recovers_after_crash() {
+    let root = Directory::new();
+    let directory = Directory(
+        root.0
+            .join("long-app-group-container-".repeat(6))
+            .join("coordination"),
+    );
+    assert!(
+        directory.path().len() > 108,
+        "fixture must exceed Unix socket pathname limits"
+    );
+    let mut owner = Process::start_mode(&directory, "app", 5000, true);
+    assert_eq!(owner.line(), "PRIMARY");
+    assert!(!directory.0.join(APP_ENDPOINT_FILE).exists());
+    let contender = Process::start_mode(&directory, "app", 200, true);
+    assert_eq!(contender.line(), "CONTENDED");
+    owner.kill();
+    let replacement = Process::start_mode(&directory, "app", 5000, true);
+    assert_eq!(replacement.line(), "PRIMARY");
+    assert!(!directory.0.join(APP_ENDPOINT_FILE).exists());
+    assert!(directory.0.join(APP_LOCK_FILE).is_file());
 }
 
 impl Drop for Process {

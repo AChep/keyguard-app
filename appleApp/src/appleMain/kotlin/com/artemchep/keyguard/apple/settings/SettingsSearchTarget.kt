@@ -24,6 +24,13 @@ enum class SettingsSearchTarget(
         section = Res.string.settings_startup_header_title,
         keywords = listOf(Res.string.settingssearch_startup_keywords),
     ),
+    START_IN_BACKGROUND(
+        GENERAL_CATEGORY_ID,
+        Res.string.pref_item_start_in_background_title,
+        section = Res.string.settings_startup_header_title,
+        description = Res.string.pref_item_start_in_background_text,
+        keywords = listOf(Res.string.settingssearch_startup_keywords),
+    ),
     MENU_BAR(
         GENERAL_CATEGORY_ID,
         Res.string.pref_item_menu_bar_only_title,

@@ -1,0 +1,4 @@
+headers = keyguard_launch_at_login.h
+headerFilter = keyguard_launch_at_login.h
+staticLibraries = libkeyguard_launch_at_login_c.a
+linkerOpts.osx = -framework Foundation -framework ServiceManagement

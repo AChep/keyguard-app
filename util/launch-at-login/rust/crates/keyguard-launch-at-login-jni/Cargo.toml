@@ -1,0 +1,21 @@
+[package]
+name = "keyguard-launch-at-login-jni"
+description = "Keyguard desktop launch-at-login jni"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
+keyguard-launch-at-login-core = { path = "../keyguard-launch-at-login-core" }
+
+[lints]
+workspace = true
+

@@ -92,6 +92,16 @@ pub fn acquire(coordination_dir: &str, runtime_dir: &str, identity: &str, timeou
     })
 }
 
+/// Returns a held ownership-only handle, zero on contention, or a negative error.
+pub fn acquire_ownership(coordination_dir: &str, identity: &str, timeout_ms: u64) -> i64 {
+    contained("acquire_ownership", || {
+        match crate::acquire_ownership(coordination_dir, identity, timeout_ms)? {
+            Some(instance) => register(instance),
+            None => Ok(0),
+        }
+    })
+}
+
 fn register(instance: Instance) -> Result<i64> {
     let mut registry = registry().lock().map_err(|_| Error::Internal)?;
     let handle = registry.next;

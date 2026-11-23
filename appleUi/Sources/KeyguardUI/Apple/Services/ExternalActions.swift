@@ -101,9 +101,7 @@ final class ExternalActions {
     /// (whose own panels are key at that moment) leave the main window alone.
     static func miniaturizeMainWindowIfKey() {
         #if os(macOS)
-        guard let window = NSApp.keyWindow,
-            window.identifier?.rawValue.hasPrefix("main") == true
-        else { return }
+        guard let window = NSApp.keyWindow, DockIconMode.isMainWindow(window) else { return }
         window.miniaturize(nil)
         #endif
     }

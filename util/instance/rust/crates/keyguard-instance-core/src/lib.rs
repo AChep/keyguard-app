@@ -19,10 +19,10 @@ mod platform;
 
 use std::sync::{Condvar, Mutex};
 
-pub use coordinator::{Acquisition, Instance, acquire, acquire_or_activate};
+pub use coordinator::{Acquisition, Instance, acquire, acquire_or_activate, acquire_ownership};
 
 /// Version of the native bridge ABI.
-pub const ABI_VERSION: u32 = 3;
+pub const ABI_VERSION: u32 = 4;
 
 pub use error::{Error, Failure};
 

@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.util.instance
 
-internal const val INSTANCE_ABI_VERSION = 3
+internal const val INSTANCE_ABI_VERSION = 4
 
 internal expect object NativeInstance {
+    fun acquireOwnership(coordinationDirectory: String, identity: String, timeoutMillis: Long): Long
+
     fun lastError(): String?
 
     fun acquireOrActivate(

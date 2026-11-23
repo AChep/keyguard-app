@@ -47,7 +47,9 @@ let package = Package(
             ],
             linkerSettings: [
                 // The shared Rust YubiKey backend uses macOS HID feature reports.
-                .linkedFramework("IOKit", .when(platforms: [.macOS]))
+                .linkedFramework("IOKit", .when(platforms: [.macOS])),
+                // The macOS login-registration backend lives in the static Kotlin framework.
+                .linkedFramework("ServiceManagement", .when(platforms: [.macOS])),
             ]
         ),
         .testTarget(

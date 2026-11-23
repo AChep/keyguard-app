@@ -1,0 +1,42 @@
+[package]
+name = "keyguard-launch-at-login-core"
+description = "Keyguard desktop launch-at-login core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+keyguard-ffi.workspace = true
+
+[build-dependencies]
+cc.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+zbus = { workspace = true, features = ["tokio", "proxy"] }
+tokio = { workspace = true, features = ["rt", "time"] }
+futures.workspace = true
+tempfile.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows = { workspace = true, features = ["ApplicationModel", "System_Profile", "Win32_Foundation", "Win32_System_Com", "Win32_System_Registry", "Win32_System_WinRT", "Win32_Storage_Packaging_Appx", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Storage_FileSystem"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["rt", "time"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+[[example]]
+name = "registration_fixture"
+test = true
+
+[target.'cfg(unix)'.dev-dependencies]
+zbus = { workspace = true, features = ["tokio", "proxy", "service", "bus-impl"] }
+futures.workspace = true
+
+[lints]
+workspace = true
+

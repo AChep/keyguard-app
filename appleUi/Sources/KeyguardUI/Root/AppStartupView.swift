@@ -11,16 +11,28 @@ public struct AppStartupView<Content: View>: View {
 
     public var body: some View {
         Group {
-            if let model = startup.model {
-                content(model)
-            } else if let errorKey = startup.errorKey {
+            if let errorKey = startup.errorKey {
                 ContentUnavailableView {
-                    Label(L10n.storageErrorTitle, systemImage: "externaldrive.badge.exclamationmark")
+                    Label(
+                        String(
+                            localized: String.LocalizationValue(startup.errorTitleKey),
+                            bundle: AppLocalization.shared.bundle),
+                        systemImage: "exclamationmark.triangle")
                 } description: {
                     Text(String(localized: String.LocalizationValue(errorKey), bundle: AppLocalization.shared.bundle))
+                    if let details = startup.errorDetails {
+                        Text(details)
+                            .font(.caption.monospaced())
+                            .textSelection(.enabled)
+                    }
                 } actions: {
                     Button(L10n.retry) { startup.start() }
+                    #if os(macOS)
+                    Button(L10n.quit) { NSApplication.shared.terminate(nil) }
+                    #endif
                 }
+            } else if let model = startup.model {
+                content(model)
             } else {
                 ProgressView()
             }

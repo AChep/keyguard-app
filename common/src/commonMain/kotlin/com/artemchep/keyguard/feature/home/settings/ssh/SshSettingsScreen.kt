@@ -50,6 +50,12 @@ fun rememberSettingsSshItems(
                 ),
             ),
             SettingPaneItem.Group(
+                key = "ssh_agent.launch_at_login",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.LAUNCH_AT_LOGIN),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "ssh_agent.history",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.SSH_AGENT_HISTORY),

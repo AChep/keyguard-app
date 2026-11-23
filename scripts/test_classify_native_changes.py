@@ -21,6 +21,68 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 for flag in ("desktop_run", "apple_regressions", "android_run"):
                     self.assertTrue(result[flag], flag)
 
+    def test_startup_adapters_and_package_metadata_select_their_consumers(self):
+        result = classify(["desktopApp/src/jvmMain/kotlin/com/artemchep/keyguard/desktop/startup/DesktopLaunchAtLoginService.kt"])
+        self.assertTrue(result["desktop"])
+        self.assertTrue(result["desktop_regressions"])
+        self.assertTrue(result["launch_at_login"])
+        self.assertTrue(classify(["desktopApp/msix/AppxManifest.xml"])["desktop"])
+        result = classify(["standard/presentation/src/commonMain/kotlin/com/artemchep/keyguard/presentation/startup/DesktopLaunchReason.kt"])
+        self.assertTrue(result["desktop_regressions"])
+        self.assertTrue(result["apple_regressions"])
+
+    def test_launch_at_login_native_and_kmp_changes_select_desktop_without_mobile(self):
+        for path in (
+            "util/launch-at-login/rust/crates/keyguard-launch-at-login-core/src/macos.m",
+            "util/launch-at-login/rust/crates/keyguard-launch-at-login-core/src/portal.rs",
+            "util/launch-at-login/src/commonMain/kotlin/LaunchAtLogin.kt",
+            "util/launch-at-login/build.gradle.kts",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in ("launch_at_login", "desktop", "desktop_regressions", "apple", "apple_regressions"):
+                    self.assertTrue(result[flag], flag)
+                for flag in ("android", "android_runtime", "wear", "crypto"):
+                    self.assertFalse(result[flag], flag)
+                self.assertEqual(result["native_quality"], "/rust/" in path)
+
+    def test_launch_at_login_tests_keep_regressions_without_package_builds(self):
+        for path in (
+            "util/launch-at-login/src/commonTest/kotlin/LaunchAtLoginTargetTest.kt",
+            "util/launch-at-login/src/macosArm64Test/kotlin/NativeLaunchAtLoginTest.kt",
+            "util/launch-at-login/rust/crates/keyguard-launch-at-login-core/tests/registration.rs",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertTrue(result["launch_at_login"])
+                self.assertTrue(result["desktop_regressions"])
+                self.assertTrue(result["apple_regressions"])
+                self.assertFalse(result["desktop"])
+                self.assertFalse(result["apple"])
+                self.assertFalse(result["android"])
+
+    def test_launch_at_login_fixtures_select_only_their_runner(self):
+        for path in ("util/launch-at-login/tests/macos/service_test.m", "util/launch-at-login/tests/macos/run.sh"):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"launch_at_login", "apple_regressions"})
+                self.assertEqual(["macos"], [host["platform"] for host in result["desktop_matrix"]["include"]])
+        for path in ("util/launch-at-login/tests/test_stage_fixture.py", "util/launch-at-login/tests/stage_fixture.py"):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertEqual(set(), {flag for flag in FLAGS if result[flag]})
+                self.assertFalse(result["desktop_run"])
+
+    def test_launch_at_login_platform_adapters_select_their_package_consumers(self):
+        for source_set, expected in (("desktopMain", (True, False)), ("appleInteropMain", (False, True)),
+                                     ("nativeInterop", (False, True))):
+            with self.subTest(source_set=source_set):
+                result = classify([f"util/launch-at-login/src/{source_set}/kotlin/NativeLaunchAtLogin.kt"])
+                self.assertEqual((result["desktop"], result["apple"]), expected)
+                self.assertTrue(result["launch_at_login"])
+                self.assertFalse(result["android"])
+
     def test_docs_translations_and_ui_do_not_build_native_packages(self):
         result = classify([
             "docs/architecture/native-crypto.md",
@@ -163,9 +225,10 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertEqual(enabled, {"crypto", "native_quality"})
 
     def test_ffi_selects_every_native_bridge_consumer(self):
-        consumers = ("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+        consumers = ("io", "instance", "agent_ipc", "launch_at_login", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
         for path in (
             "util/ffi/rust/crates/keyguard-ffi/src/operation.rs",
+            "util/ffi/rust/crates/keyguard-ffi/src/java.rs",
             "util/ffi/src/jvmMain/kotlin/com/artemchep/keyguard/util/ffi/JniLibrary.kt",
         ):
             with self.subTest(path=path):
@@ -721,6 +784,7 @@ class NativeGitComparisonTest(unittest.TestCase):
         self.git("init", "--quiet")
         self.git("config", "user.name", "Native CI Test")
         self.git("config", "user.email", "native-ci@example.invalid")
+        self.git("config", "commit.gpgsign", "false")
         source = self.root / "util/io/rust/Cargo.toml"
         source.parent.mkdir(parents=True)
         source.write_text("native fixture\n")

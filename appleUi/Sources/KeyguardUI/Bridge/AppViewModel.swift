@@ -10,8 +10,21 @@ import UIKit
 @MainActor
 @Observable
 public final class AppViewModel {
-    static func create() -> AppViewModel {
+    static func create(showsMainWindow: Bool) -> AppViewModel {
+        #if os(macOS)
+        let app: AppViewModel
+        if showsMainWindow {
+            // The launch keeps a restored vault alive until its first window opens.
+            app = AppViewModel(core: KeyguardCore(runtime: .app, initialScenePhase: .active))
+        } else {
+            // No scene exists during a quiet launch. Do not keep a restored vault
+            // alive while waiting for the first visible window.
+            app = AppViewModel(core: KeyguardCore(runtime: .app, initialScenePhase: .background))
+            app.updateScenePhase(.background)
+        }
+        #else
         let app = AppViewModel(core: KeyguardCore())
+        #endif
         app.start()
         return app
     }
@@ -20,6 +33,7 @@ public final class AppViewModel {
 
     @ObservationIgnored private let core: KeyguardCore
     @ObservationIgnored private var started = false
+    @ObservationIgnored private var lastScenePhase: ScenePhase?
     let auth: VaultSessionModel
     let accountLogin: AccountLoginModel
     let navigation: NavigationModel
@@ -141,9 +155,6 @@ public final class AppViewModel {
         // registers it, so premium there falls back to the cached value.
         installBillingBridge()
         core.startBilling()
-        #if os(macOS)
-        installLaunchAtLoginBridge()
-        #endif
         // Auto-start the SSH agent whenever the persisted "SSH agent" preference
         // is on (including right now, on launch). Main app only — the AutoFill
         // extension constructs its own KeyguardCore and must never spawn the agent.
@@ -178,11 +189,16 @@ public final class AppViewModel {
     /// live-sync notifications websocket stays connected in the foreground and
     /// pauses when the app is backgrounded (re-syncing on return).
     public func updateScenePhase(_ phase: ScenePhase) {
+        guard lastScenePhase != phase else { return }
+        lastScenePhase = phase
         switch phase {
         case .active:
             autofillIndex.setForeground(true)
             core.setScenePhase(phase: KeyguardScenePhase.active)
             core.refreshBilling()
+            #if os(macOS)
+            core.refreshLaunchAtLogin()
+            #endif
         case .inactive:
             core.setScenePhase(phase: KeyguardScenePhase.inactive)
         case .background:

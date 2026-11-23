@@ -16,6 +16,11 @@ internal actual object NativeInstance {
 
     actual fun lastError(): String? = NativeInstanceJni.lastError()
 
+    actual fun acquireOwnership(coordinationDirectory: String, identity: String, timeoutMillis: Long): Long {
+        library.ensureLoaded()
+        return NativeInstanceJni.acquireOwnership(coordinationDirectory, identity, timeoutMillis)
+    }
+
     actual fun acquireOrActivate(
         coordinationDirectory: String,
         runtimeDirectory: String,

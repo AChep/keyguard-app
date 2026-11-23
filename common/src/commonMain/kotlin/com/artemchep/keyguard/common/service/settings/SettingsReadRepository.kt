@@ -221,6 +221,8 @@ interface SettingsReadRepository {
 
     fun getUseExternalBrowser(): Flow<Boolean>
 
+    fun getStartInBackground(): Flow<Boolean>
+
     fun getCloseToTray(): Flow<Boolean>
 
     fun getMinimizeOnCopy(): Flow<Boolean>

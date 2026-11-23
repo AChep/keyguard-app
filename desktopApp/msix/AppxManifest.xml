@@ -8,11 +8,13 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
   xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap uap3 com desktop desktop6 rescap">
+  IgnorableNamespaces="uap uap3 uap5 uap10 com desktop desktop6 rescap">
 
   <Identity
     Name="@IDENTITY_NAME@"
@@ -54,6 +56,11 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
       </uap:VisualElements>
       <Extensions>
+        <!-- Opt in through StartupTask; login launches must not activate a running window. -->
+        <uap5:Extension Category="windows.startupTask" Executable="Keyguard.exe"
+          EntryPoint="Windows.FullTrustApplication" uap10:Parameters="--launch-at-login">
+          <uap5:StartupTask TaskId="KeyguardStartup" Enabled="false" DisplayName="Keyguard" />
+        </uap5:Extension>
         <com:Extension Category="windows.comServer">
           <com:ComServer>
             <com:ExeServer Executable="Keyguard.exe" Arguments="--windows-passkey-provider" DisplayName="Keyguard">

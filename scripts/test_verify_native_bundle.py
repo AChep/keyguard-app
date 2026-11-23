@@ -51,6 +51,30 @@ class MsixBrowserHostAliasTest(unittest.TestCase):
             with self.assertRaisesRegex(verify.InspectionError, "expected one"):
                 verify.inspect_msix_browser_host_alias(root)
 
+class StartupMetadataTest(unittest.TestCase):
+    def test_msix_requires_opt_in_and_login_intent(self):
+        template = (verify.REPOSITORY / "desktopApp/msix/AppxManifest.xml").read_text(encoding="utf-8")
+        changes = (
+            ('Enabled="false"', 'Enabled="true"'),
+            ('TaskId="KeyguardStartup"', 'TaskId="AnotherTask"'),
+            ('uap10:Parameters="--launch-at-login"', 'uap10:Parameters="--background"'),
+            ('uap10:Parameters="--launch-at-login"', ''),
+            ('Category="windows.startupTask"', 'Category="windows.otherTask"'),
+            ('Executable="Keyguard.exe"', 'Executable="helper.exe"'),
+            ('<uap5:StartupTask TaskId="KeyguardStartup" Enabled="false" DisplayName="Keyguard" />',
+             '<uap5:StartupTask TaskId="KeyguardStartup" Enabled="false" DisplayName="Keyguard" />' * 2),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "AppxManifest.xml"
+            manifest.write_text(template, encoding="utf-8")
+            verify.inspect_msix_startup(root)
+            for before, after in changes:
+                with self.subTest(change=after):
+                    manifest.write_text(template.replace(before, after), encoding="utf-8")
+                    with self.assertRaisesRegex(verify.InspectionError, "invalid MSIX startup task"):
+                        verify.inspect_msix_startup(root)
+
 
 def elf(abi: str = "arm64-v8a", exports: frozenset[str] = frozenset(), alignment: int = 16384) -> bytes:
     elf_class, machine = android.ABI_ELF[abi]
@@ -419,6 +443,26 @@ class NativeBundleTest(unittest.TestCase):
                     verify.inspect_apple([path], "aarch64", False)
             with self.assertRaisesRegex(verify.InspectionError, "truncated"):
                 verify.archive_members(path, archive(macho())[:-10])
+
+    def test_launch_at_login_is_desktop_only_and_has_a_reviewed_bridge_contract(self) -> None:
+        module = verify.MODULES["launch_at_login"]
+        self.assertIn("launch_at_login", verify.DESKTOP_MODULES)
+        self.assertIn("launch_at_login", verify.WINDOWS_DESKTOP_MODULES)
+        self.assertNotIn("launch_at_login", verify.ANDROID_MODULES)
+        self.assertEqual(module.jni_methods, ("abiVersion", "execute", "lastError"))
+        self.assertEqual(module.c_methods, ("abi_version", "execute", "last_error"))
+        for interface, prefix in (("jni", module.jni_prefix), ("c", "keyguard_launch_at_login_")):
+            required = module.exports(interface)
+            verify.require_exports("fixture", set(required), required, prefix)
+            with self.subTest(interface=interface), self.assertRaisesRegex(verify.InspectionError, "missing exports"):
+                verify.require_exports("fixture", set(), required, prefix)
+            with self.subTest(interface=interface), self.assertRaisesRegex(verify.InspectionError, "unreviewed API exports"):
+                verify.require_exports("fixture", set(required) | {prefix + "unreviewed"}, required, prefix)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "libkeyguard_launch_at_login_c.a"
+            path.write_bytes(archive(macho()))
+            with patch.object(verify, "read_exports", return_value=set(module.exports("c"))):
+                verify.inspect_apple([path], "aarch64", False)
 
     def test_agent_ipc_archive_holds_exactly_the_reviewed_c_abi(self) -> None:
         module = verify.MODULES["agent_ipc"]

@@ -1,0 +1,20 @@
+[package]
+name = "keyguard-launch-at-login-c"
+description = "Keyguard desktop launch-at-login c"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+keyguard-ffi.workspace = true
+keyguard-launch-at-login-core = { path = "../keyguard-launch-at-login-core" }
+
+[lints]
+workspace = true
+

@@ -51,6 +51,8 @@ kotlin {
                 implementation(project(":util:instance"))
                 implementation(project(":util:webrtc"))
                 implementation(project(":feature:p2p-webrtc"))
+                implementation(project(":util:launch-at-login"))
+                implementation(project(":standard:presentation"))
                 implementation(project(":util:windows-passkeys"))
                 implementation(project(":common"))
             }
@@ -61,6 +63,11 @@ kotlin {
             }
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    // Do not reuse a headless test result in the lane that requires actual windows.
+    inputs.property("requiredGui", providers.environmentVariable("KEYGUARD_REQUIRE_GUI_TESTS").orElse("0"))
 }
 
 val appId = "com.artemchep.keyguard"
@@ -79,6 +86,7 @@ val executableAppResourceNames = setOf(
 val bundledAppResources = bundledAppResourcesFrom(
     *listOfNotNull(
         ":util:instance",
+        ":util:launch-at-login",
         // The passkey provider exists only on Windows; elsewhere the library is never loaded.
         ":util:windows-passkeys".takeIf { hostPlatform.isWindows },
         ":util:yubikey",

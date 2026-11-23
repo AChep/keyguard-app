@@ -73,12 +73,15 @@ import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
+import com.artemchep.keyguard.common.service.startup.LaunchAtLoginClearDataHook
+import com.artemchep.keyguard.common.service.startup.LaunchAtLoginService
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
+import com.artemchep.keyguard.common.usecase.ClearDataHook
 import com.artemchep.keyguard.common.usecase.ClearDataHookRegistry
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
@@ -265,10 +268,12 @@ class PlatformApplicationModule {
         single<SshBookmarksConfigSyncer>()
         single {
             ClearDataHookRegistry(
-                when (CurrentPlatform) {
-                    is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
-                    else -> emptyList()
-                } + get<SshBookmarksConfigStoreImpl>(),
+                // Runs first: a refused removal aborts the erase before anything is torn down.
+                listOf<ClearDataHook>(LaunchAtLoginClearDataHook(get<LaunchAtLoginService>())) +
+                    when (CurrentPlatform) {
+                        is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
+                        else -> emptyList()
+                    } + get<SshBookmarksConfigStoreImpl>(),
             )
         }
         single<SshBookmarksConfigStoreImpl> {

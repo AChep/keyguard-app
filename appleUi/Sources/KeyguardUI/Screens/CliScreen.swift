@@ -30,6 +30,9 @@ struct CliModelHost<Content: View>: View {
 }
 
 private struct CliView: View {
+    #if os(macOS)
+    @Environment(LaunchAtLoginModel.self) private var launchAtLoginModel
+    #endif
     let model: CliModel
 
     var body: some View {
@@ -61,6 +64,7 @@ private struct CliView: View {
                 }
                 #if os(macOS)
                 // iOS runs no CLI agent.
+                LaunchAtLoginSection()
                 CliAgentHistorySection(client: CliAgentHistoryTarget.cli, searchTarget: .cliHistory)
                 #endif
                 if snapshot.failed {
@@ -71,5 +75,11 @@ private struct CliView: View {
             }
         }
         .formStyle(.grouped)
+        #if os(macOS)
+        .observing(
+            start: { launchAtLoginModel.startLaunchAtLoginObservation() },
+            stop: { launchAtLoginModel.stopLaunchAtLoginObservation() }
+        )
+        #endif
     }
 }

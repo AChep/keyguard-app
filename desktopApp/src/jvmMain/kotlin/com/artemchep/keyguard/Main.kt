@@ -14,6 +14,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,7 +32,6 @@ import androidx.compose.ui.window.DialogWindowScope
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import androidx.compose.ui.window.isTraySupported
 import coil3.SingletonImageLoader
 import com.artemchep.jna.disableLinuxProcessDumps
 import com.artemchep.jna.excludeWindowsHeapFromErrorReports
@@ -68,12 +68,26 @@ import com.artemchep.keyguard.common.model.GlobalShortcutAction
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.UI_SCALE_MAX
 import com.artemchep.keyguard.common.model.UI_SCALE_MIN
+import com.artemchep.keyguard.common.service.startup.LaunchAtLoginService
+import com.artemchep.keyguard.desktop.startup.DesktopLaunchAtLoginService
+import com.artemchep.keyguard.desktop.startup.macosLoginActivation
+import com.artemchep.keyguard.desktop.startup.withDesktopForegroundServices
+import com.artemchep.keyguard.desktop.startup.rememberDesktopStartupWindow
+import com.artemchep.keyguard.desktop.startup.DesktopStartupWindowHost
+import com.artemchep.dbus.tray.StatusNotifierHost
+import com.artemchep.dbus.tray.observeStatusNotifierHost
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutController
 import com.artemchep.keyguard.common.service.shortcut.DesktopGlobalShortcutController
 import com.artemchep.keyguard.common.usecase.GetGlobalShortcuts
+import com.artemchep.keyguard.common.usecase.GetLaunchAtLogin
+import com.artemchep.keyguard.common.usecase.OpenLaunchAtLoginSettings
 import com.artemchep.keyguard.common.usecase.PutGlobalShortcut
+import com.artemchep.keyguard.common.usecase.PutLaunchAtLogin
+import com.artemchep.keyguard.common.usecase.impl.GetLaunchAtLoginImpl
+import com.artemchep.keyguard.common.usecase.impl.OpenLaunchAtLoginSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGlobalShortcutImpl
+import com.artemchep.keyguard.common.usecase.impl.PutLaunchAtLoginImpl
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
@@ -93,6 +107,8 @@ import com.artemchep.keyguard.common.service.agent.superviseAgent
 import com.artemchep.keyguard.desktop.ui.showAgentFailure
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetStartInBackground
+import com.artemchep.keyguard.presentation.startup.DesktopLaunchReason
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
@@ -143,7 +159,6 @@ import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
-import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.platform.util.isAotTrainingRun
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -166,11 +181,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -202,11 +224,17 @@ fun main(args: Array<String>) {
         runNativePackagedSmoke()
         return
     }
-    val passkeyActivation = WINDOWS_PASSKEY_PROVIDER_ARGUMENT in args
+    val launchReason = DesktopLaunchReason.fromArguments(
+        arguments = args.toList(),
+        passkeyActivation = WINDOWS_PASSKEY_PROVIDER_ARGUMENT in args,
+        loginActivation = macosLoginActivation(),
+    )
     val instance = try {
-        if (passkeyActivation) {
+        if (launchReason == DesktopLaunchReason.PASSKEY) {
             // An owner that kept running cannot answer Windows; show it instead of failing silently.
             DesktopInstance.acquireWithoutActivation() ?: DesktopInstance.acquire()
+        } else if (!launchReason.activatesExistingInstance) {
+            DesktopInstance.acquireIfUnowned()
         } else {
             DesktopInstance.acquire()
         }
@@ -223,7 +251,7 @@ fun main(args: Array<String>) {
         Runtime.getRuntime().addShutdownHook(
             Thread({ runCatching { WindowsPasskeys.stop() } }, "Keyguard passkey shutdown"),
         )
-        runKeyguardApplication(instance, passkeyActivation = passkeyActivation)
+        runKeyguardApplication(instance, launchReason = launchReason)
     } finally {
         // Compose exits the JVM directly. Do not release ownership while GlobalScope workers
         // can still access shared state; the OS reclaims the locks at process termination.
@@ -251,6 +279,11 @@ private class DesktopApplicationModule {
     val module = module {
         single { WindowStateManager(get<KeyValueStoreFactory>().get(Files.WINDOW_STATE), get()) }
         single { QuickSearchWindowManager() }
+        single { DesktopLaunchAtLoginService(get()) } bind LaunchAtLoginService::class
+        // Desktop only.
+        single<GetLaunchAtLoginImpl>() bind GetLaunchAtLogin::class
+        single<PutLaunchAtLoginImpl>() bind PutLaunchAtLogin::class
+        single<OpenLaunchAtLoginSettingsImpl>() bind OpenLaunchAtLoginSettings::class
         single {
             val repository = get<SettingsReadWriteRepository>()
             DesktopGlobalShortcutController(
@@ -285,7 +318,8 @@ private class DesktopApplicationModule {
 }
 
 @OptIn(ExperimentalTime::class)
-private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActivation: Boolean) {
+private fun runKeyguardApplication(desktopInstance: DesktopInstance, launchReason: DesktopLaunchReason) {
+    val passkeyActivation = launchReason == DesktopLaunchReason.PASSKEY
     ensurePlatformCryptoReady()
 
     // Allow the app to use system default proxies:
@@ -356,8 +390,8 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
 
     // timeout
     val vaultSessionLocker: VaultSessionLocker = koin.get()
-    if (passkeyActivation) {
-        // A persisted session can be restored by COM activation without any resumed window.
+    if (launchReason.locksWithoutWindow) {
+        // A persisted session can be restored by background activation without any resumed window.
         // A normal launch arms the timer once its main window is released, so a slow cold
         // start cannot trip an immediate timeout before that window appears.
         GlobalScope.launch {
@@ -365,12 +399,40 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
             vaultSessionLocker.start()
         }
     }
+    val launchAtLoginService: LaunchAtLoginService = koin.get()
     processLifecycleProvider.lifecycleStateFlow
-        .onState(minActiveState = LeLifecycleState.RESUMED) {
-            vaultSessionLocker.keepAlive()
-        }
+        .withDesktopForegroundServices(vaultSessionLocker::keepAlive, launchAtLoginService::refreshIfObserved)
         .launchIn(GlobalScope)
+    // Repairs this install's startup entry if it launches a missing executable, and
+    // gives Flatpak its one portal re-check. Failures only show in the settings row.
+    // The AppCDS training run of a release build must not point a real entry at the build output.
+    if (!isAotTrainingRun) {
+        GlobalScope.launch(Dispatchers.IO) {
+            launchAtLoginService.repairStale()
+        }
+    }
 
+    // Linux trays show StatusNotifier icons only while a host is registered.
+    // Null until the first D-Bus read; one connection serves the whole process.
+    val trayWatcher: StateFlow<StatusNotifierHost?> = if (CurrentPlatform is Platform.Desktop.Linux) {
+        observeStatusNotifierHost()
+            .stateIn(GlobalScope, SharingStarted.Eagerly, null)
+    } else {
+        MutableStateFlow(StatusNotifierHost(available = true, watcherGeneration = 0))
+    }
+    val trayHost: Flow<Boolean?> = trayWatcher
+        .map { it?.available }
+        .distinctUntilChanged()
+    GlobalScope.launch {
+        val available = trayHost.filterNotNull().first()
+        logRepository.post(
+            tag = "Tray",
+            message = if (available) "Tray host available" else "Tray host absent",
+            level = com.artemchep.keyguard.common.service.logging.LogLevel.INFO,
+        )
+    }
+
+    val getStartInBackground: GetStartInBackground = koin.get()
     val getCloseToTray: GetCloseToTray = koin.get()
     val getSshAgent: GetSshAgent = koin.get()
     val sshAgentStatusService: SshAgentStatusService = koin.get()
@@ -393,23 +455,21 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
             }
         }
         KoinIsolatedContext(koinApplication) {
-            val isWindowOpenState = remember {
-                mutableStateOf(true)
-            }
-            // A COM activation only needs the request window. Creating the hidden main
-            // window also composes its unlock screen and can queue another Hello prompt.
-            val isMainWindowCreatedState = remember {
-                mutableStateOf(!passkeyActivation)
-            }
+            val getCloseToTrayState = remember { getCloseToTray() }.collectAsState(false)
+            val startupWindow = rememberDesktopStartupWindow(
+                reason = launchReason,
+                startInBackground = remember { getStartInBackground() },
+                closeToTray = getCloseToTrayState.value,
+                trayHost = trayHost,
+            )
             WindowsPasskeyRequestHost(
                 service = windowsPasskeys,
                 processLifecycleProvider = processLifecycleProvider,
             )
-            val onWindowOpen = remember(isWindowOpenState) {
+            val onWindowOpen = remember(startupWindow) {
                 // lambda
                 {
-                    isMainWindowCreatedState.value = true
-                    isWindowOpenState.value = true
+                    startupWindow.open()
                     // If the window is minimized then clicking
                     // the tray should also bring the window back
                     // to the front.
@@ -417,6 +477,8 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                 }
             }
 
+            // The reopen listener must exist even when no main window has ever been created.
+            AppReopenedListenerEffect(onAppReopened = onWindowOpen)
             LaunchedEffect(desktopInstance) {
                 try {
                     desktopInstance.activations.collect { onWindowOpen() }
@@ -589,19 +651,14 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                 onAutotype = autotypeController?.let { it::start },
             )
 
-            // Show a tray icon and allow the app to be collapsed into
-            // the tray on supported platforms.
-            val getCloseToTrayState = if (isTraySupported) {
-                remember { getCloseToTray() }
-                    .collectAsState(false)
-            } else {
-                // If the tray is not supported then we
-                // can never close to it.
-                remember {
-                    mutableStateOf(false)
-                }
-            }
-            if (getCloseToTrayState.value) {
+            // This uses the native tray backend, not AWT's XEmbed-only capability probe.
+            // The Linux tray registers with the watcher only when created, so recreate it per
+            // watcher generation.
+            // A background start without a host shows the main window instead.
+            val showTray = getCloseToTrayState.value || launchReason.keepsProcessAlive
+            val trayWatcherState = trayWatcher.collectAsState()
+            val trayHostState = trayWatcherState.value
+            if (showTray && trayHostState?.available == true) key(trayHostState.watcherGeneration) {
                 val showKeyguardLabel = stringResource(Res.string.show_keyguard)
                 val quitLabel = stringResource(Res.string.quit)
                 Tray(
@@ -621,8 +678,6 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                         exitApplication()
                     }
                 }
-            } else {
-                isWindowOpenState.value = true
             }
             if (passkeyActivation) {
                 // Without a window or the tray, nothing would ever end this process.
@@ -635,20 +690,12 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
             }
             // Once opened, retain the main window when closing to the tray so its
             // navigation state survives subsequent passkey requests and reopenings.
-            if (isMainWindowCreatedState.value) {
+            DesktopStartupWindowHost(startupWindow, getCloseToTrayState.value, ::exitApplication) { visible, onClose ->
                 KeyguardMainWindow(
                     processLifecycleProvider = processLifecycleProvider,
                     stateManager = windowStateManager,
-                    visible = isWindowOpenState.value,
-                    onReopenRequest = onWindowOpen,
-                    onCloseRequest = {
-                        val shouldCloseToTray = getCloseToTrayState.value
-                        if (shouldCloseToTray) {
-                            isWindowOpenState.value = false
-                        } else {
-                            exitApplication()
-                        }
-                    },
+                    visible = visible,
+                    onCloseRequest = onClose,
                 )
             }
         }
@@ -660,7 +707,6 @@ private fun ApplicationScope.KeyguardMainWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     stateManager: WindowStateManager,
     visible: Boolean,
-    onReopenRequest: () -> Unit,
     onCloseRequest: () -> Unit,
 ) {
     val navigationHost = remember { NavigationHost() }
@@ -671,12 +717,6 @@ private fun ApplicationScope.KeyguardMainWindow(
         onCloseRequest = onCloseRequest,
     ) {
         window.toFront()
-
-        // If you click on a closed to tray app's icon then
-        // that will trigger an event here.
-        AppReopenedListenerEffect {
-            onReopenRequest()
-        }
 
         KeyguardTheme {
             KeyguardWindowScaffold(navigationHost = navigationHost) {

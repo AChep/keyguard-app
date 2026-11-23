@@ -71,9 +71,12 @@ MODULES = {
                         ("abi_version", "create", "execute", "close")),
     "zxcvbn": NativeModule("zxcvbn", "com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni",
                           ("abiVersion", "estimate"), ("abi_version", "estimate")),
+    "launch_at_login": NativeModule("launch_at_login", "com_artemchep_keyguard_util_launchatlogin_NativeLaunchAtLoginJni",
+                                   ("abiVersion", "execute", "lastError"),
+                                   ("abi_version", "execute", "last_error")),
     "instance": NativeModule("instance", "com_artemchep_keyguard_util_instance_NativeInstanceJni",
-                            ("abiVersion", "acquireOrActivate", "acquire", "waitEvent", "stop", "close", "lastError"),
-                            ("abi_version", "acquire_or_activate", "acquire", "wait_event", "stop", "close", "last_error",
+                            ("abiVersion", "acquireOrActivate", "acquire", "acquireOwnership", "waitEvent", "stop", "close", "lastError"),
+                            ("abi_version", "acquire_or_activate", "acquire", "acquire_ownership", "wait_event", "stop", "close", "last_error",
                              "clear_error")),
     "fido2": NativeModule("fido2", "com_artemchep_keyguard_util_fido2_NativeFido2Jni",
                          ("abiVersion", "create", "execute", "cancel", "close"),
@@ -103,7 +106,7 @@ MODULES = {
         "peer_next_event", "peer_close",
     )),
 }
-DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc", "instance", "yubikey", "fido2", "agent_ipc")
+DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc", "instance", "launch_at_login", "yubikey", "fido2", "agent_ipc")
 # The passkey provider exists only on Windows; other desktop packages do not bundle it.
 WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
 # The executables that desktop packages bundle next to the libraries, without
@@ -194,6 +197,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         if (root / "AppxManifest.xml").is_file():
             inspect_msix_passkey_provider(root)
             inspect_msix_browser_host_alias(root)
+            inspect_msix_startup(root)
     resources = find_resources(root, target_platform)
     suffix = LIBRARY_SUFFIX[target_platform]
     modules = WINDOWS_DESKTOP_MODULES if target_platform == "windows" else DESKTOP_MODULES
@@ -219,6 +223,28 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         if target_platform != "windows" and not os.access(path, os.X_OK):
             raise InspectionError(f"{path}: bundled helper is not executable")
         print(f"OK {path} (helper architecture and executable permissions)")
+
+
+def inspect_msix_startup(root: Path) -> None:
+    """The packaged task must remain opt-in and deliver the automatic launch intent."""
+    try:
+        manifest = ET.parse(root / "AppxManifest.xml")
+        uap5 = "http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+        uap10 = "http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
+        extensions = manifest.findall(f".//{{{uap5}}}Extension[@Category='windows.startupTask']")
+        if len(extensions) != 1:
+            raise ValueError("expected one startup task extension")
+        extension = extensions[0]
+        if extension.get("Executable") != "Keyguard.exe" or extension.get("EntryPoint") != "Windows.FullTrustApplication":
+            raise ValueError("startup task must target the full-trust Keyguard launcher")
+        if extension.get(f"{{{uap10}}}Parameters") != "--launch-at-login":
+            raise ValueError("startup task must deliver --launch-at-login")
+        tasks = extension.findall(f"{{{uap5}}}StartupTask")
+        if len(tasks) != 1 or tasks[0].get("TaskId") != "KeyguardStartup" or tasks[0].get("Enabled") != "false":
+            raise ValueError("KeyguardStartup must be declared once and disabled by default")
+    except (OSError, ValueError, ET.ParseError) as error:
+        raise InspectionError(f"{root}: invalid MSIX startup task: {error}") from error
+    print(f"OK {root} (opt-in startup task and launch intent)")
 
 
 def inspect_windows_runtime(root: Path, arch: str) -> None:

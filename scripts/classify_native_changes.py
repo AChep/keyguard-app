@@ -23,7 +23,7 @@ EXTRA_DESKTOP_HOSTS = [
 FLAGS = (
     "desktop", "desktop_regressions", "android", "android_runtime",
     "apple", "apple_regressions", "io", "instance", "crypto", "fuzz",
-    "native_quality", "desktop_native", "wear", "agent_ipc",
+    "native_quality", "desktop_native", "wear", "agent_ipc", "launch_at_login",
 )
 
 
@@ -118,9 +118,9 @@ def classify(paths, *, full=False, all_checks=False):
                 enable("native_quality")
                 if is_rust_test_path(path):
                     continue
-            enable("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+            enable("io", "instance", "agent_ipc", "launch_at_login", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(age|crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc|webrtc)/(.+)", path)
+        module = re.match(r"util/(age|crypto|dns|io|zxcvbn|zip|launch-at-login|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc|webrtc)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:
@@ -147,6 +147,23 @@ def classify(paths, *, full=False, all_checks=False):
                     enable("native_quality")
                 if not (test_source or rust_test or relative.startswith("schema/fixtures/")):
                     enable("desktop")
+                continue
+            if name == "launch-at-login":
+                # Test fixtures ship in no package. The Objective-C harness runs in the
+                # macOS regression lane; the changes job runs the Python fixture tests.
+                if relative.startswith("tests/macos/"):
+                    enable("launch_at_login", "apple_regressions")
+                    continue
+                if relative.startswith("tests/"):
+                    continue
+                enable("launch_at_login", "desktop_regressions", "apple_regressions")
+                if relative.startswith("rust/"):
+                    enable("native_quality")
+                if not (test_source or rust_test):
+                    if source_set != "desktopMain":
+                        enable("apple")
+                    if not source_set.startswith(("apple", "macos", "native")):
+                        enable("desktop")
                 continue
             if name == "agent-ipc":
                 # Desktop loads the JNI library; native macOS links the C archive
@@ -275,6 +292,10 @@ def classify(paths, *, full=False, all_checks=False):
             enable("agent_ipc", "desktop_regressions")
             if agent_service.group(1) in {"commonMain", "commonTest"}:
                 enable("apple_regressions")
+        if "/presentation/startup/" in path or "/service/startup/" in path:
+            enable("desktop_regressions", "apple_regressions")
+        if path.startswith("desktopApp/src/") and "/desktop/startup/" in path:
+            enable("launch_at_login", "desktop_regressions")
         if re.match(r"[^/]+/src/[^/]*Test/", path):
             if re.match(r"appleApp/src/(apple|macos|common)[^/]*Test/", path):
                 enable("apple_regressions")
@@ -285,9 +306,9 @@ def classify(paths, *, full=False, all_checks=False):
             # iOS consumer runtime coverage is in Check iOS Simulator Tests.
             continue
         if (
-            path.startswith(("desktopApp/resources/", "desktopApp/src/jvmMain/resources/", "desktopApp/appimage/", "desktopApp/flatpak/"))
+            path.startswith(("desktopApp/resources/", "desktopApp/src/jvmMain/resources/", "desktopApp/appimage/", "desktopApp/flatpak/", "desktopApp/msix/"))
             or path in {"desktopApp/build.gradle.kts", "desktopApp/proguard-rules.pro", "desktopApp/default.entitlements", "desktopApp/icon.png", "desktopApp/icon.ico", "desktopApp/icon.icns", "desktopLibJvm/build.gradle.kts", "common/build.gradle.kts", "common/proguard-rules.pro"}
-            or re.match(r"desktopApp/src/[^/]+/kotlin/.+/(Main\.kt|desktop/(instance|services|nativebundle)/.+|Native.+|.*[Ll]oader.*)$", path)
+            or re.match(r"desktopApp/src/[^/]+/kotlin/.+/(Main\.kt|desktop/(instance|services|nativebundle|startup)/.+|Native.+|.*[Ll]oader.*)$", path)
             or (path.startswith("desktopLibJvm/") and path.endswith("DesktopLibJna.kt"))
             or path.startswith((".github/actions/setup_linux_desktop/", ".github/actions/build_desktop_licenses/", ".github/actions/build_appimage/", ".github/actions/build_flatpak/"))
             or path in {".github/workflows/new_appimage.yaml", ".github/workflows/new_flatpak.yaml"}

@@ -699,6 +699,11 @@ jobs:
           path: packages/arm64
       - uses: ./.github/actions/setup_wix
         id: wix
+      - uses: ./.github/actions/setup_rust
+        with:
+          cache-key: startup-msi-fixture
+      - name: Build isolated Startup shortcut fixture
+        run: cargo build -p keyguard-launch-at-login-core --example registration_fixture --locked
       - name: "Prepare previous-version upgrade fixture"
         shell: pwsh
         env:
@@ -723,6 +728,7 @@ jobs:
           -Arm64Msi "packages/arm64/Keyguard-$env:MSI_VERSION-aarch64.msi"
           -PreviousArm64Msi packages/previous/Keyguard-0.0.0-aarch64.msi
           -LogDirectory msi-install-logs
+          -RegistrationFixture target/debug/examples/registration_fixture.exe
       - name: "Upload installer logs"
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

@@ -2255,6 +2255,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-launch-at-login-c"
+version = "3.9.0"
+dependencies = [
+ "keyguard-ffi",
+ "keyguard-launch-at-login-core",
+]
+
+[[package]]
+name = "keyguard-launch-at-login-core"
+version = "3.9.0"
+dependencies = [
+ "cc",
+ "futures",
+ "keyguard-ffi",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "windows",
+ "zbus",
+]
+
+[[package]]
+name = "keyguard-launch-at-login-jni"
+version = "3.9.0"
+dependencies = [
+ "jni",
+ "keyguard-ffi",
+ "keyguard-launch-at-login-core",
+]
+
+[[package]]
 name = "keyguard-lib"
 version = "3.9.0"
 dependencies = [
@@ -5057,6 +5089,7 @@ dependencies = [
  "serde",
  "serde_repr",
  "socket2",
+ "tokio",
  "uds_windows",
  "uuid",
  "windows-sys 0.61.2",

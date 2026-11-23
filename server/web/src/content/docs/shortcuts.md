@@ -12,6 +12,11 @@ related: [quick-search, search, lock-and-unlock]
 
 Global shortcuts work in any app while Keyguard is running. On Linux, they need an X11 session. To change or turn off these shortcuts, open **Settings > Other > Keyboard shortcuts**.
 
+In **Settings > Appearance** enable **Launch Keyguard at login** to start the app when you sign in.
+**Start in background at login** keeps the main window closed. You can also pass
+`--background` to the desktop launcher. Open Keyguard normally to reveal the window.
+On Linux without a system tray, the window opens after 10 seconds.
+
 | Linux and Windows | macOS | Action |
 | :---------------- | :---- | :----- |
 | Ctrl+Shift+Space | Cmd+Shift+Space | Open Quick search |

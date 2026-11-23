@@ -15,6 +15,15 @@ A process the OS starts to serve a request calls `InstanceCoordinator.acquire()`
 instead. It never activates the owner, which may be exiting; it waits for ownership
 until the timeout and returns null if the owner kept it.
 
+Native applications that already use platform activation can call
+`InstanceCoordinator.acquireOwnership(InstanceOwnershipConfig(...))`. It holds the
+same validated lease without opening a socket, so long App Group paths work. A
+non-null `InstanceOwnership` authorizes services; null means genuine contention
+through the deadline. Permission and storage failures still throw. This mode
+returns no PID, activation metadata, or acknowledgement. Keep the handle until
+services stop, then close it. Secondary activation belongs to the platform adapter;
+full-protocol callers cannot activate an ownership-only primary over IPC.
+
 The application supplies an absolute private local coordination directory, a short
 runtime directory, and a stable ASCII identity. Use the same coordination directory
 and identity for all versions, architectures, and JVM/native builds that share

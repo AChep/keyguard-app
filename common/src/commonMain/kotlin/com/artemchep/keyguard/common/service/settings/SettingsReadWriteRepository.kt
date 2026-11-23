@@ -355,6 +355,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         useExternalBrowser: Boolean,
     ): IO<Unit>
 
+    fun setStartInBackground(
+        startInBackground: Boolean,
+    ): IO<Unit>
+
     fun setCloseToTray(
         closeToTray: Boolean,
     ): IO<Unit>

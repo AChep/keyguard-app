@@ -4,6 +4,15 @@
 by the `packageMsix` / `packageReleaseMsix` Gradle tasks (Windows only, needs the
 Windows 10/11 SDK for `makeappx.exe` and `signtool.exe`).
 
+The manifest also declares an initially disabled `KeyguardStartup` task. The app
+enables it only on request and reads its effective state through `StartupTask`.
+Its `--launch-at-login` argument keeps automatic startup separate from normal
+launcher activation. Auto-launch is unavailable before Windows build 19041:
+[`uap10` was introduced in Windows 10 version 2004](https://learn.microsoft.com/en-us/uwp/schemas/appxpackage/uapmanifestschema/element-f-application#uap10-was-introduced-in-windows-10-version-2004-100-build-19041),
+so older systems would ignore the parameter. Disabling an existing registration
+remains possible. This does not raise the application's minimum Windows version.
+Verify automatic startup on build 19041 as part of the installed-package checks.
+
 Two packages are produced from the same template:
 
 | Flavor | Output | Signed by |

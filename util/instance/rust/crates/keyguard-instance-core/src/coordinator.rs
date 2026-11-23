@@ -314,6 +314,30 @@ pub fn acquire(
     }
 }
 
+/// Acquires the same validated permanent ownership lease without publishing an IPC endpoint.
+/// Callers must use a separate platform activation mechanism, such as LaunchServices.
+/// No process identity or untrusted metadata is returned. This supports long sandbox paths.
+///
+/// # Errors
+/// Returns configuration, permission or filesystem failures. Only genuine lock contention
+/// through the bounded deadline returns `None`.
+pub fn acquire_ownership(
+    coordination_dir: &str,
+    identity: &str,
+    timeout_ms: u64,
+) -> Result<Option<Instance>> {
+    let mut arbitration =
+        Arbitration::new(coordination_dir, coordination_dir, identity, timeout_ms)?;
+    loop {
+        if let Some(instance) = arbitration.try_own_with_transport(false)? {
+            return Ok(Some(instance));
+        }
+        if !arbitration.pause() {
+            return Ok(None);
+        }
+    }
+}
+
 /// Validated coordination files and the deadline of one acquisition.
 struct Arbitration {
     deadline: Instant,
@@ -360,6 +384,10 @@ impl Arbitration {
 
     /// Takes ownership and starts the listener, or returns `None` if another process owns it.
     fn try_own(&self) -> Result<Option<Instance>> {
+        self.try_own_with_transport(true)
+    }
+
+    fn try_own_with_transport(&self, transport: bool) -> Result<Option<Instance>> {
         let Some(lease) = self
             .directory
             .try_lock(&self.lock_path)
@@ -378,12 +406,24 @@ impl Arbitration {
             let _ = platform::cleanup_endpoint(endpoint, &token);
         }
         let shutdown = Shutdown::default();
-        let (server, events) =
-            start_server(&self.directory, &self.runtime, &self.metadata, &shutdown)?
-                .ok_or(Error::Internal)?;
+        let (server, events) = if transport {
+            let (server, events) =
+                start_server(&self.directory, &self.runtime, &self.metadata, &shutdown)?
+                    .ok_or(Error::Internal)?;
+            (Some(server), events)
+        } else {
+            match std::fs::remove_file(&self.metadata) {
+                Ok(()) => {}
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                Err(error) => return Err(Failure::from(error).context("remove_endpoint")),
+            }
+            let events = Arc::new(Events::default());
+            events.stop();
+            (None, events)
+        };
         Ok(Some(Instance {
             resources: Mutex::new(Resources {
-                server: Some(server),
+                server,
                 lease: Some(lease),
                 events,
                 recovery_attempts: 0,
@@ -468,6 +508,68 @@ fn retry_activation(error: Failure) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ownership_only_supports_long_paths_and_excludes_full_protocol_owners() {
+        let fixture = Fixture::new();
+        let coordination = fixture.root.join("long-sandbox-container-name-".repeat(6));
+        let directory = coordination.to_str().unwrap();
+        let owner = acquire_ownership(directory, "lease-only", 50)
+            .unwrap()
+            .unwrap();
+        assert!(!coordination.join("kgi-lease-only.endpoint").exists());
+        assert!(!owner.await_activation().unwrap());
+        assert!(
+            acquire_ownership(directory, "lease-only", 1)
+                .unwrap()
+                .is_none()
+        );
+        assert!(
+            acquire(
+                directory,
+                fixture.runtime.to_str().unwrap(),
+                "lease-only",
+                1
+            )
+            .unwrap()
+            .is_none()
+        );
+        owner.stop().unwrap();
+        assert!(
+            acquire_ownership(directory, "lease-only", 1)
+                .unwrap()
+                .is_none()
+        );
+        owner.close().unwrap();
+        let full = acquire(
+            directory,
+            fixture.runtime.to_str().unwrap(),
+            "lease-only",
+            50,
+        )
+        .unwrap()
+        .unwrap();
+        assert!(
+            acquire_ownership(directory, "lease-only", 1)
+                .unwrap()
+                .is_none()
+        );
+        full.close().unwrap();
+        acquire_ownership(directory, "lease-only", 50)
+            .unwrap()
+            .unwrap()
+            .close()
+            .unwrap();
+    }
+
+    #[test]
+    fn ownership_only_never_maps_invalid_storage_to_existing_owner() {
+        let fixture = Fixture::new();
+        let file = fixture.root.join("not-a-directory");
+        std::fs::write(&file, "fixture").unwrap();
+        assert!(acquire_ownership(file.to_str().unwrap(), "lease-only", 1).is_err());
+        assert!(acquire_ownership(fixture.coordination.to_str().unwrap(), "../escape", 1).is_err());
+    }
 
     struct Fixture {
         instance: Arc<Instance>,

@@ -2688,6 +2688,15 @@
     <string name="pref_item_automatic_backups_folder_access_help">If folder access is lost, choose the folder again to restore permission.</string>
     <string name="pref_item_automatic_backups_webdav_keep_password">Leave the password empty to keep the saved password.</string>
     <string name="pref_item_automatic_backups_s3_keep_secret">Leave the secret access key empty to keep the saved key.</string>
+    <string name="pref_item_start_in_background_title">Start in background at login</string>
+    <string name="pref_item_start_in_background_text">Keep the main window closed when Keyguard starts at login. Open Keyguard from the launcher or system tray.</string>
+    <string name="pref_item_launch_at_login_failed_text">Could not update launch at login. Try again.</string>
+    <string name="pref_item_launch_at_login_disabled_text">Disabled in system settings. Enable it there to launch at login.</string>
+    <string name="pref_item_launch_at_login_policy_text">Managed by system policy.</string>
+    <string name="pref_item_launch_at_login_stale_text">The startup entry points to a missing app. Enable it again to update the entry.</string>
+    <string name="pref_item_launch_at_login_state_unknown_text">Keyguard can't read the startup state.</string>
+    <string name="pref_item_launch_at_login_open_settings">Open startup settings</string>
+    <string name="pref_item_launch_at_login_reason">Start Keyguard at login to make its desktop integrations available.</string>
     <string name="pref_item_launch_at_login_title">Launch Keyguard at login</string>
     <string name="pref_item_launch_at_login_approval_note">Approval needed in System Settings ▸ Login Items.</string>
     <string name="pref_item_launch_at_login_unavailable_text">Launch at login is unavailable in this build.</string>

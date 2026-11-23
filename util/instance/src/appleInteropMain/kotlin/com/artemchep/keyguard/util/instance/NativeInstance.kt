@@ -6,6 +6,7 @@ import com.artemchep.keyguard.util.ffi.withNativePointer
 import com.artemchep.keyguard.util.ffi.withStrictUtf8
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_abi_version
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire
+import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire_ownership
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire_or_activate
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_clear_error
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_close
@@ -18,6 +19,16 @@ import kotlinx.cinterop.UByteVar
 private const val MAX_ARGUMENT_LENGTH = 65_536
 
 internal actual object NativeInstance {
+    actual fun acquireOwnership(coordinationDirectory: String, identity: String, timeoutMillis: Long): Long {
+        ensureCompatibleAbi()
+        if (timeoutMillis < 0L) return -1L
+        return coordinationDirectory.withUtf8 { directory, directorySize ->
+            identity.withUtf8 { name, nameSize ->
+                keyguard_instance_acquire_ownership(directory, directorySize, name, nameSize, timeoutMillis.toULong())
+            }
+        }
+    }
+
     actual fun lastError(): String? {
         // Native diagnostics contain only fixed labels and numeric codes. Read on the
         // calling thread before any subsequent bridge operation can replace them.

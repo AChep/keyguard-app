@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.desktop.util
 
 import java.awt.EventQueue
-import java.awt.GraphicsEnvironment
 import javax.swing.JFrame
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -12,13 +11,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.junit.Assume.assumeFalse
 
 class ShowingWindowsTest {
     // No window is listed anywhere: showing and hiding one is all the flow needs.
     @Test
     fun `a window counts only while it is on screen`() {
-        assumeFalse("Native window tests require a display", GraphicsEnvironment.isHeadless())
+        requireDesktopTestDisplay()
         val frame = JFrame()
         try {
             runBlocking {

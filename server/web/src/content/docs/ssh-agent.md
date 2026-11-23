@@ -26,6 +26,9 @@ approval.
 
 ## Set up the agent on desktop
 
+Keep Keyguard running to serve SSH requests. **Launch Keyguard at login** and
+**Start in background at login**, in **Settings > Appearance**.
+
 Open **Settings > Developer > SSH agent > SSH client setup**. Under
 **Automatic configuration**, select **Configure automatically**. Choose all
 SSH hosts or one host or alias, and optionally select your shells. Continue

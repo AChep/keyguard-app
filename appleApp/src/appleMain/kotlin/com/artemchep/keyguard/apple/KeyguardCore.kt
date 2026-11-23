@@ -202,7 +202,8 @@ internal fun <T> Flow<T>.throttleLatest(
     }
 
 /** Facade exposing shared Keyguard logic to native SwiftUI clients. */
-class KeyguardCore(runtime: KeyguardRuntime) {
+class KeyguardCore(runtime: KeyguardRuntime, initialScenePhase: KeyguardScenePhase) {
+    constructor(runtime: KeyguardRuntime) : this(runtime, KeyguardScenePhase.ACTIVE)
     constructor() : this(KeyguardRuntime.APP)
     private val context = CoreContext(runtime)
 
@@ -212,7 +213,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     private val generatorController by lazy { GeneratorController(context) }
 
-    private val appLifecycleController = AppLifecycleController(context)
+    private val appLifecycleController = AppLifecycleController(context, initialScenePhase)
 
     /** Report every SwiftUI `scenePhase` change; the sync worker and the auto-lock timer follow it. */
     fun setScenePhase(phase: KeyguardScenePhase) = appLifecycleController.setScenePhase(phase)
@@ -256,11 +257,11 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     suspend fun generateAndCopyPassword() = quickCopyController.generateAndCopyPassword()
 
-    // Launch at login (macOS). Delegates to the Swift bridge set via [registerLaunchAtLoginBridge].
+    // Launch at login (macOS). The shared service reports the actual OS state.
 
     private val launchAtLoginController by lazy { LaunchAtLoginController(context) }
 
-    /** Emits on every registration change; `requiresApproval` and `available` are sampled only then. */
+    /** Emits effective registration status, operation progress, and recoverable failures. */
     fun observeLaunchAtLogin(
         onChange: (LaunchAtLoginSnapshot) -> Unit,
     ): KeyguardCancellable = launchAtLoginController.observeLaunchAtLogin(onChange)
@@ -268,6 +269,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setLaunchAtLogin(enabled: Boolean) = launchAtLoginController.setLaunchAtLogin(enabled)
 
     fun openLoginItemsSettings() = launchAtLoginController.openLoginItemsSettings()
+
+    fun refreshLaunchAtLogin() = launchAtLoginController.refresh()
 
     // First-run onboarding
 
@@ -1529,6 +1532,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setKeepScreenOn(value: Boolean) = appearanceController.setKeepScreenOn(value)
     fun setMinimizeOnCopy(value: Boolean) = appearanceController.setMinimizeOnCopy(value)
     fun setCloseToTray(value: Boolean) = appearanceController.setCloseToTray(value)
+
+    fun setStartInBackground(value: Boolean) = appearanceController.setStartInBackground(value)
     fun setTwoPanelPortrait(value: Boolean) = appearanceController.setTwoPanelPortrait(value)
     fun setTwoPanelLandscape(value: Boolean) = appearanceController.setTwoPanelLandscape(value)
     fun setTheme(optionId: String) = appearanceController.setTheme(optionId)

@@ -67,6 +67,15 @@ internal class DesktopInstance private constructor(
             InstanceCoordinator.acquire(configuration.copy(timeoutMillis = OWNER_EXIT_TIMEOUT_MILLIS))
         }
 
+        /**
+         * For quiet starts (login, background): never activates or waits for a running
+         * instance. Returns null if one is running.
+         */
+        fun acquireIfUnowned(): DesktopInstance? = arbitrate { configuration ->
+            // A single attempt: the shortest timeout the coordinator accepts.
+            InstanceCoordinator.acquire(configuration.copy(timeoutMillis = 1L))
+        }
+
         private inline fun arbitrate(takeOwnership: (InstanceConfig) -> PrimaryInstance?): DesktopInstance? {
             val identity = if (isRelease) "keyguard" else "keyguard-dev"
             val dataDirectory = Path.of(DataDirectory().dataBlocking()).toAbsolutePath()

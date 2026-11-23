@@ -35,9 +35,11 @@ import org.junit.Assume.assumeFalse
 @OptIn(ExperimentalComposeUiApi::class)
 class DesktopNavigationBackHandlerTest {
     @Test
+    @Suppress("LongMethod") // Keep the draft, popup disposal and subsequent Back assertions in one scenario.
     fun `Escape dismisses the preview and preserves the editor draft`() {
         var previewVisible by mutableStateOf(false)
-        var previewReady = false
+        var previewReady by mutableStateOf(false)
+        var popupDisposalSettled = false
         var renderedDraft = ""
         var editDraft: (String) -> Unit = {}
         var editorVisible by mutableStateOf(true)
@@ -49,6 +51,7 @@ class DesktopNavigationBackHandlerTest {
         }
 
         withWindow(host) {
+            PopupDisposalEffect(previewReady) { popupDisposalSettled = it }
             if (editorVisible) {
                 var draft by remember { mutableStateOf("search default") }
                 SideEffect {
@@ -76,13 +79,13 @@ class DesktopNavigationBackHandlerTest {
                 editDraft("Distinct name\n# Unsaved note")
                 previewVisible = true
             }
-            awaitCondition { previewReady }
+            awaitCondition { previewReady && !popupDisposalSettled }
             // Recompose the editor after the popup has registered.
             onEdt { editDraft("Updated name\n# Unsaved note") }
             awaitCondition { renderedDraft.startsWith("Updated name") }
 
             window.pressKey()
-            awaitCondition { !previewReady }
+            awaitCondition { !previewReady && popupDisposalSettled }
             onEdt {
                 assertFalse(previewVisible)
                 assertTrue(editorVisible)
@@ -194,6 +197,20 @@ class DesktopNavigationBackHandlerTest {
             }
             window.pressKey()
             onEdt { assertEquals(1, pops) }
+        }
+    }
+
+    @Composable
+    private fun PopupDisposalEffect(contentReady: Boolean, onSettled: (Boolean) -> Unit) {
+        LaunchedEffect(contentReady) {
+            onSettled(false)
+            if (!contentReady) {
+                // The sheet has separate content and scrim popup compositions. Content
+                // disposal alone does not mean the scrim's Back handler is gone yet.
+                withFrameNanos { }
+                withFrameNanos { }
+                onSettled(true)
+            }
         }
     }
 

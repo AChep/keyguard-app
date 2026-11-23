@@ -63,6 +63,7 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetStartInBackground
 import com.artemchep.keyguard.common.usecase.GetGlobalShortcuts
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
@@ -151,6 +152,7 @@ import com.artemchep.keyguard.common.usecase.PutBrowserExtensionRemovedConnector
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
+import com.artemchep.keyguard.common.usecase.PutStartInBackground
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.PutConcealFields
 import com.artemchep.keyguard.common.usecase.PutDebugScreenDelay
@@ -228,6 +230,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsI
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCloseToTrayImpl
+import com.artemchep.keyguard.common.usecase.impl.GetStartInBackgroundImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGlobalShortcutsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsVariantsImpl
@@ -316,6 +319,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutBrowserExtensionRemovedConn
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
+import com.artemchep.keyguard.common.usecase.impl.PutStartInBackgroundImpl
 import com.artemchep.keyguard.common.usecase.impl.PutColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutConcealFieldsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugScreenDelayImpl
@@ -530,7 +534,11 @@ internal class ApplicationSettingsModule {
 
         single<GetCloseToTrayImpl>() bind GetCloseToTray::class
 
+        single<GetStartInBackgroundImpl>() bind GetStartInBackground::class
+
         single<PutCloseToTrayImpl>() bind PutCloseToTray::class
+
+        single<PutStartInBackgroundImpl>() bind PutStartInBackground::class
 
         single<GetMinimizeOnCopyImpl>() bind GetMinimizeOnCopy::class
 

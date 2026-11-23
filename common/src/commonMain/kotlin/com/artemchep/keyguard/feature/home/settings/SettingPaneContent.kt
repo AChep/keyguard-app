@@ -55,6 +55,8 @@ import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAu
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardAutoRefreshProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingClipboardNotificationSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCloseToTrayProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingStartInBackgroundProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAtLoginProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorAccentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorSchemeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingConcealFieldsProvider
@@ -331,6 +333,8 @@ object Setting {
     const val TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
     const val TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
+    const val LAUNCH_AT_LOGIN = "launch_at_login"
+    const val START_IN_BACKGROUND = "start_in_background"
     const val CLOSE_TO_TRAY = "close_to_tray"
     const val MINIMIZE_ON_COPY = "minimize_on_copy"
     const val UI_SCALE = "ui_scale"
@@ -501,6 +505,8 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.TWO_PANEL_LAYOUT_PORTRAIT to ::settingTwoPanelLayoutPortraitProvider,
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
     Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
+    Setting.START_IN_BACKGROUND to ::settingStartInBackgroundProvider,
+    Setting.LAUNCH_AT_LOGIN to ::settingLaunchAtLoginProvider,
     Setting.MINIMIZE_ON_COPY to ::settingMinimizeOnCopyProvider,
     Setting.UI_SCALE to ::settingUiScaleProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,

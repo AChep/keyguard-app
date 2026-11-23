@@ -128,6 +128,8 @@ jobs:
             iosApp/Resources/InfoPlist.xcstrings
       - name: Verify iOS privacy source manifests
         run: python3 xcode/scripts/verify-ios-privacy.py
+      - name: Test native startup package evidence checks
+        run: python3 -m unittest discover -s xcode/scripts -p 'test_verify_macos_startup_package.py'
 
   check-apple-billing:
     name: Check Apple Billing
@@ -160,6 +162,10 @@ jobs:
           xcode/scripts/generate-projects.sh
       - name: Run StoreKit regression tests
         run: xcode/scripts/test-apple-billing.sh -resultBundlePath apple-billing-tests.xcresult
+      - name: Run Swift startup and native activation regressions
+        run: swift test --package-path appleUi --filter 'NativeWindowActivationTests|AppStartupRecoveryTests'
+      - name: Run required macOS startup GUI regressions
+        run: sh xcode/scripts/test-macos-startup.sh -resultBundlePath apple-startup-tests.xcresult
       - name: Upload Apple billing test reports
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -167,6 +173,7 @@ jobs:
           name: apple-billing-test-reports
           path: |
             apple-billing-tests.xcresult
+            apple-startup-tests.xcresult
             appleApp/build/test-results/**
             appleApp/build/reports/tests/**
             common/build/test-results/macosArm64SqlCipherTest/**

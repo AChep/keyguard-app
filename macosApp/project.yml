@@ -25,6 +25,19 @@ configFiles:
   AppStoreRelease: ../xcode/Base.xcconfig
 
 schemes:
+  Keyguard Startup Tests:
+    build:
+      targets:
+        KeyguardStartupHost: all
+        KeyguardStartupTests: [test]
+        KeyguardStartupUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - name: KeyguardStartupTests
+          parallelizable: false
+        - name: KeyguardStartupUITests
+          parallelizable: false
   Keyguard App Store:
     build:
       preActions:
@@ -53,12 +66,16 @@ settings:
     AppStoreDebug:
       KEYGUARD_DISTRIBUTION: appStore
       KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID)
+      KEYGUARD_SIBLING_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID).mac
     AppStoreRelease:
       KEYGUARD_DISTRIBUTION: appStore
       KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID)
+      KEYGUARD_SIBLING_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID).mac
   base:
     KEYGUARD_DISTRIBUTION: direct
     KEYGUARD_APP_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID).mac
+    # The other flavor shares the App Group; a duplicate launch yields focus to it.
+    KEYGUARD_SIBLING_BUNDLE_ID: $(KEYGUARD_BUNDLE_ID)
     CODE_SIGN_STYLE: Automatic
     # Required for notarization, and the reason a same-user process cannot inject a
     # dylib into — or attach a debugger to — a release build holding a decrypted
@@ -67,6 +84,70 @@ settings:
     ENABLE_HARDENED_RUNTIME: YES
 
 targets:
+  # Same delegate and scene declarations as the app, with process services replaced.
+  # This target cannot open a vault or register a login item and has no App Group entitlement.
+  KeyguardStartupHost:
+    type: application
+    platform: macOS
+    sources:
+      - path: macosApp
+        excludes: [Info.plist, "*.entitlements"]
+      - path: StartupTests/StartupTestSupport.swift
+      - path: StartupTests/StartupTestCommands.swift
+      - path: StartupTests/StartupTestInstance.swift
+    dependencies:
+      - package: KeyguardUI
+        product: KeyguardUI
+      - package: SQLCipher
+        product: SQLCipher
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.startuptesthost
+        PRODUCT_NAME: KeyguardStartupHost
+        PRODUCT_MODULE_NAME: KeyguardStartupHost
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+        ENABLE_HARDENED_RUNTIME: NO
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) KEYGUARD_STARTUP_TESTING"
+        ENABLE_TESTABILITY: YES
+
+  KeyguardStartupTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: StartupTests/AppDelegateTests.swift
+    dependencies:
+      - target: KeyguardStartupHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.startuptests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KeyguardStartupHost.app/Contents/MacOS/KeyguardStartupHost"
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+        ENABLE_HARDENED_RUNTIME: NO
+
+  KeyguardStartupUITests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: StartupUITests
+    dependencies:
+      - target: KeyguardStartupHost
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.startupuitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: KeyguardStartupHost
+        CODE_SIGN_IDENTITY: "-"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_ENTITLEMENTS: ""
+        ENABLE_HARDENED_RUNTIME: NO
+
   Keyguard:
     type: application
     platform: macOS
@@ -214,6 +295,7 @@ targets:
     dependencies:
       # The static Kotlin/Rust bridge also contains the YubiKey HID backend.
       - sdk: IOKit.framework
+      - sdk: ServiceManagement.framework
       - package: SQLCipher
         product: SQLCipher
       # The Kotlin bridge only — NOT the KeyguardUI product, which would pull the

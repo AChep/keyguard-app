@@ -30,6 +30,9 @@ finish-args:
   - --filesystem=~/.var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser/NativeMessagingHosts
   - --filesystem=~/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts
   - --talk-name=org.kde.StatusNotifierWatcher
+  # The tray registers org.kde.StatusNotifierItem-<pid>-<id>; Flatpak wildcards match
+  # whole name parts, so org.kde.* is the narrowest rule.
+  - --own-name=org.kde.*
   - --system-talk-name=org.freedesktop.PolicyKit1
   # glibc gives the threads that allocate at the same time a malloc arena each,
   # up to eight per core, and the app has about a hundred of them: hundreds of

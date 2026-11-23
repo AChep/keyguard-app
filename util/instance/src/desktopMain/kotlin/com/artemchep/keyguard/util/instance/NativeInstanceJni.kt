@@ -2,6 +2,8 @@ package com.artemchep.keyguard.util.instance
 
 // JNI exports are pinned to this object and package. Moving it requires changing the Rust ABI.
 internal object NativeInstanceJni {
+    external fun acquireOwnership(coordinationDirectory: String, identity: String, timeoutMillis: Long): Long
+
     external fun abiVersion(): Int
 
     external fun lastError(): String?

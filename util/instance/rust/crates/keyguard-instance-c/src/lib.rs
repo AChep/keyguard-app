@@ -81,6 +81,31 @@ pub extern "C" fn keyguard_instance_abi_version() -> u32 {
     keyguard_instance_core::ABI_VERSION
 }
 
+/// Acquires ownership without a runtime endpoint or process-identity metadata.
+///
+/// # Safety
+/// Every pointer/length pair must identify readable UTF-8 bytes throughout the call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keyguard_instance_acquire_ownership(
+    coordination_ptr: *const u8,
+    coordination_len: usize,
+    identity_ptr: *const u8,
+    identity_len: usize,
+    timeout_ms: u64,
+) -> i64 {
+    contained(|| {
+        // SAFETY: The caller guarantees each buffer's readability throughout the call.
+        let coordination = unsafe { string_from_raw(coordination_ptr, coordination_len) }?;
+        // SAFETY: The caller guarantees each buffer's readability throughout the call.
+        let identity = unsafe { string_from_raw(identity_ptr, identity_len) }?;
+        Ok(bridge::acquire_ownership(
+            coordination,
+            identity,
+            timeout_ms,
+        ))
+    })
+}
+
 /// Decodes a coordination config and passes it to `operation`.
 ///
 /// # Safety

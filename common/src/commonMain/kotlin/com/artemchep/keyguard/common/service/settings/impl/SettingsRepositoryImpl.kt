@@ -145,6 +145,7 @@ class SettingsRepositoryImpl(
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
         private const val KEY_GLOBAL_SHORTCUTS = "keyboard.global_shortcuts"
+        private const val KEY_START_IN_BACKGROUND = "start_in_background"
         private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
         private const val KEY_MINIMIZE_ON_COPY = "minimize_on_copy"
         private const val KEY_UI_SCALE = "ui_scale"
@@ -513,6 +514,9 @@ class SettingsRepositoryImpl(
             delete = globalShortcutsConfigState::update,
         )
 
+    private val startInBackgroundPref =
+        store.getBoolean(KEY_START_IN_BACKGROUND, true)
+
     private val closeToTrayPref =
         store.getBoolean(KEY_CLOSE_TO_TRAY, false)
 
@@ -674,6 +678,7 @@ class SettingsRepositoryImpl(
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
             globalShortcutsPref,
+            startInBackgroundPref,
             closeToTrayPref,
             minimizeOnCopyPref,
             uiScalePref,
@@ -1202,6 +1207,13 @@ class SettingsRepositoryImpl(
 
     override fun getGlobalShortcuts() = globalShortcutsConfigState
         .config()
+
+    override fun setStartInBackground(
+        startInBackground: Boolean,
+    ) = startInBackgroundPref
+        .setAndCommit(startInBackground)
+
+    override fun getStartInBackground() = startInBackgroundPref
 
     override fun setCloseToTray(
         closeToTray: Boolean,

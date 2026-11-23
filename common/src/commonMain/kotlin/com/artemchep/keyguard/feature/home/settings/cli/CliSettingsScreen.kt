@@ -40,6 +40,12 @@ fun rememberSettingsCliItems(
                 ),
             ),
             SettingPaneItem.Group(
+                key = "cli.launch_at_login",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.LAUNCH_AT_LOGIN),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "cli.history",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.CLI_HISTORY),

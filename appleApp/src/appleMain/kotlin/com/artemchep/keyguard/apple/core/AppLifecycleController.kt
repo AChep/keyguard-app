@@ -15,10 +15,10 @@ import com.artemchep.keyguard.copy.AppleManagedImportFiles
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
-import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.lock_reason_manually
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,6 +32,7 @@ import platform.Foundation.NSUserDefaults
  */
 internal class AppLifecycleController(
     private val ctx: CoreContext,
+    initialScenePhase: KeyguardScenePhase,
 ) {
     private val vaultSessionPersister: VaultSessionPersister by lazy { ctx.koin.get() }
     private val vaultSessionLocker: VaultSessionLocker by lazy { ctx.koin.get() }
@@ -40,11 +41,14 @@ internal class AppLifecycleController(
     /**
      * Drives the shared [AppWorker]: while it is `>= STARTED` the worker keeps the
      * session's notifications hub (live sync) connected and re-runs the on-start
-     * QueueSyncAll. Seeded to RESUMED because the app launches to the foreground
-     * and SwiftUI's `onChange(of:scenePhase)` does not fire for the initial value.
+     * QueueSyncAll. A quiet launch supplies BACKGROUND, so the lock timer runs for a
+     * restored vault. A launch with a main window supplies ACTIVE; the timer arms when
+     * that window leaves.
      */
-    private val lifecycleStateFlow = MutableStateFlow(LeLifecycleState.RESUMED)
-    private var refreshBiometricsOnActivation = false
+    private val sceneLifecycle = AppSceneLifecycle(initialScenePhase) {
+        com.artemchep.keyguard.core.session.usecase.AppleBiometricAvailability.refresh()
+    }
+    private val lifecycleStateFlow = sceneLifecycle.state
 
     init {
         if (ctx.runtime == KeyguardRuntime.APP) {
@@ -106,28 +110,11 @@ internal class AppLifecycleController(
     }
 
     private fun startVaultSessionLocker() {
-        ctx.backgroundScope.launch {
-            lifecycleStateFlow
-                .onState(minActiveState = LeLifecycleState.RESUMED) {
-                    vaultSessionLocker.keepAlive()
-                }
-                .collect()
-        }
+        startAppleSessionLifetime(ctx.backgroundScope, lifecycleStateFlow, vaultSessionLocker)
     }
 
     fun setScenePhase(phase: KeyguardScenePhase) {
-        if (phase == KeyguardScenePhase.BACKGROUND) refreshBiometricsOnActivation = true
-        // A biometric sheet can itself make the scene inactive. Refresh only
-        // after backgrounding, or dismissal could restart the in-flight unlock.
-        if (phase == KeyguardScenePhase.ACTIVE && refreshBiometricsOnActivation) {
-            refreshBiometricsOnActivation = false
-            com.artemchep.keyguard.core.session.usecase.AppleBiometricAvailability.refresh()
-        }
-        lifecycleStateFlow.value = when (phase) {
-            KeyguardScenePhase.ACTIVE -> LeLifecycleState.RESUMED
-            KeyguardScenePhase.INACTIVE -> LeLifecycleState.STARTED
-            KeyguardScenePhase.BACKGROUND -> LeLifecycleState.CREATED
-        }
+        sceneLifecycle.setPhase(phase)
     }
 
     /** Terminal teardown for an extension request, completed before returning credentials. */
@@ -168,6 +155,12 @@ internal class AppLifecycleController(
             queueSyncAll().bind()
         }
     }
+}
+
+internal fun KeyguardScenePhase.toLifecycleState(): LeLifecycleState = when (this) {
+    KeyguardScenePhase.ACTIVE -> LeLifecycleState.RESUMED
+    KeyguardScenePhase.INACTIVE -> LeLifecycleState.STARTED
+    KeyguardScenePhase.BACKGROUND -> LeLifecycleState.CREATED
 }
 
 private fun startLocaleApplier(ctx: CoreContext) {

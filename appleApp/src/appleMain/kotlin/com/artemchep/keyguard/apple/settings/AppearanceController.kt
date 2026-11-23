@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetStartInBackground
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.GetFont
@@ -31,6 +32,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.PutAllowTwoPanelLayoutInPortrait
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
+import com.artemchep.keyguard.common.usecase.PutStartInBackground
 import com.artemchep.keyguard.common.usecase.PutColors
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
@@ -91,6 +93,8 @@ internal class AppearanceController(
     private val putMinimizeOnCopy: PutMinimizeOnCopy by lazy { ctx.koin.get() }
     private val getCloseToTray: GetCloseToTray by lazy { ctx.koin.get() }
     private val putCloseToTray: PutCloseToTray by lazy { ctx.koin.get() }
+    private val getStartInBackground: GetStartInBackground by lazy { ctx.koin.get() }
+    private val putStartInBackground: PutStartInBackground by lazy { ctx.koin.get() }
     private val getLocale: GetLocale by lazy { ctx.koin.get() }
     private val getLocaleVariants: GetLocaleVariants by lazy { ctx.koin.get() }
     private val putLocale: PutLocale by lazy { ctx.koin.get() }
@@ -231,6 +235,8 @@ internal class AppearanceController(
     fun setKeepScreenOn(value: Boolean) { putKeepScreenOn(value).launchIn(ctx.scope) }
     fun setMinimizeOnCopy(value: Boolean) { putMinimizeOnCopy(value).launchIn(ctx.scope) }
     fun setCloseToTray(value: Boolean) { putCloseToTray(value).launchIn(ctx.scope) }
+
+    fun setStartInBackground(value: Boolean) { putStartInBackground(value).launchIn(ctx.scope) }
     fun setTwoPanelPortrait(value: Boolean) { putTwoPanelPortrait(value).launchIn(ctx.scope) }
     fun setTwoPanelLandscape(value: Boolean) { putTwoPanelLandscape(value).launchIn(ctx.scope) }
 
@@ -295,6 +301,8 @@ internal class AppearanceController(
                 preferences.copy(useExternalBrowser = useExternalBrowser)
             }.combine(getWebDavTransactions()) { preferences, webDavTransactions ->
                 preferences.copy(webDavTransactions = webDavTransactions)
+            }.combine(getStartInBackground()) { preferences, startInBackground ->
+                preferences.copy(startInBackground = startInBackground)
             }.collect { onChange(it) }
         }
         return KeyguardCancellable(job)

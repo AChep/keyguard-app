@@ -66,6 +66,8 @@ fun rememberSettingsUiItems(
                     SettingPaneItem.Item(Setting.KEEP_SCREEN_ON),
                     SettingPaneItem.Item(Setting.MINIMIZE_ON_COPY),
                     SettingPaneItem.Item(Setting.CLOSE_TO_TRAY),
+                    SettingPaneItem.Item(Setting.LAUNCH_AT_LOGIN),
+                    SettingPaneItem.Item(Setting.START_IN_BACKGROUND),
                 ),
             ),
             SettingPaneItem.Group(

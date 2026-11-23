@@ -133,6 +133,8 @@ data class AppPreferencesSnapshot(
     val navLabel: Boolean = true,
     /** True when closing the last window keeps the app running in the menu bar; false quits the app. */
     val closeToTray: Boolean = false,
+    /** Starts login launches without constructing the main window. */
+    val startInBackground: Boolean = true,
     /** Keeps supported iOS detail views awake while foreground and unlocked. */
     val keepScreenOn: Boolean = false,
     /** Opens ordinary web links with the system instead of the in-app browser. */
@@ -178,12 +180,18 @@ data class BackupSettingsSnapshot(
 
 /**
  * macOS launch-at-login state. [requiresApproval]: registered but awaiting the user's approval in
- * System Settings ▸ Login Items. [available]: the underlying service could be queried at all.
+ * System Settings ▸ Login Items. [available]: the registration toggle can be changed in the app.
+ * [shown]: settings show the option at all.
  */
 data class LaunchAtLoginSnapshot(
     val enabled: Boolean,
     val requiresApproval: Boolean,
     val available: Boolean,
+    val shown: Boolean = false,
+    val busy: Boolean = false,
+    val failed: Boolean = false,
+    val canOpenSettings: Boolean = false,
+    val message: String? = null,
 ) {
     companion object {
         val empty = LaunchAtLoginSnapshot(

@@ -68,6 +68,31 @@ fn unsigned(value: jlong) -> Result<u64, i64> {
     u64::try_from(value).map_err(|_| INVALID_ARGUMENT)
 }
 
+/// Acquires the validated ownership lease without creating an activation listener.
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_acquireOwnership(
+    mut environment: EnvUnowned<'_>,
+    _object: JObject<'_>,
+    coordination: JString<'_>,
+    identity: JString<'_>,
+    timeout_ms: jlong,
+) -> jlong {
+    contained(|| {
+        let timeout_ms = unsigned(timeout_ms)?;
+        let (coordination, identity) = with_java_env(&mut environment, |environment| {
+            Ok::<_, i64>((
+                java_string(environment, &coordination)?,
+                java_string(environment, &identity)?,
+            ))
+        })?;
+        Ok(bridge::acquire_ownership(
+            &coordination,
+            &identity,
+            timeout_ms,
+        ))
+    })
+}
+
 /// Returns the fixed native ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_abiVersion(

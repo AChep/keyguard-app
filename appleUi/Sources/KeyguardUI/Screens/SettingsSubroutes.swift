@@ -45,37 +45,30 @@ struct SettingsSubroute: View {
 #if os(macOS)
 struct GeneralSettingsView: View {
     @Environment(LaunchAtLoginModel.self) private var launchAtLoginModel
+    @Environment(AppPreferencesModel.self) private var preferencesModel
     @AppStorage(DockIconMode.menuBarOnlyKey) private var menuBarOnly = false
 
     private var launch: LaunchAtLoginSnapshot { launchAtLoginModel.launchAtLogin }
 
-    private var launchBinding: Binding<Bool> {
-        Binding(
-            get: { launch.enabled },
-            set: { launchAtLoginModel.setLaunchAtLogin($0) }
-        )
-    }
-
     var body: some View {
         SettingsForm {
-            Section(L10n.settingsStartupHeaderTitle) {
-                Toggle(L10n.prefItemLaunchAtLoginTitle, isOn: launchBinding)
-                    .disabled(!launch.available)
-                    .settingsSearchTarget(.launchAtLogin)
-                if launch.requiresApproval {
-                    HStack(spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.yellow)
-                        Text(L10n.prefItemLaunchAtLoginApprovalNote)
+            if launch.shown {
+                Section(L10n.settingsStartupHeaderTitle) {
+                    LaunchAtLoginRows(searchTarget: .launchAtLogin)
+                    // The preference only applies to a launch at login.
+                    if launch.enabled {
+                        Toggle(
+                            L10n.prefItemStartInBackgroundTitle,
+                            isOn: Binding(
+                                get: { preferencesModel.appPreferences.startInBackground },
+                                set: { preferencesModel.setStartInBackground($0) }
+                            )
+                        )
+                        .settingsSearchTarget(.startInBackground)
+                        Text(L10n.prefItemStartInBackgroundText)
                             .font(.callout)
                             .foregroundStyle(.secondary)
-                        Button(L10n.openAction) { launchAtLoginModel.openLoginItemsSettings() }
-                            .buttonStyle(.link)
                     }
-                } else if !launch.available {
-                    Text(L10n.prefItemLaunchAtLoginUnavailableText)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
                 }
             }
             Section(L10n.settingsMenuBarHeaderTitle) {
@@ -91,6 +84,68 @@ struct GeneralSettingsView: View {
             start: { launchAtLoginModel.startLaunchAtLoginObservation() },
             stop: { launchAtLoginModel.stopLaunchAtLoginObservation() }
         )
+    }
+}
+
+/// The launch-at-login toggle, its status message and its recovery actions.
+/// The host observes `LaunchAtLoginModel`.
+struct LaunchAtLoginRows: View {
+    @Environment(LaunchAtLoginModel.self) private var launchAtLoginModel
+    /// Only General › Startup anchors the search target, so search keeps one destination.
+    var searchTarget: SettingsSearchTarget?
+
+    private var launch: LaunchAtLoginSnapshot { launchAtLoginModel.launchAtLogin }
+
+    var body: some View {
+        if let searchTarget {
+            toggle.settingsSearchTarget(searchTarget)
+        } else {
+            toggle
+        }
+        if let message = launch.message {
+            HStack(spacing: 8) {
+                if launch.requiresApproval {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.yellow)
+                }
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        if launch.failed {
+            Button(L10n.retry) { launchAtLoginModel.refresh() }
+                .disabled(launch.busy)
+        }
+        if launch.canOpenSettings {
+            Button(L10n.prefItemLaunchAtLoginOpenSettings) { launchAtLoginModel.openLoginItemsSettings() }
+                .disabled(launch.busy)
+        }
+    }
+
+    private var toggle: some View {
+        Toggle(
+            L10n.prefItemLaunchAtLoginTitle,
+            isOn: Binding(
+                get: { launch.enabled },
+                set: { launchAtLoginModel.setLaunchAtLogin($0) }
+            )
+        )
+        .disabled(!launch.available || launch.busy)
+    }
+}
+
+/// The Startup section the agent settings screens show above their request log.
+struct LaunchAtLoginSection: View {
+    @Environment(LaunchAtLoginModel.self) private var launchAtLoginModel
+
+    var body: some View {
+        // A hidden section never appears, so the host screen observes the model.
+        if launchAtLoginModel.launchAtLogin.shown {
+            Section(L10n.settingsStartupHeaderTitle) {
+                LaunchAtLoginRows()
+            }
+        }
     }
 }
 #endif
@@ -379,6 +434,7 @@ struct DeveloperSettingsView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     #if os(macOS)
     @Environment(GpgAgentModel.self) private var gpgAgentModel
+    @Environment(LaunchAtLoginModel.self) private var launchAtLoginModel
     @Environment(SessionFactory.self) private var sessions
     @State private var cli = FormPresentation<CliModel>(stop: { $0.close() })
     #endif
@@ -460,11 +516,13 @@ struct DeveloperSettingsView: View {
                 sshAgentModel.startSshAgentObservation()
                 gpgAgentModel.startGpgAgentObservation()
                 gpgAgentModel.startGpgAgentSettingsObservation()
+                launchAtLoginModel.startLaunchAtLoginObservation()
                 cli.start(makeModel: sessions.makeCliModel)
             },
             stop: {
                 sshAgentModel.stopSshAgentSettingsObservation()
                 gpgAgentModel.stopGpgAgentSettingsObservation()
+                launchAtLoginModel.stopLaunchAtLoginObservation()
                 cli.close()
             }
         )
@@ -572,6 +630,7 @@ struct DeveloperSettingsView: View {
         }
     }
 
+    #if os(macOS)
     @ViewBuilder
     private var keysSection: some View {
         // Display-key-names toggle in its own section so its explanation renders as
@@ -606,6 +665,9 @@ struct DeveloperSettingsView: View {
                 }
             }
             .settingsSearchTarget(.sshFilters)
+        }
+        LaunchAtLoginSection()
+        Section {
             Button {
                 dialog = .history
             } label: {
@@ -614,6 +676,7 @@ struct DeveloperSettingsView: View {
             .settingsSearchTarget(.sshHistory)
         }
     }
+    #endif
 }
 
 struct WatchtowerSettingsView: View {

@@ -8,13 +8,22 @@
 extern "C" {
 #endif
 
-/* ABI v3. Errors: -1 argument, -2 I/O, -3 timeout, -4 protocol, -5 handle,
+/* ABI v4. Errors: -1 argument, -2 I/O, -3 timeout, -4 protocol, -5 handle,
  * -6 unavailable, -7 permission, -8 internal. Strings are strict UTF-8 and
  * contain at most 65536 bytes. Pointers must remain readable throughout calls.
  * A zero-length string may use a null pointer. No function takes ownership of
  * caller memory. All exported functions contain Rust panics.
  */
 uint32_t keyguard_instance_abi_version(void);
+
+/* Ownership only: no listener, runtime path or process identity. Positive handle,
+ * zero on genuine contention through the deadline, negative error otherwise.
+ * Release with keyguard_instance_close after shared-state services have stopped.
+ */
+int64_t keyguard_instance_acquire_ownership(
+    const uint8_t *coordination_ptr, size_t coordination_len,
+    const uint8_t *identity_ptr, size_t identity_len,
+    uint64_t timeout_ms);
 
 /* Safe UTF-8 diagnostic from the last operation on this thread, without NUL.
  * Read immediately after an error, before another operation. Success clears it.

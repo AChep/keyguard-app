@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.createDesktopKoinApplication
 import com.artemchep.keyguard.desktop.instance.verifyPackagedInstanceService
+import com.artemchep.keyguard.desktop.startup.installedDesktopLoginTarget
 import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
 import com.artemchep.keyguard.nativebundle.nativeProbe
@@ -17,6 +18,8 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.util.fido2.NativeFido2Client
+import com.artemchep.keyguard.util.launchatlogin.LaunchAtLogin
+import com.artemchep.keyguard.util.launchatlogin.LaunchAtLoginTarget
 import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.webrtc.WebRtcRuntime
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeys
@@ -58,6 +61,21 @@ internal fun runNativePackagedSmoke() {
         }
         // WebRTC is not a dependency of common, which Wear OS shares.
         nativeProbe("webrtc") { WebRtcRuntime.ensureAvailable() }
+        // Read-only bridge probe: never change the test machine's startup registration.
+        nativeProbe("launchAtLogin") {
+            val launcher = Path.of(checkNotNull(System.getProperty("jpackage.app-path")))
+            check(Files.isRegularFile(launcher) && Files.isExecutable(launcher)) {
+                "The packaged startup entry point is unavailable"
+            }
+            val target = checkNotNull(installedDesktopLoginTarget(reason = ""))
+            if (target is LaunchAtLoginTarget.FlatpakBackground) {
+                // The first Flatpak status in a process sends a real portal request, so only
+                // load the library: this query has no side effects outside macOS.
+                LaunchAtLogin.launchedAtLogin()
+            } else {
+                LaunchAtLogin(target).status()
+            }
+        }
         nativeProbe("instance") { verifyPackagedInstanceService() }
         nativeProbe("windowsPasskeys") { WindowsPasskeys.status() }
         // On Linux this also resolves libudev from the Flatpak runtime.
@@ -70,7 +88,8 @@ internal fun runNativePackagedSmoke() {
         nativeProbe("sshHelperIpc") { verifyPackagedSshHelperIpc() }
         val tls = nativeProbe("tls") { verifyPackagedDesktopTls() }
         val success = "native packaged smoke passed: crypto=PASS io=PASS age=PASS zxcvbn=PASS webrtc=PASS " +
-            "instance=PASS windowsPasskeys=PASS fido2=PASS desktopBridge=PASS agentIpc=PASS sshHelper=PASS " +
+            "instance=PASS launchAtLogin=PASS windowsPasskeys=PASS fido2=PASS desktopBridge=PASS agentIpc=PASS " +
+            "sshHelper=PASS " +
             "gpgHelper=PASS koin=PASS sshHelperIpc=PASS tls=PASS tlsRuntime=$tls"
         publishResult(success)
         println(success)
@@ -82,7 +101,7 @@ internal fun runNativePackagedSmoke() {
 
 private fun rejectDevelopmentLibraries() {
     listOf(
-        "Crypto", "Io", "Age", "Zxcvbn", "Webrtc", "Instance", "WindowsPasskeys", "Fido2", "AgentIpc",
+        "Crypto", "Io", "Age", "Zxcvbn", "Webrtc", "Instance", "LaunchAtLogin", "WindowsPasskeys", "Fido2", "AgentIpc",
     ).forEach { module ->
         val property = "keyguard.native$module.libraryPath"
         check(System.getProperty(property).isNullOrBlank()) {

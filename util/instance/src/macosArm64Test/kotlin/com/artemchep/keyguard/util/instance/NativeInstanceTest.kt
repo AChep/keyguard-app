@@ -29,6 +29,21 @@ import kotlin.test.assertTrue
 
 class NativeInstanceTest {
     @Test
+    fun ownershipOnlyAvoidsUnixSocketLimitsAndRetainsMutualExclusion() = withFixture { config ->
+        val directory = config.coordinationDirectory + "long-group-container-".repeat(8)
+        val ownershipConfig = InstanceOwnershipConfig(directory, config.identity, timeoutMillis = 50)
+        val owner = assertNotNull(InstanceCoordinator.acquireOwnership(ownershipConfig))
+        try {
+            assertNull(InstanceCoordinator.acquireOwnership(ownershipConfig))
+            assertNull(InstanceCoordinator.acquire(config.copy(coordinationDirectory = directory, timeoutMillis = 50)))
+        } finally {
+            owner.close()
+        }
+        owner.close()
+        assertNotNull(InstanceCoordinator.acquire(config.copy(coordinationDirectory = directory))).close()
+    }
+
+    @Test
     fun cInteropDeliversQueuedActivationAndReleasesOwnership() = withFixture { config ->
         val primary = acquire(config)
         try {

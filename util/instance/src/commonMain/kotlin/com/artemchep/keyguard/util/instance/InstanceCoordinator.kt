@@ -7,6 +7,16 @@ package com.artemchep.keyguard.util.instance
  * shared application data. Only a [PrimaryInstance] authorizes those services to start.
  */
 object InstanceCoordinator {
+    /** Acquires only the validated ownership lease. The caller supplies platform activation. */
+    fun acquireOwnership(config: InstanceOwnershipConfig): InstanceOwnership? {
+        val result = NativeInstance.acquireOwnership(
+            config.coordinationDirectory,
+            config.identity,
+            config.timeoutMillis,
+        ).checked()
+        return if (result == 0L) null else InstanceOwnership(result)
+    }
+
     /** Throws [InstanceException] when ownership or acknowledged activation cannot be obtained. */
     fun acquireOrActivate(config: InstanceConfig): InstanceResult {
         val result = NativeInstance.acquireOrActivate(
@@ -36,6 +46,20 @@ object InstanceCoordinator {
             config.timeoutMillis,
         ).checked()
         return if (result == 0L) null else PrimaryInstance(result)
+    }
+}
+
+/** Uses the same coordination namespace as [InstanceConfig], without a runtime socket path. */
+data class InstanceOwnershipConfig(
+    val coordinationDirectory: String,
+    val identity: String,
+    val timeoutMillis: Long = 5_000L,
+)
+
+/** Holds exclusive ownership until shared-state services stop or this process terminates. */
+class InstanceOwnership internal constructor(private val handle: Long) : AutoCloseable {
+    override fun close() {
+        NativeInstance.close(handle).checked(allowClosed = true)
     }
 }
 

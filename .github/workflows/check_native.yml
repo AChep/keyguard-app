@@ -47,6 +47,7 @@ jobs:
       apple: ${{ steps.select.outputs.apple }}
       io: ${{ steps.select.outputs.io }}
       instance: ${{ steps.select.outputs.instance }}
+      launch_at_login: ${{ steps.select.outputs.launch_at_login }}
       agent_ipc: ${{ steps.select.outputs.agent_ipc }}
       crypto: ${{ steps.select.outputs.crypto }}
       fuzz: ${{ steps.select.outputs.fuzz }}
@@ -70,6 +71,9 @@ jobs:
           scripts/test_check_bouncycastle_policy.py
           scripts/test_run_native_package_smoke.py
           scripts/test_native_deny_policies.py
+          scripts/test_desktop_startup_acceptance.py
+      - name: Test isolated registration package staging
+        run: python3 -m unittest discover -s util/launch-at-login/tests -p 'test_stage_fixture.py'
       - name: "Select checks from changed paths"
         id: select
         env:
@@ -353,14 +357,14 @@ jobs:
         run: >-
           python3 scripts/native_protocol.py check windows-passkeys
       - name: "Install shells for agent setup fixtures"
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fish zsh
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fish zsh dbus-daemon
       - name: "Format, lint and test native utility crates"
         shell: bash
         env:
           KEYGUARD_REQUIRED_SHELLS: bash,zsh,fish
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io age instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc webrtc; do
+          for module in ffi io age instance launch-at-login zip zxcvbn yubikey fido2 windows-passkeys agent-ipc webrtc; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
@@ -497,6 +501,24 @@ jobs:
       - name: "Run macOS power observer tests"
         if: runner.os == 'macOS' && needs.changes.outputs.desktop_native == 'true'
         run: bash desktopLibNative/src/objc/tests/run.sh
+      - name: Install private portal test bus
+        if: runner.os == 'Linux' && needs.changes.outputs.launch_at_login == 'true'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends dbus-daemon
+      - name: Test macOS login service selector adapter
+        if: runner.os == 'macOS' && needs.changes.outputs.launch_at_login == 'true'
+        run: bash util/launch-at-login/tests/macos/run.sh
+      - name: "Run launch-at-login native regressions"
+        if: needs.changes.outputs.launch_at_login == 'true'
+        shell: bash
+        run: |
+          cargo clippy -p keyguard-launch-at-login-core -p keyguard-launch-at-login-jni -p keyguard-launch-at-login-c --all-targets --locked --offline --no-deps -- -D warnings
+          cargo test -p keyguard-launch-at-login-core -p keyguard-launch-at-login-jni -p keyguard-launch-at-login-c --all-targets --locked --offline
+      - name: "Run launch-at-login JVM regressions"
+        if: needs.changes.outputs.launch_at_login == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:launch-at-login:desktopTest :desktopApp:jvmTest
       - name: "Run OS-specific native Rust regressions"
         if: runner.os != 'Linux' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.instance == 'true')
         shell: bash
@@ -624,6 +646,7 @@ jobs:
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
           :util:webrtc:macosArm64Test
+          :util:launch-at-login:macosArm64Test
           :util:yubikey:macosArm64Test :util:fido2:macosArm64Test
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
@@ -749,8 +772,8 @@ jobs:
           archives=()
           while IFS= read -r -d '' archive; do
             archives+=("$archive")
-          done < <(find util/crypto/build util/io/build util/age/build util/zip/build util/zxcvbn/build util/agent-ipc/build util/webrtc/build -type f -name 'libkeyguard_*.a' -print0)
-          test "${#archives[@]}" -ge 7
+          done < <(find util/crypto/build util/io/build util/age/build util/zip/build util/zxcvbn/build util/agent-ipc/build util/webrtc/build util/launch-at-login/build util/instance/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 9
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
             appleApp/build/bin/iosArm64/debugTest/test.kexe \
             appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \

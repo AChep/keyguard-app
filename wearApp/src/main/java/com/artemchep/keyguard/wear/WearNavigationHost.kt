@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.wear.ui.WearSwipeBackBox
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.koinInject
@@ -44,7 +45,9 @@ fun WearNavigationHost(
             )
         },
     ) {
-        content()
+        WearSwipeBackBox {
+            content()
+        }
     }
 }
 

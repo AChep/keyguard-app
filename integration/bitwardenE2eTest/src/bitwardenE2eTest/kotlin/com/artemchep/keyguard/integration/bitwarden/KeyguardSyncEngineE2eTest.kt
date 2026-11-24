@@ -95,6 +95,62 @@ class KeyguardSyncEngineE2eTest {
     }
 
     @Test
+    fun `an edited organization cipher keeps its collection`() = runE2eTest {
+        val owner = accounts.register()
+        val ownerToken = accounts.login(owner).accessToken
+        val org = organizations.createOrganization(owner, ownerToken, name = "Keyguard E2E")
+        val session = keyguardLogin(owner)
+        val remoteId = createOrganizationCipher(session, org, name = "Shared").id
+
+        KeyguardSyncEngine.create(this, session).use { engine ->
+            engine.sync()
+            val synced = engine.ciphers().single()
+            assertEquals(setOf(org.collectionId), synced.collectionIds)
+
+            waitPastServerWrite()
+            engine.updateCipher(synced.copy(name = "Renamed"))
+            val requests = syncRequests(engine)
+            assertContains(requests, "PUT /api/ciphers/$remoteId")
+            assertContains(requests, "GET /api/ciphers/$remoteId")
+            val edited = engine.ciphers().single()
+            assertNull(edited.service.error)
+            assertEquals("Renamed", edited.name)
+            assertEquals(setOf(org.collectionId), edited.collectionIds)
+        }
+    }
+
+    @Test
+    fun `a member edit keeps the collection the member can only read`() = runE2eTest {
+        val owner = accounts.register()
+        val ownerToken = accounts.login(owner).accessToken
+        val org = organizations.createOrganization(owner, ownerToken, name = "Keyguard E2E")
+        val readOnlyCollectionId = organizations.createCollection(ownerToken, org, name = "Read-only")
+        val collectionIds = setOf(org.collectionId, readOnlyCollectionId)
+        val ownerSession = keyguardLogin(owner)
+        val remoteId = createOrganizationCipher(ownerSession, org, name = "Shared", collectionIds = collectionIds).id
+        val member = accounts.register()
+        organizations.invite(ownerToken, org, member.email, readOnlyCollectionIds = listOf(readOnlyCollectionId))
+        val membership = organizations.membership(ownerToken, org, member.email)
+        organizations.confirm(ownerToken, org, membership.id, membership.userId)
+        val session = keyguardLogin(member)
+
+        KeyguardSyncEngine.create(this, session).use { engine ->
+            engine.sync()
+            val synced = engine.ciphers().single()
+            assertEquals(collectionIds, synced.collectionIds)
+
+            waitPastServerWrite()
+            engine.updateCipher(synced.copy(name = "Renamed"))
+            // Vaultwarden lists only the collections the member can edit in this response.
+            assertContains(syncRequests(engine), "GET /api/ciphers/$remoteId")
+            val edited = engine.ciphers().single()
+            assertNull(edited.service.error)
+            assertEquals("Renamed", edited.name)
+            assertEquals(collectionIds, edited.collectionIds)
+        }
+    }
+
+    @Test
     fun `unchanged server only asks for the revision date`() = runE2eTest {
         val account = accounts.register()
         val accessToken = accounts.login(account).accessToken

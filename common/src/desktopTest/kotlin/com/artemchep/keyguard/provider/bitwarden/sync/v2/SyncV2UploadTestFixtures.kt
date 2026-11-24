@@ -140,13 +140,48 @@ import kotlin.time.Instant
 
 internal const val ACCOUNT_ID = "account-1"
 
-internal class UploadTestServer {
+/** Which server's cipher responses [UploadTestServer] imitates. */
+internal enum class CipherResponseShape {
+    /**
+     * The official server: the write responses and `GET /ciphers/{id}`
+     * leave `collectionIds` out; `/sync` includes it.
+     */
+    Bitwarden,
+
+    /**
+     * Vaultwarden: the write responses and `GET /ciphers/{id}` list only
+     * the collections the user can write to; `/sync` lists all of them.
+     */
+    Vaultwarden,
+}
+
+/** A cipher as a write endpoint or `GET /ciphers/{id}` returns it. */
+private fun CipherEntity.asCipherResponse(
+    shape: CipherResponseShape,
+    readOnlyCollectionIds: Set<String>,
+): CipherEntity =
+    when (shape) {
+        CipherResponseShape.Bitwarden -> copy(collectionIds = null)
+        CipherResponseShape.Vaultwarden ->
+            copy(collectionIds = collectionIds.orEmpty() - readOnlyCollectionIds)
+    }
+
+/** A cipher as `/sync` returns it. */
+private fun CipherEntity.asCipherSyncResponse(): CipherEntity =
+    copy(collectionIds = collectionIds.orEmpty())
+
+internal class UploadTestServer(
+    var cipherResponseShape: CipherResponseShape = CipherResponseShape.Bitwarden,
+) {
     val env = ServerEnv(baseUrl = BASE_URL)
     val token = "access-token"
     val requests = mutableListOf<RecordedRequest>()
     val folders = linkedMapOf<String, FolderEntity>()
     val ciphers = linkedMapOf<String, CipherEntity>()
     val collections = linkedMapOf<String, CollectionEntity>()
+
+    /** The collections the user can only read. */
+    val readOnlyCollectionIds = mutableSetOf<String>()
     val sends = linkedMapOf<String, SendEntity>()
     val uploadedCipherAttachmentBodies = linkedMapOf<String, String>()
     val uploadedSendFileBodies = linkedMapOf<String, String>()
@@ -237,7 +272,9 @@ internal class UploadTestServer {
             fileUploadTypeCode = SendFileUploadType.Direct.code,
             objectType = "attachment-fileUpload",
             url = "/ciphers/$cipherId/attachment/$attachmentId/data",
-            cipherResponse = requireNotNull(ciphers[cipherId]),
+            cipherResponse =
+                requireNotNull(ciphers[cipherId])
+                    .asCipherResponse(cipherResponseShape, readOnlyCollectionIds),
         )
 
     private fun MockRequestHandleScope.handle(request: RecordedRequest) = when {
@@ -262,7 +299,7 @@ internal class UploadTestServer {
                         SyncEntity(
                             profile = profile,
                             folders = folders.values.toList(),
-                            ciphers = ciphers.values.toList(),
+                            ciphers = ciphers.values.map { it.asCipherSyncResponse() },
                             collections = collections.values.toList(),
                             sends = sends.values.toList(),
                         ),
@@ -322,7 +359,7 @@ internal class UploadTestServer {
                     ?.also { nextCipherCreateResponse = null }
                     ?: cipherEntityFromRequest(cipherId, body)
             ciphers[cipherId] = cipher
-            respondJson(cipher)
+            respondJson(cipher.asCipherResponse(cipherResponseShape, readOnlyCollectionIds))
         }
 
         request.method == HttpMethod.Post &&
@@ -333,8 +370,9 @@ internal class UploadTestServer {
                 nextCipherCreateResponse
                     ?.also { nextCipherCreateResponse = null }
                     ?: cipherEntityFromRequest(cipherId, body.cipher)
+                        .copy(collectionIds = body.collectionIds.toList())
             ciphers[cipherId] = cipher
-            respondJson(cipher)
+            respondJson(cipher.asCipherResponse(cipherResponseShape, readOnlyCollectionIds))
         }
 
         request.method == HttpMethod.Post &&
@@ -439,7 +477,7 @@ internal class UploadTestServer {
                 deletedDate = null,
             )
             ciphers[cipherId] = restored
-            respondJson(restored)
+            respondJson(restored.asCipherResponse(cipherResponseShape, readOnlyCollectionIds))
         }
 
         request.method == HttpMethod.Put &&
@@ -493,7 +531,7 @@ internal class UploadTestServer {
                         )
                     }
                 ciphers[cipherId] = updated
-                respondJson(updated)
+                respondJson(updated.asCipherResponse(cipherResponseShape, readOnlyCollectionIds))
             }
         }
 
@@ -558,13 +596,14 @@ internal class UploadTestServer {
                     contentType = ContentType.Application.Json,
                 )
             } else {
-                val cipher =
+                val stored =
                     nextCipherGetResponse
                         ?.also {
                             nextCipherGetResponse = null
                             ciphers[cipherId] = it
                         }
                         ?: requireNotNull(ciphers[cipherId])
+                val cipher = stored.asCipherResponse(cipherResponseShape, readOnlyCollectionIds)
                 if (corruptNextCipherGetResponse) {
                     corruptNextCipherGetResponse = false
                     respondJson(cipher.copy(name = "not an encrypted cipher name"))

@@ -70,28 +70,29 @@ class KeyguardOrganizationsE2eTest {
     companion object {
         private const val ORGANIZATION_NAME = "Keyguard E2E"
         private const val CIPHER_NAME = "Shared"
-
-        /** Creates a login cipher in the default collection of [org] through Keyguard's API. */
-        private suspend fun VaultwardenFixture.createOrganizationCipher(
-            session: KeyguardSession,
-            org: TestOrganization,
-            name: String,
-        ): CipherEntity {
-            val token = session.login.accessToken
-            return session.env.api.ciphers.create(
-                httpClient = httpClient,
-                env = session.env,
-                token = token,
-                body = CipherCreateRequest(
-                    cipher = loginCipherRequest(
-                        key = org.key,
-                        encryptedFor = accounts.userId(token),
-                        name = name,
-                        organizationId = org.id,
-                    ),
-                    collectionIds = setOf(org.collectionId),
-                ),
-            )
-        }
     }
+}
+
+/** Creates a login cipher in [collectionIds] of [org] through Keyguard's API. */
+internal suspend fun VaultwardenFixture.createOrganizationCipher(
+    session: KeyguardSession,
+    org: TestOrganization,
+    name: String,
+    collectionIds: Set<String> = setOf(org.collectionId),
+): CipherEntity {
+    val token = session.login.accessToken
+    return session.env.api.ciphers.create(
+        httpClient = httpClient,
+        env = session.env,
+        token = token,
+        body = CipherCreateRequest(
+            cipher = loginCipherRequest(
+                key = org.key,
+                encryptedFor = accounts.userId(token),
+                name = name,
+                organizationId = org.id,
+            ),
+            collectionIds = collectionIds,
+        ),
+    )
 }

@@ -89,8 +89,36 @@ internal class VaultwardenOrganizations(
         return TestOrganization(id = id, key = orgKey, collectionId = collectionId)
     }
 
-    /** Invites [email] as a user with access to the default collection. */
-    suspend fun invite(ownerAccessToken: String, org: TestOrganization, email: String) {
+    /** Creates another collection in [org] that only its owner can access, and returns its id. */
+    suspend fun createCollection(
+        ownerAccessToken: String,
+        org: TestOrganization,
+        name: String,
+    ): String = httpClient
+        .post("$baseUrl/api/organizations/${org.id}/collections") {
+            bearerAuth(ownerAccessToken)
+            setJsonBody(
+                buildJsonObject {
+                    put("name", accounts.encrypt(org.key, name))
+                    putJsonArray("groups") {}
+                    putJsonArray("users") {}
+                },
+            )
+        }
+        .requireJson("Create the collection $name in ${org.id}")
+        .jsonObject
+        .string("id")
+
+    /**
+     * Invites [email] as a user who can edit the items of the default collection,
+     * and only read those of [readOnlyCollectionIds].
+     */
+    suspend fun invite(
+        ownerAccessToken: String,
+        org: TestOrganization,
+        email: String,
+        readOnlyCollectionIds: List<String> = emptyList(),
+    ) {
         httpClient
             .post("$baseUrl/api/organizations/${org.id}/users/invite") {
                 bearerAuth(ownerAccessToken)
@@ -100,11 +128,14 @@ internal class VaultwardenOrganizations(
                         put("type", MEMBER_TYPE_USER)
                         putJsonArray("groups") {}
                         putJsonArray("collections") {
-                            addJsonObject {
-                                put("id", org.collectionId)
-                                put("readOnly", false)
-                                put("hidePasswords", false)
-                                put("manage", false)
+                            val access = listOf(org.collectionId to false) + readOnlyCollectionIds.map { it to true }
+                            access.forEach { (id, readOnly) ->
+                                addJsonObject {
+                                    put("id", id)
+                                    put("readOnly", readOnly)
+                                    put("hidePasswords", false)
+                                    put("manage", false)
+                                }
                             }
                         }
                         put("accessAll", false)

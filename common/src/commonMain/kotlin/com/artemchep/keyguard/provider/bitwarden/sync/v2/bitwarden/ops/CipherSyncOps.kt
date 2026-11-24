@@ -1108,11 +1108,24 @@ class CipherSyncOps(
     private fun decodeServerCipherRawForPush(
         server: CipherEntity,
         local: BitwardenCipher,
-    ): BitwardenCipher =
-        decodeServerCipherRaw(
-            server = server,
+    ): BitwardenCipher {
+        // A push never changes collection membership: an edit keeps it and
+        // a create assigns the collections it sent. Server responses do not
+        // report it reliably; the next full sync corrects any drift.
+        val serverWithCollections =
+            if (
+                server.organizationId != null &&
+                server.organizationId == local.organizationId
+            ) {
+                server.copy(collectionIds = local.collectionIds.toList())
+            } else {
+                server
+            }
+        return decodeServerCipherRaw(
+            server = serverWithCollections,
             cipherId = local.cipherId,
         )
+    }
 
     /**
      * Creates a partial local entity with decode-failure metadata

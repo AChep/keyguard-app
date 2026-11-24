@@ -1655,7 +1655,8 @@ class SyncV2CipherUploadIntegrationTest {
         )
 
         assertEquals("organization-1", outcome.local.organizationId)
-        assertEquals(setOf("collection-1"), outcome.local.collectionIds)
+        // The organization changed and the response has no collections; the next sync fills them in.
+        assertEquals(emptySet(), outcome.local.collectionIds)
         assertEquals(fixture.cipherKeyBase64(), outcome.local.keyBase64)
         assertEquals("Cipher", outcome.local.name)
         assertEquals(
@@ -1710,7 +1711,8 @@ class SyncV2CipherUploadIntegrationTest {
         )
 
         assertEquals("organization-new", outcome.local.organizationId)
-        assertEquals(setOf("collection-new"), outcome.local.collectionIds)
+        // The organization changed and the response has no collections; the next sync fills them in.
+        assertEquals(emptySet(), outcome.local.collectionIds)
         assertEquals(fixture.cipherKeyBase64(), outcome.local.keyBase64)
         assertEquals("Cipher", outcome.local.name)
         assertEquals(
@@ -1720,6 +1722,153 @@ class SyncV2CipherUploadIntegrationTest {
             ),
             server.requests.map { it.method to it.path },
         )
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps the collections of an edited organization cipher`() = runTest {
+        val server = UploadTestServer()
+        val collectionIds = setOf("collection-1", "collection-2")
+
+        val outcome =
+            pushEditedOrganizationCipher(
+                server = server,
+                localCollectionIds = collectionIds,
+                serverCollectionIds = collectionIds,
+            )
+
+        assertEquals(collectionIds, outcome.local.collectionIds)
+        assertEquals(collectionIds, outcome.local.remoteEntity?.collectionIds)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps read-only collections that Vaultwarden leaves out`() = runTest {
+        val server = UploadTestServer(cipherResponseShape = CipherResponseShape.Vaultwarden)
+        server.readOnlyCollectionIds += "collection-b"
+        val collectionIds = setOf("collection-a", "collection-b")
+
+        val outcome =
+            pushEditedOrganizationCipher(
+                server = server,
+                localCollectionIds = collectionIds,
+                serverCollectionIds = collectionIds,
+            )
+
+        assertEquals(collectionIds, outcome.local.collectionIds)
+        assertEquals(collectionIds, outcome.local.remoteEntity?.collectionIds)
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps local collections when the server reports others`() = runTest {
+        // Vaultwarden includes the collections in the response, so they are not just missing.
+        val server = UploadTestServer(cipherResponseShape = CipherResponseShape.Vaultwarden)
+
+        val outcome =
+            pushEditedOrganizationCipher(
+                server = server,
+                localCollectionIds = setOf("collection-local"),
+                serverCollectionIds = setOf("collection-server"),
+            )
+
+        // A push never changes membership; the next sync corrects any drift.
+        assertEquals(setOf("collection-local"), outcome.local.collectionIds)
+        assertEquals(setOf("collection-local"), outcome.local.remoteEntity?.collectionIds)
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps the requested collections of a created organization cipher`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        fixture.crypto.appendOrganizationToken2(
+            id = "organization-1",
+            keyData = ByteArray(64) { index -> (index + 101).toByte() },
+        )
+        val collectionIds = setOf("collection-1", "collection-2")
+        val local = newTestCipher(fixture).copy(
+            organizationId = "organization-1",
+            collectionIds = collectionIds,
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        assertEquals(collectionIds, server.ciphers.getValue("cipher-created-1").collectionIds?.toSet())
+        assertEquals(collectionIds, outcome.local.collectionIds)
+        assertEquals(collectionIds, outcome.local.remoteEntity?.collectionIds)
+        assertEquals(listOf(HttpMethod.Post to "/api/ciphers/create"), server.requests.map { it.method to it.path })
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps organization collections from reservation fallback`() = runTest {
+        withTempUploadFile("organization fallback") { file, pendingUpload ->
+            val server = UploadTestServer()
+            val fixture = createProductionCipherOpsFixture(server)
+            fixture.crypto.appendOrganizationToken2(
+                id = "organization-1",
+                keyData = ByteArray(64) { index -> (index + 101).toByte() },
+            )
+            val collectionIds = setOf("collection-1", "collection-2")
+            val local =
+                testCipher(
+                    localId = "cipher-local-1",
+                    remoteId = "cipher-remote-1",
+                    localRevisionDate = T0,
+                    remoteRevisionDate = T0,
+                    attachments = listOf(
+                        BitwardenCipher.Attachment.Local(
+                            id = "attachment-local-1",
+                            url = "file://${file.absolutePath}",
+                            fileName = "fallback.bin",
+                            size = pendingUpload.encryptedSize,
+                            keyBase64 = fixture.base64Service.encodeToString(
+                                ByteArray(64) { index -> (index + 71).toByte() },
+                            ),
+                            pendingUpload = pendingUpload,
+                        ),
+                    ),
+                ).copy(
+                    keyBase64 = fixture.cipherKeyBase64(),
+                    organizationId = "organization-1",
+                    collectionIds = collectionIds,
+                )
+            server.seedCipher(
+                local.copy(attachments = emptyList())
+                    .toEncryptedCipherEntity(
+                        crypto = fixture.crypto,
+                        base64Service = fixture.base64Service,
+                    ),
+            )
+            server.nextCipherGetFailure = HttpStatusCode.InternalServerError
+            server.cipherGetFailureAfterSuccessfulGets = 1
+
+            val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+                fixture.ops.pushToServer(
+                    local = local,
+                    server = server.ciphers.getValue("cipher-remote-1"),
+                    force = false,
+                ),
+            )
+
+            assertEquals("attachment-created-1", outcome.local.attachments.single().id)
+            assertEquals(collectionIds, outcome.local.collectionIds)
+            assertEquals(collectionIds, outcome.local.remoteEntity?.collectionIds)
+            // The read-back after the upload failed, so the reservation response was used.
+            assertEquals(
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+                server.requests.last().let { it.method to it.path },
+            )
+        }
     }
 
     @Test
@@ -3617,6 +3766,48 @@ private class CipherUploadIntegrationOps(
         local: BitwardenCipher,
         server: CipherEntity,
     ): RemoteWriteOutcome<BitwardenCipher> = pushToServer(local, server, force = true)
+}
+
+/**
+ * Pushes an edit of an organization cipher in [localCollectionIds]
+ * whose server copy is in [serverCollectionIds].
+ */
+private suspend fun pushEditedOrganizationCipher(
+    server: UploadTestServer,
+    localCollectionIds: Set<String>,
+    serverCollectionIds: Set<String>,
+): RemoteWriteOutcome.Upsert<BitwardenCipher> {
+    val fixture = createProductionCipherOpsFixture(server)
+    fixture.crypto.appendOrganizationToken2(
+        id = "organization-1",
+        keyData = ByteArray(64) { index -> (index + 101).toByte() },
+    )
+    val local =
+        testCipher(
+            localId = "cipher-local-1",
+            remoteId = "cipher-remote-1",
+            localRevisionDate = T2,
+            remoteRevisionDate = T0,
+            attachments = emptyList(),
+        ).copy(
+            keyBase64 = fixture.cipherKeyBase64(),
+            organizationId = "organization-1",
+            collectionIds = localCollectionIds,
+        )
+    server.seedCipher(
+        local.copy(collectionIds = serverCollectionIds)
+            .toEncryptedCipherEntity(
+                crypto = fixture.crypto,
+                base64Service = fixture.base64Service,
+            ),
+    )
+    return assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+        fixture.ops.pushToServer(
+            local = local,
+            server = server.ciphers.getValue("cipher-remote-1"),
+            force = false,
+        ),
+    )
 }
 
 /** A cipher not yet created on the server. */

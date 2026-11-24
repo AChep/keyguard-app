@@ -171,6 +171,10 @@ compose.desktop {
                 // Automatically add a shortcut to the desktop:
                 // https://github.com/JetBrains/compose-multiplatform/issues/1974
                 shortcut = true
+                // Add a Start menu shortcut. An empty group places it directly
+                // in the Programs folder; jpackage defaults to `Unknown`.
+                menu = true
+                menuGroup = ""
 
                 // The UUID is used with `Windows Installer` to identify
                 // products, components, upgrades, and other key elements of the installation process.

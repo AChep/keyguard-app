@@ -16,6 +16,7 @@
         <Directory Id="INSTALLDIR" Name="Keyguard" />
       </Directory>
       <Directory Id="DesktopFolder" />
+      <Directory Id="ProgramMenuFolder" />
     </Directory>
     <Feature Id="MainFeature" Title="Keyguard" Level="1">
       <ComponentGroupRef Id="AppImage" />

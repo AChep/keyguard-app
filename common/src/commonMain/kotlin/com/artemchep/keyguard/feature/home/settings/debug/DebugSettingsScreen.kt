@@ -32,6 +32,7 @@ fun rememberSettingsDebugItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.EMIT_MESSAGE),
                     SettingPaneItem.Item(Setting.EMIT_TOTP),
+                    SettingPaneItem.Item(Setting.APPROVAL_PROMPT_SAMPLES),
                     SettingPaneItem.Item(Setting.CLEAR_CACHE),
                     SettingPaneItem.Item(Setting.RESET_WATCHTOWER_ALERTS),
                     SettingPaneItem.Item(Setting.UNREAD_WATCHTOWER_ALERTS),

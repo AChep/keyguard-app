@@ -47,6 +47,7 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCenter
+import com.artemchep.keyguard.common.service.agent.AgentApprovalSamples
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
 import com.artemchep.keyguard.common.service.browser.BrowserPasskeyPickers
 import com.artemchep.keyguard.common.service.cli.CliService
@@ -303,6 +304,8 @@ private class DesktopApplicationModule {
         single<DesktopSshAgentSocketPathProvider>() bind SshAgentSocketPathProvider::class
         single<GpgAgentManager>()
         single { CliAgentManager(get(), get(), get<CliAgentHost>()) }
+        // Sample prompts for Settings › Development.
+        single<AgentApprovalSamples>()
         single {
             AgentApprovalCenter(
                 ssh = get<SshAgentManager>().approvals,
@@ -311,6 +314,7 @@ private class DesktopApplicationModule {
                 cli = get<CliService>(),
                 browser = get<BrowserExtensionService>(),
                 passkeys = get<WindowsPasskeyService>(),
+                samples = get<AgentApprovalSamples>(),
                 scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
             )
         }

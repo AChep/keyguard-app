@@ -30,6 +30,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegr
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppUpdateDelayProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppUpdateLevelProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingApprovalPromptSamplesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
@@ -246,6 +247,7 @@ object Setting {
     const val REQUIRE_MASTER_PASSWORD = "require_master_password"
     const val EMIT_MESSAGE = "emit_message"
     const val EMIT_TOTP = "emit_totp"
+    const val APPROVAL_PROMPT_SAMPLES = "approval_prompt_samples"
     const val AUTOTYPE_SPEED = "autotype_speed"
     const val FEEDBACK_APP = "feedback_app"
     const val REDDIT = "reddit"
@@ -416,6 +418,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.REQUIRE_MASTER_PASSWORD to ::settingRequireMasterPasswordProvider,
     Setting.EMIT_MESSAGE to ::settingEmitMessageProvider,
     Setting.EMIT_TOTP to ::settingEmitTotpProvider,
+    Setting.APPROVAL_PROMPT_SAMPLES to ::settingApprovalPromptSamplesProvider,
     Setting.AUTOTYPE_SPEED to ::settingAutotypeSpeedProvider,
     Setting.FEEDBACK_APP to ::settingFeedbackAppProvider,
     Setting.ABOUT_APP to ::settingAboutAppProvider,

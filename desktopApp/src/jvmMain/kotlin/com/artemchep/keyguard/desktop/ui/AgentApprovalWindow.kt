@@ -79,42 +79,76 @@ internal fun ApplicationScope.AgentApprovalWindow(
         authReason = chrome.authReason,
         focusTag = "AgentApprovalWindow",
     ) { prompt, onDecision ->
-        when (prompt) {
-            is AgentPrompt.Ssh -> SshAgentApprovalContent(
-                request = prompt.request,
-                onDecision = onDecision,
-            )
+        AgentPromptContent(
+            prompt = prompt,
+            environmentRepository = environmentRepository,
+            environmentAccess = environmentAccess,
+            cli = cli,
+            browser = browser,
+            passkeys = passkeys,
+            onDecision = onDecision,
+        )
+    }
+}
 
-            is AgentPrompt.Gpg -> GpgAgentApprovalContent(
-                request = prompt.request,
-                onDecision = onDecision,
-            )
+/** The body of the [prompt]. */
+@Composable
+private fun AgentPromptContent(
+    prompt: AgentPrompt,
+    environmentRepository: EnvironmentRepository,
+    environmentAccess: EnvironmentAccess,
+    cli: CliService,
+    browser: BrowserExtensionService,
+    passkeys: PasskeyApprovals,
+    onDecision: (approved: Boolean, reason: String) -> Unit,
+) {
+    when (prompt) {
+        is AgentPrompt.Ssh -> SshAgentApprovalContent(
+            request = prompt.request,
+            onDecision = onDecision,
+        )
 
-            is AgentPrompt.Environment -> EnvironmentApprovalPrompt(
-                repository = environmentRepository,
-                access = environmentAccess,
-                request = prompt.request,
-                onDecision = onDecision,
-            )
+        is AgentPrompt.Gpg -> GpgAgentApprovalContent(
+            request = prompt.request,
+            onDecision = onDecision,
+        )
 
-            is AgentPrompt.Cli -> CliApprovalPrompt(
-                service = cli,
-                request = prompt.request,
-                onDecision = onDecision,
-            )
+        is AgentPrompt.Environment -> EnvironmentApprovalPrompt(
+            repository = environmentRepository,
+            access = environmentAccess,
+            request = prompt.request,
+            onDecision = onDecision,
+        )
 
-            is AgentPrompt.Browser -> BrowserApprovalPrompt(
-                service = browser,
-                request = prompt.request,
-                onDecision = onDecision,
-            )
+        is AgentPrompt.Cli -> CliApprovalPrompt(
+            service = cli,
+            request = prompt.request,
+            onDecision = onDecision,
+        )
 
-            is AgentPrompt.Passkey -> PasskeyApprovalPrompt(
-                approvals = passkeys,
-                request = prompt.request,
-                onDecision = onDecision,
-            )
-        }
+        is AgentPrompt.Browser -> BrowserApprovalPrompt(
+            service = browser,
+            request = prompt.request,
+            onDecision = onDecision,
+        )
+
+        is AgentPrompt.Passkey -> PasskeyApprovalPrompt(
+            approvals = passkeys,
+            request = prompt.request,
+            onDecision = onDecision,
+        )
+
+        // No agent tracks a sample, so it goes to services that change nothing.
+        is AgentPrompt.Sample -> AgentPromptContent(
+            prompt = prompt.prompt,
+            environmentRepository = environmentRepository,
+            // A sample names no environment, so it needs no access to one.
+            environmentAccess = environmentAccess,
+            cli = SampleCliService,
+            browser = SampleBrowserExtensionService,
+            passkeys = SamplePasskeyApprovals,
+            onDecision = onDecision,
+        )
     }
 }
 
@@ -154,4 +188,6 @@ private fun agentPromptChrome(prompt: AgentPrompt): AgentPromptChrome = when (pr
         title = stringResource(Res.string.passkeys),
         authReason = TextHolder.Value(prompt.request.rpId),
     )
+
+    is AgentPrompt.Sample -> agentPromptChrome(prompt.prompt)
 }

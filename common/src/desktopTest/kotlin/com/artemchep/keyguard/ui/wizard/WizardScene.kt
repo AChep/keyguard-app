@@ -10,7 +10,12 @@ import androidx.compose.ui.use
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 
-/** Renders a settled frame to [folder] and runs [check] while the semantics tree is attached. */
+/**
+ * Renders a settled frame to [folder] and runs [check] while the semantics tree is attached.
+ *
+ * @param beforeSettle Runs between the first and the settled frame, for
+ *   example to move a virtual clock.
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 internal fun renderScene(
     folder: String,
@@ -19,6 +24,7 @@ internal fun renderScene(
     height: Int,
     fontScale: Float,
     rtl: Boolean,
+    beforeSettle: () -> Unit = {},
     content: @Composable () -> Unit,
     check: (List<SemanticsNode>) -> Unit,
 ) {
@@ -30,6 +36,7 @@ internal fun renderScene(
         content = content,
     ).use { scene ->
         scene.render(0).close()
+        beforeSettle()
         scene.render(1_000_000_000).use { image ->
             val dir = File(folder).apply { mkdirs() }
             image.encodeToData(EncodedImageFormat.PNG)!!.use { data ->

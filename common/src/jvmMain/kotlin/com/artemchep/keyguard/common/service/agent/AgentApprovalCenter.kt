@@ -51,6 +51,12 @@ sealed interface AgentPrompt {
         override val id: String get() = request.id
         override val expiresAt: Instant get() = request.expiresAt
     }
+
+    /** A sample [prompt] from [AgentApprovalSamples]: it shows as the prompt, and no agent waits for it. */
+    data class Sample(val prompt: AgentPrompt) : AgentPrompt {
+        override val id: String get() = prompt.id
+        override val expiresAt: Instant get() = prompt.expiresAt
+    }
 }
 
 /**
@@ -65,6 +71,7 @@ class AgentApprovalCenter(
     private val cli: CliService,
     private val browser: BrowserExtensionService,
     private val passkeys: PasskeyApprovals,
+    private val samples: AgentApprovalSamples,
     scope: CoroutineScope,
 ) {
     /** The pending prompts, oldest first. */
@@ -78,11 +85,13 @@ class AgentApprovalCenter(
         cli.approvals,
         browser.approvals,
         passkeys.approvals,
-    ) { agentPrompts, cliPrompts, browserPrompts, passkeyPrompts ->
+        samples.pending,
+    ) { agentPrompts, cliPrompts, browserPrompts, passkeyPrompts, samplePrompts ->
         val prompts = agentPrompts +
             cliPrompts.map(AgentPrompt::Cli) +
             browserPrompts.map(AgentPrompt::Browser) +
-            passkeyPrompts.map(AgentPrompt::Passkey)
+            passkeyPrompts.map(AgentPrompt::Passkey) +
+            samplePrompts
         // The prompt that expires first is shown first.
         prompts.sortedBy { it.expiresAt }
     }.stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -93,7 +102,8 @@ class AgentApprovalCenter(
 
     /** Answers the prompt [id] of whichever agent owns it; `false` if it is no longer pending. */
     fun respond(id: String, approved: Boolean): Boolean =
-        ssh.respond(id, approved) ||
+        samples.respond(id, approved) ||
+            ssh.respond(id, approved) ||
             gpg.respond(id, approved) ||
             environments.respondToApproval(id, approved) ||
             cli.respondToApproval(id, approved) ||

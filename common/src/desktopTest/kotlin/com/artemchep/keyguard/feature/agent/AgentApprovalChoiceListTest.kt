@@ -88,6 +88,7 @@ class AgentApprovalChoiceListTest {
         ) {
             val node = nodeWithText("GitHub")
             assertEquals(listOf("GitHub", "artem • Personal"), node.texts())
+            assertTrue(SemanticsProperties.Disabled !in node.config)
             assertNull(node.config.getOrNull(SemanticsProperties.Role))
             assertNull(node.config.getOrNull(SemanticsProperties.Selected))
         }

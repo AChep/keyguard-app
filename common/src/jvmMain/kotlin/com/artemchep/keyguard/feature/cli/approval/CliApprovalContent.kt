@@ -24,8 +24,8 @@ import com.artemchep.keyguard.common.service.cli.CliOperation
 import com.artemchep.keyguard.common.service.cli.displayCommand
 import com.artemchep.keyguard.common.service.cli.displayWorkingDirectory
 import com.artemchep.keyguard.feature.agent.AgentApprovalDialog
+import com.artemchep.keyguard.feature.agent.AgentApprovalItem
 import com.artemchep.keyguard.feature.agent.rememberAgentApprovalCallerInfo
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cli_approval_run_note
 import com.artemchep.keyguard.res.cli_approval_run_terminal_note
@@ -36,7 +36,6 @@ import com.artemchep.keyguard.res.environments_approval_message_unknown_app
 import com.artemchep.keyguard.res.environments_approval_title
 import com.artemchep.keyguard.res.ipc_approval_approve
 import com.artemchep.keyguard.res.ipc_approval_deny
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.text.annotatedResource
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -131,34 +130,33 @@ private fun CliApprovalNote(
 private fun CliRunItem(
     operation: CliOperation.Run,
 ) {
-    FlatItemLayoutExpressive(
+    val command = remember(operation.command) {
+        operation.displayCommand()
+    }
+    val workingDirectory = remember(operation.workingDirectory) {
+        operation.displayWorkingDirectory()
+    }
+    val subtitle = listOfNotNull(operation.environmentName, operation.accountName)
+        .joinToString(separator = " • ")
+    AgentApprovalItem(
         leading = {
             Icon(
                 imageVector = Icons.Outlined.Terminal,
                 contentDescription = null,
             )
         },
-        content = {
-            val subtitle = listOfNotNull(operation.environmentName, operation.accountName)
-                .joinToString(separator = " • ")
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.cli_capability_run),
-                    )
-                },
-                text = if (subtitle.isNotEmpty()) {
-                    // composable
-                    {
-                        Text(
-                            text = subtitle,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
-            CliRunDetails(operation)
+        title = stringResource(Res.string.cli_capability_run),
+        text = subtitle.takeIf { it.isNotEmpty() },
+        details = if (command != null || workingDirectory != null) {
+            // composable
+            {
+                CliRunDetails(
+                    command = command,
+                    workingDirectory = workingDirectory,
+                )
+            }
+        } else {
+            null
         },
     )
 }
@@ -166,14 +164,9 @@ private fun CliRunItem(
 /** The command `keyguard run` starts, and where. */
 @Composable
 private fun CliRunDetails(
-    operation: CliOperation.Run,
+    command: String?,
+    workingDirectory: String?,
 ) {
-    val command = remember(operation.command) {
-        operation.displayCommand()
-    }
-    val workingDirectory = remember(operation.workingDirectory) {
-        operation.displayWorkingDirectory()
-    }
     if (command != null) {
         Spacer(modifier = Modifier.height(4.dp))
         Text(

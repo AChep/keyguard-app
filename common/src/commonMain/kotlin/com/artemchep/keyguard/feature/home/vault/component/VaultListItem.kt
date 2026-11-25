@@ -77,6 +77,7 @@ import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -1057,20 +1058,6 @@ fun FlatItemLayoutExpressive(
                 drawRect(color)
             }
     }
-    val clickable = run {
-        val onClickState = rememberUpdatedState(onClick)
-        Modifier
-            .combinedClickable(
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-                enabled = onClick != null,
-                onLongClick = onLongClick,
-            ) {
-                onClickState.value?.invoke()
-            }
-            .rightClickable(onLongClick)
-    }
-
     val shape: Shape = surfaceShape(
         shapeState = shapeState,
         expressive = expressive,
@@ -1109,7 +1096,12 @@ fun FlatItemLayoutExpressive(
         Row(
             modifier = rowModifier
                 .fillMaxWidth()
-                .then(clickable)
+                .flatItemClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    enabled = enabled,
+                    interactionSource = interactionSource,
+                )
                 .minimumInteractiveComponentSize()
                 .padding(
                     horizontal = innerHorizontalPadding,
@@ -1151,6 +1143,36 @@ fun FlatItemLayoutExpressive(
             footer()
         }
     }
+}
+
+/**
+ * Clicks of a flat item. An item with nothing to click is not clickable,
+ * and is reported as disabled only if not [enabled].
+ */
+@Composable
+private fun Modifier.flatItemClickable(
+    onClick: (() -> Unit)?,
+    onLongClick: (() -> Unit)?,
+    enabled: Boolean,
+    interactionSource: MutableInteractionSource?,
+): Modifier {
+    val onClickState = rememberUpdatedState(onClick)
+    if (onClick == null && onLongClick == null) {
+        return this
+            .semantics(mergeDescendants = true) {
+                if (!enabled) disabled()
+            }
+    }
+    return this
+        .combinedClickable(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current,
+            enabled = onClick != null,
+            onLongClick = onLongClick,
+        ) {
+            onClickState.value?.invoke()
+        }
+        .rightClickable(onLongClick)
 }
 
 @Composable

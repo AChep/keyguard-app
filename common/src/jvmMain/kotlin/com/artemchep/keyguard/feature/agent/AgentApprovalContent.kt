@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.agent
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -32,17 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.service.agent.AgentRequest
 import com.artemchep.keyguard.common.usecase.GetCiphers
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
 import com.artemchep.keyguard.res.ok
-import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FingerprintPlaneta
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
-import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.rememberCountdownText
 import com.artemchep.keyguard.ui.text.annotatedResource
@@ -85,10 +80,6 @@ fun AgentApprovalContent(
     keyIcon: @Composable RowScope.() -> Unit = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
     onDecision: (approved: Boolean, reason: String) -> Unit,
 ) {
-    var showKeyDetails by remember {
-        mutableStateOf(false)
-    }
-
     val protocolName = stringResource(protocol)
     val callerInfo = rememberAgentApprovalCallerInfo(request.caller)
     AgentApprovalDialog(
@@ -127,43 +118,20 @@ fun AgentApprovalContent(
             onDecision(true, "approval_dialog_confirm")
         },
     ) {
-        FlatItemLayoutExpressive(
+        val cipherName = rememberCipherName(
+            cipherId = cipherId,
+            initialValue = keyName,
+        )
+        AgentApprovalItem(
             leading = keyIcon,
-            content = {
-                val cipherName = rememberCipherName(
-                    cipherId = cipherId,
-                    initialValue = keyName,
+            title = cipherName,
+            details = {
+                Text(
+                    text = keyFingerprint,
+                    fontFamily = FontFamily.Monospace,
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
                 )
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = cipherName,
-                        )
-                    },
-                )
-                ExpandedIfNotEmpty(
-                    keyFingerprint.takeIf { showKeyDetails },
-                ) { fingerprint ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = fingerprint,
-                            fontFamily = FontFamily.Monospace,
-                            color = LocalContentColor.current
-                                .combineAlpha(MediumEmphasisAlpha),
-                        )
-                    }
-                }
-            },
-            trailing = {
-                DropdownIcon(
-                    expanded = showKeyDetails,
-                )
-            },
-            onClick = {
-                showKeyDetails = !showKeyDetails
             },
         )
     }

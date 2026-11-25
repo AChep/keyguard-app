@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.agent
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
@@ -54,14 +55,15 @@ fun ColumnScope.AgentApprovalChoiceList(
     val single = items.singleOrNull()
     if (single != null) {
         // As an approval prompt shows the one item it releases.
-        AgentApprovalChoiceRow(
-            item = single,
+        AgentApprovalItem(
             leading = {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                 )
             },
+            title = single.title,
+            text = single.text,
         )
         return
     }
@@ -97,15 +99,13 @@ fun ColumnScope.AgentApprovalChoiceList(
 @Composable
 private fun AgentApprovalChoiceRow(
     item: AgentApprovalChoiceItem,
-    leading: @Composable () -> Unit,
-    rowModifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
+    leading: @Composable RowScope.() -> Unit,
+    rowModifier: Modifier,
+    onClick: (() -> Unit)?,
 ) {
     FlatItemLayoutExpressive(
         rowModifier = rowModifier,
-        leading = {
-            leading()
-        },
+        leading = leading,
         content = {
             FlatItemTextContent(
                 title = {

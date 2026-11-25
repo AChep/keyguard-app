@@ -32,8 +32,8 @@ import com.artemchep.keyguard.common.service.environment.EnvironmentCallerIdenti
 import com.artemchep.keyguard.common.service.environment.EnvironmentCapability
 import com.artemchep.keyguard.common.service.environment.EnvironmentCatalog
 import com.artemchep.keyguard.feature.agent.AgentApprovalDialog
+import com.artemchep.keyguard.feature.agent.AgentApprovalItem
 import com.artemchep.keyguard.feature.agent.rememberAgentApprovalCallerInfo
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.environments_approval_client
 import com.artemchep.keyguard.res.environments_approval_local_file_note
@@ -52,7 +52,6 @@ import com.artemchep.keyguard.res.environments_capability_update
 import com.artemchep.keyguard.res.environments_capability_variables
 import com.artemchep.keyguard.res.ipc_approval_approve
 import com.artemchep.keyguard.res.ipc_approval_deny
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.text.annotatedResource
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -177,34 +176,22 @@ private fun EnvironmentApprovalRequestItem(
     val accountName = state.accounts
         .firstOrNull { it.id == accountId }
         ?.name
-    FlatItemLayoutExpressive(
+    val subtitle = listOfNotNull(environmentName, accountName)
+        .joinToString(separator = " • ")
+    AgentApprovalItem(
         leading = {
             Icon(
                 imageVector = environmentCapabilityIcon(request.capability),
                 contentDescription = null,
             )
         },
-        content = {
-            val subtitle = listOfNotNull(environmentName, accountName)
-                .joinToString(separator = " • ")
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(environmentCapabilityLabel(request.capability)),
-                    )
-                },
-                text = if (subtitle.isNotEmpty()) {
-                    // composable
-                    {
-                        Text(
-                            text = subtitle,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
-            EnvironmentApprovalRequestDetails(request)
+        title = stringResource(environmentCapabilityLabel(request.capability)),
+        text = subtitle.takeIf { it.isNotEmpty() },
+        details = request.path?.let { path ->
+            // composable
+            {
+                EnvironmentApprovalRequestDetails(path)
+            }
         },
     )
 }
@@ -212,9 +199,8 @@ private fun EnvironmentApprovalRequestItem(
 /** The path of a local `.env` file. */
 @Composable
 private fun EnvironmentApprovalRequestDetails(
-    request: EnvironmentApprovalRequest,
+    path: String,
 ) {
-    val path = request.path ?: return
     Spacer(modifier = Modifier.height(4.dp))
     Text(
         text = path,

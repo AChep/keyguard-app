@@ -3256,6 +3256,8 @@
     <string name="browser_extension_command_fill_login">Fill the login</string>
     <string name="browser_extension_menu_generate_password">Generate password</string>
     <string name="browser_extension_menu_fill_totp">Fill one-time password</string>
+    <!-- Browser extension: the popup button and the inline menu row that open the app's window with a new login for the page -->
+    <string name="browser_extension_new_login">New login</string>
     <!-- Browser extension: marks the login filled last on the tab, listed first on the next step of a sign-in -->
     <string name="browser_extension_last_used">Last used</string>
     <!-- Browser extension: the popup searches the whole vault -->

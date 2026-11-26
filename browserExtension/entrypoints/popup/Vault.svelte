@@ -48,6 +48,9 @@
   /** The row picked in a list; another list selects its first row. */
   let picked = $state.raw<{ list: Item[]; handle: string } | null>(null);
   let generatorOpen = $state(false);
+  /** Whether "New login" runs, and the error of its last run. */
+  let creating = $state(false);
+  let createError = $state<string | null>(null);
   /** Narrow: the details cover the list. */
   let detailOpen = $state(false);
   const narrow = new MediaQuery(NARROW_QUERY);
@@ -93,6 +96,8 @@
   $effect(() => field?.focus());
 
   const pageIcon = $derived(page?.kind === "items" ? page.icon : null);
+  /** The origin of the page "New login" is for, if offered. */
+  const createOrigin = $derived(page?.kind === "items" && page.create ? page.origin : null);
   const last = $derived(page?.kind === "items" ? page.last : null);
   const searchDisabled = $derived(page?.kind === "unsupported" || page?.kind === "blocked");
 
@@ -227,20 +232,27 @@
 
   // The actions, as the popup always had them.
 
+  /** The text of a failed call, `null` for none. */
+  function failureText(failure: unknown): string | null {
+    const code = callErrorCode(failure);
+    // The tab shows another page than the list's: the list follows it.
+    if (code === "origin" && typeof tabId === "number") {
+      loadPage(tabId);
+      searcher.refresh();
+    }
+    // The tab closed or left the page while the app asked: no failure.
+    return code === "cancelled" ? null : errorText(code);
+  }
+
   async function act(item: Item, action: PopupAction | UriCopy, body: () => Promise<void>) {
     busy = { handle: item.handle, action };
     error = null;
+    createError = null;
     try {
       await body();
     } catch (failure) {
-      const code = callErrorCode(failure);
-      // The tab closed or left the page while the app asked: no failure.
-      if (code !== "cancelled") error = { handle: item.handle, text: errorText(code) };
-      // The tab shows another page than the list's: the list follows it.
-      if (code === "origin" && typeof tabId === "number") {
-        loadPage(tabId);
-        searcher.refresh();
-      }
+      const text = failureText(failure);
+      if (text !== null) error = { handle: item.handle, text };
     } finally {
       busy = null;
     }
@@ -255,7 +267,7 @@
 
   function run(item: Item, action: PopupAction) {
     // One action at a time, though only its own item's buttons show it running.
-    if (busy !== null || typeof tabId !== "number" || listOrigin === null) return;
+    if (busy !== null || creating || typeof tabId !== "number" || listOrigin === null) return;
     const args = { tabId, handle: item.handle, origin: listOrigin };
     switch (action) {
       case "fill":
@@ -280,11 +292,28 @@
     }
   }
 
+  /** The app opens its Save login window with a new login for the page; the popup closes. */
+  async function create() {
+    // One action at a time, as for [run].
+    if (busy !== null || creating || typeof tabId !== "number" || createOrigin === null) return;
+    creating = true;
+    error = null;
+    createError = null;
+    try {
+      await client.call("create", { tabId, origin: createOrigin });
+      window.close();
+    } catch (failure) {
+      createError = failureText(failure);
+    } finally {
+      creating = false;
+    }
+  }
+
   /** Copies linked URI [uri] of [item], as the username: no approval. */
   function copyUri(item: Item, uri: UriCopy) {
     // As the detail pane lists them: only a page's suggestions have URIs.
     const value = "uris" in item ? itemDetailsOf(item).uris[uri.uri] : undefined;
-    if (busy !== null || value === undefined) return;
+    if (busy !== null || creating || value === undefined) return;
     return act(item, uri, () => copy(value));
   }
 
@@ -329,6 +358,17 @@
         if (event.defaultPrevented) detailOpen = false;
       }}
     />
+    {#if createOrigin !== null}
+      <button
+        class="icon-btn"
+        aria-label={t("browser_extension_new_login")}
+        title={t("browser_extension_new_login")}
+        disabled={busy !== null || creating}
+        onclick={() => void create()}
+      >
+        <Icon name="add" />
+      </button>
+    {/if}
     {#if PASSWORD_GENERATOR}
       <button
         class="icon-btn"
@@ -395,6 +435,9 @@
     </section>
   </div>
 
+  {#if createError}
+    <p class="banner strip-banner" role="alert"><Icon name="error_outline" />{createError}</p>
+  {/if}
   {#if selectedError && errorOverStrip}
     <p class="banner strip-banner" role="alert"><Icon name="error_outline" />{selectedError}</p>
   {/if}

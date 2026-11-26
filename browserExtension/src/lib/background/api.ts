@@ -50,7 +50,8 @@ export type PageSuggestions =
    * [matchedFirst]. `last`: the handle of the login filled last on the tab,
    * listed first of its section, for the next step of a sign-in. `icon`: the
    * URL of the icon of the page's site, for these logins, see ./siteIcon.ts;
-   * `null` for none.
+   * `null` for none. `create`: whether the popup offers "New login", see the
+   * call `create`.
    */
   | {
       kind: "items";
@@ -60,6 +61,7 @@ export type PageSuggestions =
       items: SuggestItem[];
       last: string | null;
       icon: string | null;
+      create: boolean;
     };
 
 /**
@@ -90,6 +92,11 @@ export interface Calls {
    */
   fill: [{ tabId: number; handle: string; origin: string }, null];
   /**
+   * The app opens its Save login window with a new login for the tab's page.
+   * `origin` as for `fill`.
+   */
+  create: [{ tabId: number; origin: string }, null];
+  /**
    * The background copies: the app's approval prompt takes focus and closes
    * the popup, which would lose its own write. `origin` as for `fill`.
    */
@@ -104,7 +111,7 @@ export type CallResult<M extends CallMethod> = Calls[M][1];
 /** What answers each call. */
 export type CallHandlers = { readonly [M in CallMethod]: (args: CallArgs<M>) => Promise<CallResult<M>> };
 /** The calls about a tab's page, which PageController answers; BackgroundController answers the rest. */
-export type PageCallMethod = "suggest" | "search" | "fill";
+export type PageCallMethod = "suggest" | "search" | "fill" | "create";
 
 export type PopupMessage = { kind: "call"; id: number; method: CallMethod; args: unknown };
 

@@ -363,6 +363,20 @@
   {#if error}
     <p class="banner" role="alert"><Icon name="error_outline" />{error}</p>
   {/if}
+  {#if view.kind === "items" && view.create}
+    <!-- A panel of its own, as the popup's action strip: it stays in view while the rows scroll. -->
+    <div class="footer action-strip">
+      <button
+        class="action-badge state-layer"
+        role="menuitem"
+        disabled={busy}
+        onclick={(event) => act(event, { kind: "create" })}
+      >
+        <Icon name="add" size={16} />
+        {t("browser_extension_new_login")}
+      </button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -532,6 +546,14 @@
 
   .banner {
     margin: 4px;
+  }
+
+  /* Edge to edge at the frame's bottom, past the menu's padding. */
+  .footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: 2px -4px -4px;
   }
 
   .sr-only {

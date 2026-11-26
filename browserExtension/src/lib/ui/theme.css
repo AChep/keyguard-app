@@ -422,6 +422,44 @@ a {
 }
 
 /*
+ * Action strips: a bar of clickable SmartBadges at the bottom of a surface, as
+ * the app's Quick search footer (QuickSearchActionStrip): an 8px-round tint,
+ * 8px padding.
+ */
+
+.action-strip {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  padding: 8px;
+  overflow-x: auto;
+  background: var(--surface-container-high);
+  scrollbar-width: none;
+}
+
+.action-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--shape-sm);
+  background: color-mix(in srgb, var(--surface-tint) 5%, transparent);
+  font: var(--type-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+  white-space: nowrap;
+}
+
+.action-badge:disabled {
+  color: color-mix(in srgb, var(--on-surface) var(--disabled-content), transparent);
+}
+
+.action-badge > .icon,
+.action-badge > .indicator {
+  align-self: center;
+}
+
+/*
  * Chips: small labels, as the app's SmartBadge and organization labels. Plain
  * `.chip` is the neutral badge; the variants are tonal.
  */

@@ -45,11 +45,11 @@
   }
 </script>
 
-<div class="strip" {@attach scrollWithWheel}>
+<div class="action-strip" {@attach scrollWithWheel}>
   {#each actions as action (action)}
     <!-- Fill, the default action, comes first in the primary color. -->
     <button
-      class={["badge state-layer", { primary: action === "fill", busy: busy === action }]}
+      class={["action-badge state-layer", { primary: action === "fill", busy: busy === action }]}
       disabled={busy !== null}
       aria-keyshortcuts={ariaKeyShortcuts(SHORTCUTS[action], mac)}
       onclick={() => onaction(action)}
@@ -69,51 +69,20 @@
 </div>
 
 <style>
-  .strip {
-    display: flex;
-    flex-shrink: 0;
-    gap: 8px;
-    padding: 8px;
-    overflow-x: auto;
-    background: var(--surface-container-high);
-    scrollbar-width: none;
-  }
-
-  /* SmartBadge, clickable: an 8px-round tint, 8px padding. */
-  .badge {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: baseline;
-    gap: 8px;
-    padding: 8px;
-    border-radius: var(--shape-sm);
-    background: color-mix(in srgb, var(--surface-tint) 5%, transparent);
-    font: var(--type-body-medium);
-    letter-spacing: var(--tracking-body-medium);
-    white-space: nowrap;
-  }
-
-  .badge:disabled {
-    color: color-mix(in srgb, var(--on-surface) var(--disabled-content), transparent);
-  }
-
-  .badge.primary {
+  /* Fill, the default action: theme.css's .action-badge in the primary color. */
+  .action-badge.primary {
     background: var(--primary);
     color: var(--on-primary);
   }
 
   /* While another action runs; while Fill runs, its chip keeps its color for the indicator. */
-  .badge.primary:disabled:not(.busy) {
+  .action-badge.primary:disabled:not(.busy) {
     background: color-mix(in srgb, var(--on-surface) var(--disabled-container), transparent);
     color: color-mix(in srgb, var(--on-surface) var(--disabled-content), transparent);
   }
 
-  .badge.primary :global(.indicator) {
+  .action-badge.primary :global(.indicator) {
     color: var(--on-primary);
-  }
-
-  .badge :global(.indicator) {
-    align-self: center;
   }
 
   .shortcut {

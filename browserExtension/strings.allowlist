@@ -75,6 +75,7 @@ close
 # Inline menu
 browser_extension_menu_generate_password
 browser_extension_menu_fill_totp
+browser_extension_new_login
 passkey
 passkey_unknown_username
 linked_uri

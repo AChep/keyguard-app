@@ -879,6 +879,7 @@ describe("BackgroundController", () => {
       items: [items[1], items[0]].map((item) => ({ ...item, matched: true })),
       last: "h2",
       icon: `${ORIGIN}_favicon/?pageUrl=https%3A%2F%2Flogin.example.com%2Fsign-in%3Fnext%3D1&size=32`,
+      create: true,
     });
   });
 

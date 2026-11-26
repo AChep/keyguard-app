@@ -453,6 +453,7 @@ export class PageController {
     suggest: ({ tabId }) => this.suggest(tabId),
     search: ({ tabId, query }) => this.search(tabId, query),
     fill: ({ tabId, handle, origin }) => this.fillPopup(tabId, handle, origin),
+    create: ({ tabId, origin }) => this.createPopup(tabId, origin),
   };
 
   private readonly menuPage: EmbeddedPage<MenuSession, MenuRequest> = {
@@ -920,6 +921,7 @@ export class PageController {
       totp: remembered === null ? null : toMenuItem(remembered),
       passkeys: keys,
       icon,
+      create: this.canCreate(response),
     });
   }
 
@@ -1021,6 +1023,17 @@ export class PageController {
             signal,
           );
           await this.fill(frame, { kind: "fill_password", target: "menu", password });
+        });
+      case "create":
+        // Offered for the page the menu shows.
+        if (menu.shown.kind !== "items" || !menu.shown.create) {
+          return this.post(menu.port, { kind: "error", error: "invalid_request" });
+        }
+        return this.act(menu, async (signal) => {
+          if (!(await this.guardMenu(menu))) return;
+          await this.createLogin(menu.frame.url, menu.frame.privateWindow, signal);
+          // The app's window takes over.
+          this.end(menu, { notify: true });
         });
       case "unlock":
         return this.act(menu, async (signal) => {
@@ -1635,6 +1648,7 @@ export class PageController {
         items: matchedFirst(items),
         last,
         icon: await iconRequest,
+        create: this.canCreate(response),
       };
     });
   }
@@ -1693,11 +1707,25 @@ export class PageController {
    * The popup closes as the app prompts: the tab is what still waits.
    */
   private async fillPopup(tabId: number, handle: string, origin: unknown): Promise<null> {
-    const url = webUrl((await this.deps.tab(tabId)).url);
-    if (url === null) throw new CallFailure("unsupported_page");
-    if (url.origin !== origin) throw new CallFailure("origin");
+    const { url } = await this.popupPage(tabId, origin);
     await this.deps.tabs.run(tabId, url.href, (signal) => this.fillTab(tabId, url.href, handle, signal));
     return null;
+  }
+
+  /** The popup's "New login", for the page of [origin] it listed the logins for, as [fillPopup]. */
+  private async createPopup(tabId: number, origin: unknown): Promise<null> {
+    const { url, incognito } = await this.popupPage(tabId, origin);
+    await this.deps.tabs.run(tabId, url.href, (signal) => this.createLogin(url.href, incognito, signal));
+    return null;
+  }
+
+  /** The tab's page for an action of the popup, which listed the page of [origin]: another one fails with `origin`. */
+  private async popupPage(tabId: number, origin: unknown): Promise<{ url: URL; incognito: boolean | undefined }> {
+    const info = await this.deps.tab(tabId);
+    const url = webUrl(info.url);
+    if (url === null) throw new CallFailure("unsupported_page");
+    if (url.origin !== origin) throw new CallFailure("origin");
+    return { url, incognito: info.incognito };
   }
 
   // endregion
@@ -1858,7 +1886,23 @@ export class PageController {
     if (this.saveBars.has(bar) && this.pendingSave(tabId) === null) this.end(bar, { notify: true });
   }
 
-  /** A request of the save bar: when the vault locked since the offer, it unlocks and asks again. */
+  /**
+   * Whether "New login" shows for the page of a `suggest` [response]: the app
+   * refuses a `save` where saving is blocked.
+   */
+  private canCreate(response: ResponseOf<"suggest">): boolean {
+    return this.deps.app.supports("save") && !response.save_blocked;
+  }
+
+  /**
+   * "New login" of the popup or the inline menu: a `save` with the page's URL
+   * alone, for which the app opens its Save login window with a new login.
+   */
+  private async createLogin(url: string, isPrivate: boolean | undefined, signal: AbortSignal) {
+    await this.requestUnlocked("save", { url, ...privateWindow(isPrivate) }, signal);
+  }
+
+  /** A request that needs the vault unlocked: when the vault locked meanwhile, it unlocks and asks again. */
   private async requestUnlocked<T extends RequestType>(
     type: T,
     fields: RequestOf<T>,

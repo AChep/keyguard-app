@@ -61,8 +61,7 @@ The sandbox hides the connector's process from Keyguard. Prompts show
 1. On a sign-in page, select the Keyguard icon in the username or password
    field.
 2. Select a login.
-3. If Keyguard asks, select **Approve**. The extension fills the username and
-   password.
+3. If Keyguard asks, select **Approve**.
 
 You can also select a login in the popup, then **Fill**. Or press
 Ctrl+Shift+L (Cmd+Shift+L on macOS). The browser's shortcut settings change
@@ -92,8 +91,8 @@ fills the code too. In the popup, **Copy one-time password** copies it.
 After you sign in or sign up, the extension asks "Save this login in
 Keyguard?".
 
-1. Select **Save**. Keyguard opens the **Save login** window, with a new login
-   or the matching one with the new password.
+1. Select **Save**, or **New login** in the popup or inline menu. The **Save
+   login** window shows a new login, or the matching one with the new password.
 2. Check the fields, then select **Save**.
 
 **Never for this site** adds the site to [Blocked URIs](/docs/blocked-uris/)

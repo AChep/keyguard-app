@@ -400,6 +400,8 @@ export type MenuView =
       passkeys: MenuPasskey[];
       /** The URL of the icon of the page's site, for [items] and [totp], see ../background/siteIcon.ts; `null` for none. */
       icon: string | null;
+      /** Whether the menu offers "New login", see [MenuRequest] `create`. */
+      create: boolean;
     };
 
 export type MenuRequest =
@@ -411,6 +413,8 @@ export type MenuRequest =
   /** Answers the page's conditional request with a passkey. */
   | { kind: "passkey"; handle: string }
   | { kind: "generate" }
+  /** The app opens its Save login window with a new login for the page. */
+  | { kind: "create" }
   | { kind: "unlock" }
   | { kind: "close" }
   | { kind: "resize"; height: number }
@@ -707,6 +711,7 @@ export function parseMenuRequest(message: unknown): MenuRequest | null {
     case "passkey":
       return isHandle(message.handle) ? { kind: message.kind, handle: message.handle } : null;
     case "generate":
+    case "create":
     case "unlock":
     case "close":
     case "deselect":

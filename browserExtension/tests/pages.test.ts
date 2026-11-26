@@ -19,7 +19,13 @@ import {
 import type { NativeCryptoNoise } from "../src/lib/crypto/noise";
 import { loadNoise } from "../src/lib/crypto/wasm";
 import { OptionsStore } from "../src/lib/options/store";
-import { MENU_PORT, parseContentRequest, SAVE_BAR_PORT, type MenuView } from "../src/lib/page/messages";
+import {
+  MENU_PORT,
+  parseContentRequest,
+  parseMenuRequest,
+  SAVE_BAR_PORT,
+  type MenuView,
+} from "../src/lib/page/messages";
 import type { JsonObject } from "../src/lib/protocol/framing";
 import type { Capability, SuggestItem } from "../src/lib/protocol/messages";
 import { ProtocolError } from "../src/lib/protocol/session";
@@ -819,6 +825,75 @@ describe("inline menu", () => {
     });
   });
 
+  it("checks the page, then has the app open a new login of the page's URL alone, and closes", async () => {
+    expect(parseMenuRequest({ kind: "create", url: "https://evil.example/" })).toEqual({ kind: "create" });
+    const context = setup();
+    const { port } = await context.openMenu("username");
+    expect(port.lastView()).toMatchObject({ kind: "items", create: true });
+    port.emit({ kind: "create" });
+    await settle();
+    expect(context.requests.at(-1)).toEqual({ type: "save", url: LOGIN_URL });
+    expect(context.sent.map((it) => it.message.kind)).toEqual(["guard", "menu_close"]);
+    expect(port.disconnected).toBe(true);
+  });
+
+  it("asks for no new login under an overlay, and shows the app's refusal", async () => {
+    const context = setup();
+    const { port } = await context.openMenu("username");
+    context.state.contentScript = (message) =>
+      message.kind === "guard" ? { ok: false, reason: "obscured" } : undefined;
+    port.emit({ kind: "create" });
+    await settle();
+    expect(context.requests.filter((it) => it.type === "save")).toEqual([]);
+    expect(port.posted).toContainEqual({ kind: "error", error: "obscured" });
+
+    context.state.contentScript = () => ({ ok: true });
+    context.state.app = (request) => (request.type === "save" ? new ProtocolError("busy") : undefined);
+    port.emit({ kind: "create" });
+    await settle();
+    expect(port.posted.at(-2)).toEqual({ kind: "error", error: "busy" });
+    expect(port.disconnected).toBe(false);
+  });
+
+  it("unlocks first when the vault locked since the menu showed", async () => {
+    const context = setup();
+    const { port } = await context.openMenu("username");
+    let locked = true;
+    context.state.app = (request) =>
+      request.type === "save" && locked ? ((locked = false), new ProtocolError("vault_locked")) : undefined;
+    port.emit({ kind: "create" });
+    await settle();
+    expect(context.state.unlocks).toBe(1);
+    expect(context.requests.filter((it) => it.type === "save")).toHaveLength(2);
+    expect(port.disconnected).toBe(true);
+  });
+
+  it("offers no new login where saving is blocked or the app can't save, and refuses one", async () => {
+    const blocked = setup();
+    blocked.state.app = (request) =>
+      request.type === "suggest"
+        ? { blocked: false, save_blocked: true, truncated: false, items: [item("h1")] }
+        : undefined;
+    for (const [name, context] of [
+      ["saving blocked", blocked],
+      ["no save capability", setup({ capabilities: [] })],
+    ] as const) {
+      const { port } = await context.openMenu("username");
+      expect(port.lastView(), name).toMatchObject({ kind: "items", create: false });
+      port.emit({ kind: "create" });
+      await settle();
+      expect(port.posted.at(-1), name).toEqual({ kind: "error", error: "invalid_request" });
+      expect(
+        context.requests.filter((it) => it.type === "save"),
+        name,
+      ).toEqual([]);
+      expect(
+        context.sent.filter((it) => it.message.kind === "guard"),
+        name,
+      ).toEqual([]);
+    }
+  });
+
   it("offers to unlock a locked vault, then shows the matches", async () => {
     const context = setup({ status: { kind: "locked", unlocking: false } });
     const { port } = await context.openMenu("username");
@@ -1563,7 +1638,12 @@ describe("private windows", () => {
     context.state.conditional = { rpId: "example.com" };
     const sender = privateSender({ frameId: 0, documentId: "doc-0" });
     const menu = await context.openMenu("new-password", sender, true);
-    for (const request of [{ kind: "fill", handle: "h1" }, { kind: "totp", handle: "h1" }, { kind: "generate" }]) {
+    for (const request of [
+      { kind: "fill", handle: "h1" },
+      { kind: "totp", handle: "h1" },
+      { kind: "generate" },
+      { kind: "create" },
+    ]) {
       menu.port.emit(request);
       await settle();
     }
@@ -1941,6 +2021,32 @@ describe("the popup's matches", () => {
       await expect(pending, call).resolves.toMatchObject({ kind: "items" });
       expect(listed.has(7), call).toBe(false);
     }
+  });
+
+  it("offer a new login only when the app can save and saving isn't blocked on the page", async () => {
+    const context = setup();
+    await expect(context.pages.calls.suggest({ tabId: 7 })).resolves.toMatchObject({ kind: "items", create: true });
+    context.state.app = (request) =>
+      request.type === "suggest" ? { blocked: false, save_blocked: true, truncated: false, items: [] } : undefined;
+    await expect(context.pages.calls.suggest({ tabId: 7 })).resolves.toMatchObject({ kind: "items", create: false });
+    const older = setup({ capabilities: [] });
+    await expect(older.pages.calls.suggest({ tabId: 7 })).resolves.toMatchObject({ kind: "items", create: false });
+  });
+
+  it("have the app open a new login of the tab's URL alone, for the origin the popup listed for", async () => {
+    const context = setup();
+    for (const origin of ["https://evil.example", "http://login.example.com", undefined]) {
+      await expect(context.pages.calls.create({ tabId: 7, origin } as never), String(origin)).rejects.toMatchObject({
+        code: "origin",
+      });
+    }
+    expect(context.requests).toEqual([]);
+    await expect(context.pages.calls.create({ tabId: 7, origin: LOGIN_ORIGIN })).resolves.toBeNull();
+    expect(context.requests).toEqual([{ type: "save", url: LOGIN_URL }]);
+    // A tab in a private window says so.
+    context.state.incognito = true;
+    await expect(context.pages.calls.create({ tabId: 7, origin: LOGIN_ORIGIN })).resolves.toBeNull();
+    expect(context.requests.slice(1)).toEqual([{ type: "save", url: LOGIN_URL, private_window: true }]);
   });
 
   it("come with the icon of the tab's site, or none when the browser can't tell", async () => {

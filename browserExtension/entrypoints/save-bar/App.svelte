@@ -42,8 +42,7 @@
           busy = event.busy;
           return;
         case "error":
-          // The fill's text names a field; here the page covers the bar.
-          error = event.error === "obscured" ? t("browser_extension_error_save_bar_obscured") : errorText(event.error);
+          error = errorText(event.error);
           return;
       }
     }),

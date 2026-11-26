@@ -239,27 +239,27 @@ describe("the document token", () => {
     // Its own token and origin get past it: no menu or save bar is open to check.
     expect(await deliver({ kind: "guard", popup: "menu", doc: own!, origin })).toEqual({
       ok: false,
-      reason: "obscured",
+      reason: "field_gone",
     });
     expect(await deliver({ kind: "guard", popup: "save_bar", doc: own!, origin })).toEqual({
       ok: false,
-      reason: "obscured",
+      reason: "field_gone",
     });
     // Nor the card beside a menu, nor focus to move between them.
     expect(await deliver({ kind: "guard", popup: "menu_details", doc: own!, origin })).toEqual({
       ok: false,
-      reason: "obscured",
+      reason: "field_gone",
     });
     for (const popup of ["menu_details", "menu"] as const) {
       expect(await deliver({ kind: "focus_popup", popup, doc: own!, origin })).toEqual({
         ok: false,
-        reason: "obscured",
+        reason: "popup_covered",
       });
     }
     // An unknown popup is refused, not checked as the menu.
     expect(await deliver({ kind: "guard", popup: "other", doc: own!, origin } as unknown as ContentCommand)).toEqual({
       ok: false,
-      reason: "obscured",
+      reason: "field_gone",
     });
     expect(byId("password").value).toBe("");
     expect(await deliver({ ...answered[0], doc: own!, origin } as ContentCommand)).toEqual({ ok: true });
@@ -285,6 +285,259 @@ describe("the document token", () => {
   });
 });
 
+/** The token of the document [startDocument] started, as its request to show the save bar tells. */
+async function ownToken(): Promise<string> {
+  await deliver({ kind: "save_bar_show" });
+  return tokens.at(-1)!;
+}
+
+describe("a fill that writes nothing", () => {
+  const fill = (doc: string, values: { username?: string; password?: string }) =>
+    deliver({ kind: "fill", target: "page", ...values, doc, origin: ORIGIN });
+
+  it("tells a form without a field for the values", async () => {
+    startDocument(`<form><input id="username" autocomplete="username"></form>`);
+    const doc = await ownToken();
+    expect(await fill(doc, { password: "pw" })).toEqual({ ok: false, reason: "nothing_to_fill" });
+    // A login with neither value, as from an app that answered without them.
+    expect(await fill(doc, {})).toEqual({ ok: false, reason: "nothing_to_fill" });
+    expect(await deliver({ kind: "fill_totp", target: "page", code: "123456", doc, origin: ORIGIN })).toEqual({
+      ok: false,
+      reason: "no_otp_field",
+    });
+    expect(byId("username").value).toBe("");
+  });
+
+  it("tells read-only fields", async () => {
+    startDocument(FORM.replaceAll("<input ", "<input readonly "));
+    const doc = await ownToken();
+    expect(await fill(doc, { username: "ann", password: "pw" })).toEqual({ ok: false, reason: "not_editable" });
+    expect(byId("password").value).toBe("");
+  });
+
+  it("tells fields the page removed as it got focus", async () => {
+    startDocument();
+    const doc = await ownToken();
+    byId("username").addEventListener("focus", () => document.querySelector("form")!.remove());
+    expect(await fill(doc, { username: "ann", password: "pw" })).toEqual({ ok: false, reason: "field_gone" });
+  });
+
+  it("tells fields the page opted out of password managers after they were detected", async () => {
+    startDocument();
+    const doc = await ownToken();
+    byId("username").addEventListener("focus", () => document.querySelector("form")!.setAttribute("data-lpignore", ""));
+    expect(await fill(doc, { username: "ann", password: "pw" })).toEqual({ ok: false, reason: "field_opted_out" });
+    expect([byId("username").value, byId("password").value]).toEqual(["", ""]);
+  });
+
+  it("answers nothing when the fill throws, which the background reports as unknown", async () => {
+    startDocument();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    vi.spyOn(HTMLElement.prototype, "focus").mockImplementation(() => {
+      throw new Error("focus");
+    });
+    try {
+      fillPrompt = async () => ({ username: "ann", password: "secret" });
+      await expect(pages.fillTab(7, PAGE, "h1")).rejects.toMatchObject({ code: "unknown" });
+      expect(warn).toHaveBeenCalledWith("Keyguard: a fill failed", expect.any(Error));
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+});
+
+describe("fields the page makes writable on focus", () => {
+  it("fills a username whose `readonly` the page lifts a timer after focus", async () => {
+    startDocument(FORM.replace("<input ", "<input readonly "));
+    const doc = await ownToken();
+    const username = byId("username");
+    username.addEventListener("focus", () => setTimeout(() => username.removeAttribute("readonly"), 50));
+    expect(
+      await deliver({ kind: "fill", target: "page", username: "ann", password: "pw", doc, origin: ORIGIN }),
+    ).toEqual({ ok: true });
+    expect([username.value, byId("password").value]).toEqual(["ann", "pw"]);
+  });
+});
+
+describe("faded fields", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("takes a form the page dims from the popup", async () => {
+    startDocument(`<div style="opacity:0.5">${FORM}</div>`);
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", "secret"]);
+  });
+
+  it("neither picks nor writes an invisible honeypot form from the popup", async () => {
+    const HONEYPOT = `<div style="opacity:0"><form><input id="trap-user" name="username"><input id="trap-password" name="password" type="password"></form></div>`;
+    const stopFirst = startDocument(HONEYPOT);
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await expect(pages.fillTab(7, PAGE, "h1")).rejects.toMatchObject({ code: "no_form" });
+    const fill = { kind: "fill", target: "page", username: "ann", password: "pw", origin: ORIGIN } as const;
+    expect(await deliver({ ...fill, doc: await ownToken() })).toEqual({ ok: false, reason: "no_form" });
+    stopFirst();
+
+    startDocument(`${HONEYPOT}${FORM}`);
+    await pages.fillTab(7, PAGE, "h1");
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", "secret"]);
+    expect([byId("trap-user").value, byId("trap-password").value]).toEqual(["", ""]);
+  });
+
+  it("fills a code into the focused field from the shortcut, even an invisible one under drawn boxes", async () => {
+    startDocument(`<form><input id="code" autocomplete="one-time-code" style="opacity:0"></form>`);
+    const doc = await ownToken();
+    const fill = { kind: "fill_totp", target: "focused", code: "123456", doc, origin: ORIGIN } as const;
+    byId("code").focus();
+    expect(await deliver(fill)).toEqual({ ok: true });
+    expect(byId("code").value).toBe("123456");
+
+    // Not one it fills without focus.
+    byId("code").value = "";
+    byId("code").blur();
+    expect(await deliver(fill)).toEqual({ ok: false, reason: "field_hidden" });
+    expect(byId("code").value).toBe("");
+  });
+
+  it("refuses a field the page fades after the menu opened, from the menu", async () => {
+    // happy-dom has no layout: the field has a box, and is what's on top there.
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 10, 200, 32));
+    vi.spyOn(document, "elementFromPoint").mockImplementation(() => byId("username"));
+    startDocument(`<div id="wrap">${FORM}</div>`);
+    const doc = await ownToken();
+    const field = byId("username");
+    field.focus();
+    // The options are read, then the icon shows.
+    await scanned();
+    const arrowDown = new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true });
+    Object.defineProperty(arrowDown, "isTrusted", { value: true });
+    field.dispatchEvent(arrowDown);
+    await scanned();
+    expect(messages.map((it) => it.kind)).toContain("menu_open");
+
+    byId<HTMLElement>("wrap").style.opacity = "0.5";
+    const fill = { kind: "fill", target: "menu", username: "ann", password: "pw", doc, origin: ORIGIN } as const;
+    expect(await deliver(fill)).toEqual({ ok: false, reason: "field_hidden" });
+    expect([byId("username").value, byId("password").value]).toEqual(["", ""]);
+
+    // Fully opaque again: the menu's field takes it.
+    byId<HTMLElement>("wrap").removeAttribute("style");
+    expect(await deliver(fill)).toEqual({ ok: true });
+  });
+});
+
+describe("the page's top layer", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  /**
+   * The page's popovers, in a document where the menu's field and the menu
+   * show and are on top: happy-dom has no layout and no popover API.
+   */
+  function fakePage() {
+    const open = new Set<Element>();
+    const querySelectorAll = document.querySelectorAll.bind(document);
+    vi.spyOn(document, "querySelectorAll").mockImplementation(((selector: string) =>
+      selector === ":popover-open" ? [...open] : querySelectorAll(selector)) as typeof document.querySelectorAll);
+    // The field at the top; the menu below it, in the host's closed root.
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      return this.id === "username" ? new DOMRect(10, 10, 200, 32) : new DOMRect(10, 60, 300, 200);
+    });
+    // The extension's host: the element of the page above every other.
+    const host = () => document.querySelector(':root > div[style*="2147483647"]');
+    vi.spyOn(document, "elementFromPoint").mockImplementation((_x, y) =>
+      y < 50 ? byId("username") : (host() ?? null),
+    );
+    /** Shows [element], as `showPopover` with its toggle events. */
+    return (element: Element) => {
+      element.dispatchEvent(Object.assign(new Event("beforetoggle"), { newState: "open" }));
+      open.add(element);
+      element.dispatchEvent(Object.assign(new Event("toggle"), { newState: "open" }));
+    };
+  }
+
+  /** Opens the menu of the username field from the keyboard; resolves with the document's token. */
+  async function openMenu(): Promise<string> {
+    const doc = await ownToken();
+    const field = byId("username");
+    field.focus();
+    // The options are read, then the icon shows.
+    await scanned();
+    const arrowDown = new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true });
+    Object.defineProperty(arrowDown, "isTrusted", { value: true });
+    field.dispatchEvent(arrowDown);
+    // The menu reveals.
+    await scanned();
+    expect(messages.map((it) => it.kind)).toContain("menu_open");
+    return doc;
+  }
+
+  it("takes a popover open before the menu as under it, but not one opened after", async () => {
+    const showPopover = fakePage();
+    startDocument(`${FORM}<div id="toasts" popover="manual"></div><div id="decoy" popover="manual"></div>`);
+    // A toast area, open as the page loaded.
+    showPopover(byId("toasts"));
+    const doc = await openMenu();
+    const guard = { kind: "guard", popup: "menu", doc, origin: ORIGIN } as const;
+    expect(await deliver(guard)).toEqual({ ok: true, url: PAGE });
+
+    showPopover(byId("decoy"));
+    expect(await deliver(guard)).toEqual({ ok: false, reason: "popup_covered" });
+  });
+});
+
+describe("the icon", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  /**
+   * A page where the username field has a box and [cover] says what's on top
+   * of it, the field when `null`. Resolves whether the icon shows: it's in
+   * the closed root of the extension's host.
+   */
+  function iconPage(html: string) {
+    const roots: ShadowRoot[] = [];
+    const attachShadow = Element.prototype.attachShadow;
+    vi.spyOn(Element.prototype, "attachShadow").mockImplementation(function (this: Element, init: ShadowRootInit) {
+      const root = attachShadow.call(this, init);
+      roots.push(root);
+      return root;
+    });
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 10, 200, 32));
+    const page = { cover: null as Element | null };
+    vi.spyOn(document, "elementFromPoint").mockImplementation(() => page.cover ?? byId("username"));
+    startDocument(html);
+    const icon = roots[0]!.querySelector<HTMLElement>(".icon")!;
+    return Object.assign(page, { shown: () => !icon.hidden });
+  }
+
+  it("shows once a floating label moved off the focused field, after its transition", async () => {
+    const page = iconPage(`<label id="float" for="search">Email</label>${FORM}<input id="search">`);
+    page.cover = byId<HTMLElement>("float");
+    byId("username").focus();
+    // The options are read, then the field is checked.
+    await scanned();
+    expect(page.shown()).toBe(false);
+
+    // A style moved the label: no change the watcher sees.
+    page.cover = null;
+    await scanned();
+    expect(page.shown()).toBe(false);
+
+    byId<HTMLElement>("float").dispatchEvent(new Event("transitionend", { bubbles: true }));
+    await scanned();
+    expect(page.shown()).toBe(true);
+  });
+
+  it("shows on a field under its own label", async () => {
+    const page = iconPage(
+      `<form><label id="float" for="username">Email</label><input id="username" name="username"><input id="password" name="password" type="password"></form>`,
+    );
+    page.cover = byId<HTMLElement>("float");
+    byId("username").focus();
+    await scanned();
+    expect(page.shown()).toBe(true);
+  });
+});
+
 describe("the document's focus", () => {
   it("answers whether the document has focus once focus settled, as the menu's frame or its card's lost it", async () => {
     startDocument();
@@ -296,7 +549,7 @@ describe("the document's focus", () => {
       // The window lost focus just after the frame told: the answer reads it after a tick.
       const answer = deliver({ kind: "has_focus", doc: own!, origin: ORIGIN });
       focused = false;
-      expect(await answer).toEqual({ ok: false, reason: "obscured" });
+      expect(await answer).toEqual({ ok: false, reason: "popup_covered" });
       // Focus moved from the menu's frame into the card's: the document still has it.
       focused = true;
       expect(await deliver({ kind: "has_focus", doc: own!, origin: ORIGIN })).toEqual({ ok: true });
@@ -348,7 +601,9 @@ describe("a child frame of another origin", () => {
       expect(await reports({ frame: 4, x: "left", y: 10 })).toEqual([]);
       // Covered where the popup is.
       vi.spyOn(document, "elementFromPoint").mockReturnValue(document.body);
-      expect(await reports({ frame: 4, x: 10, y: 10 })).toEqual([{ kind: "frame_report", probe, ok: false, doc }]);
+      expect(await reports({ frame: 4, x: 10, y: 10 })).toEqual([
+        { kind: "frame_report", probe, ok: false, reason: "frame_hidden", doc },
+      ]);
     } finally {
       vi.restoreAllMocks();
       delete (fakeBrowser.runtime as unknown as { getFrameId?: unknown }).getFrameId;
@@ -697,7 +952,8 @@ describe("the password step", () => {
     await until(() => reports().length === 1);
     const field = byId("password");
     field.addEventListener("keydown", () => (field.value = "typed"), { once: true });
-    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "obscured" });
+    // The step changed: not the one the background was told of.
+    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "field_gone" });
     expect(field.value).toBe("typed");
 
     // Shown as plain text, though it still says it's the current password.
@@ -705,7 +961,7 @@ describe("the password step", () => {
     startDocument(PASSWORD_STEP.replace(`type="password"`, `type="password" autocomplete="current-password"`));
     await until(() => reports().length === 2);
     byId("password").addEventListener("focus", () => (byId("password").type = "text"), { once: true });
-    expect(await deliver(stepFill(reports()[1]!))).toEqual({ ok: false, reason: "obscured" });
+    expect(await deliver(stepFill(reports()[1]!))).toEqual({ ok: false, reason: "field_gone" });
     expect(byId("password").value).toBe("");
   });
 
@@ -830,7 +1086,7 @@ describe("the sign-in after a fill", () => {
     // Any fill, even one that finds nothing to fill.
     expect(await deliver({ kind: "fill_totp", target: "page", code: "123456", doc: own, origin: ORIGIN })).toEqual({
       ok: false,
-      reason: "obscured",
+      reason: "no_otp_field",
     });
     await deliver({ ...fill, submit: "yes" } as unknown as ContentCommand);
     await scanned();

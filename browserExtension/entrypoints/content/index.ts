@@ -28,22 +28,25 @@ import {
   fillOtp,
   hasWritableLogin,
   pageForm,
+  type FieldCheck,
+  type FillResult,
   type FilledValue,
   type LoginValues,
 } from "../../src/lib/content/fill";
 import {
   browserLayout,
   fieldExposure,
+  fieldRefusal,
+  fieldShown,
   frameElementOf,
   frameExposure,
-  isFillable,
   isOpaqueOrigin,
+  MIN_SHOWN_OPACITY,
   ownOrigin,
   popupCenter,
   popupExposure,
   sameOriginFrames,
   TopLayerWatch,
-  transparency,
   type Layout,
   type WatchedDocument,
 } from "../../src/lib/content/guards";
@@ -67,6 +70,7 @@ import {
   type ContentMessage,
   type ContentRequest,
   type DocumentResult,
+  type FillTarget,
   type GuardedPopup,
   type MenuOpenResult,
   type UiToken,
@@ -173,8 +177,14 @@ function startContentScript(ctx: ContentScriptContext) {
   });
   signal.addEventListener("abort", () => topLayer.stop());
   const detect: DetectOptions = { shadowRootOf, rendered: (input) => layout.rendered(input), ignore: ui.host };
-  /** Whether a fill may write into a field: fillable and not faded out. */
-  const canFill = (input: HTMLInputElement) => isFillable(input, layout) && transparency(input, layout) === null;
+  /** Why a fill may not write into a field, see [fieldRefusal]: one from the menu or of a password step. */
+  const fieldCheck: FieldCheck = (input) => fieldRefusal(input, layout);
+  /** Whether a fill may write into a field: for detection, password steps and the sign-in too. */
+  const canFill = (input: HTMLInputElement) => fieldCheck(input) === null;
+  /** Why the popup's fill may not write into a field: a faded one still takes it. */
+  const pageFieldCheck: FieldCheck = (input) => fieldRefusal(input, layout, MIN_SHOWN_OPACITY);
+  /** Whether the popup's fill may write into a field: it picks the form it fills by this. */
+  const pageCanFill = (input: HTMLInputElement) => pageFieldCheck(input) === null;
 
   /** Values Keyguard filled from the vault, to tell them from typed ones. */
   const filled = new WeakMap<HTMLInputElement, string>();
@@ -272,7 +282,7 @@ function startContentScript(ctx: ContentScriptContext) {
       void readOptions();
       return;
     }
-    if (!options.inlineMenu || fieldExposure(input, layout) !== null) {
+    if (!options.inlineMenu || fieldShown(input, layout) !== null) {
       ui.hideIcon();
       return;
     }
@@ -321,6 +331,27 @@ function startContentScript(ctx: ContentScriptContext) {
     { capture: true, signal },
   );
 
+  // A floating label may move off the field once it has focus, by a style
+  // the watcher doesn't see: the focused field with a role is checked again
+  // once the page's transitions and animations settle. Their events stay in
+  // the shadow root they happen in: each root found listens too.
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  const onSettled = () => {
+    if (lastField === null || options?.inlineMenu !== true) return;
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      if (signal.aborted) return;
+      const active = inputOf(deepActiveElement());
+      if (active !== null && active === lastField) evaluate(active);
+    }, DEBOUNCE_MS);
+  };
+  function listenSettled(root: Document | ShadowRoot) {
+    root.addEventListener("transitionend", onSettled, { capture: true, signal });
+    root.addEventListener("animationend", onSettled, { capture: true, signal });
+  }
+  listenSettled(doc);
+  signal.addEventListener("abort", () => clearTimeout(settleTimer));
+
   function toggleMenu(field: HTMLInputElement) {
     if (ui.menuField === field) ui.closeMenu();
     else openMenu(field, false);
@@ -329,7 +360,7 @@ function startContentScript(ctx: ContentScriptContext) {
   /** Opens the menu of [field], with focus in it for [keyboard]. False when the field gets none. */
   function openMenu(field: HTMLInputElement, keyboard: boolean): boolean {
     const found = roleOf(field);
-    if (found === null || !options?.inlineMenu || fieldExposure(field, layout) !== null) return false;
+    if (found === null || !options?.inlineMenu || fieldShown(field, layout) !== null) return false;
     void requestMenu(field, found, keyboard);
     return true;
   }
@@ -362,7 +393,26 @@ function startContentScript(ctx: ContentScriptContext) {
 
   function bestPageForm(): DetectedForm | null {
     const recent = lastField?.isConnected ? (roleOf(lastField)?.form ?? null) : null;
-    return pageForm(recent, () => detectForms(doc, detect), canFill);
+    return pageForm(recent, () => detectForms(doc, detect), pageCanFill);
+  }
+
+  /**
+   * Why a fill for [target] may not write into a field, see the opacity each
+   * takes in ../../src/lib/content/guards.ts. Read before the fill moves focus.
+   */
+  function fieldCheckOf(target: FillTarget): FieldCheck {
+    switch (target) {
+      case "page":
+        return pageFieldCheck;
+      case "focused": {
+        // The field the user focused, as an invisible code input under drawn boxes.
+        const focused = inputOf(deepActiveElement());
+        return (input) => fieldRefusal(input, layout, input === focused ? 0 : MIN_SHOWN_OPACITY);
+      }
+      default:
+        // The menu's and a password step's: fully opaque.
+        return fieldCheck;
+    }
   }
 
   function targetForm(
@@ -408,6 +458,7 @@ function startContentScript(ctx: ContentScriptContext) {
     const since = command.kind === "fill" ? passwordSteps.beginFill() : Infinity;
     submitting?.stop();
     submitting = null;
+    const check = fieldCheckOf(command.target);
     const found = targetForm(command);
     if (found === null) return { result: { ok: false, reason: "no_form" } };
     const { form, field, report } = found;
@@ -416,37 +467,47 @@ function startContentScript(ctx: ContentScriptContext) {
     const watch = command.kind === "fill" && command.submit === true ? watchSignIn(form.root) : null;
     submitting = watch;
     let values: LoginValues = {};
-    let fields: HTMLInputElement[] = [];
+    let result: FillResult = { written: [], refusal: null };
     try {
       switch (command.kind) {
         case "fill":
           // A password step's username is the one on the page. Its field must
-          // still be the step the user sees, up to the moment it's written.
+          // still be the step the user sees, up to the moment it's written: a
+          // step it shows passes [check], which tells why one it hides doesn't.
           values = report ? { password: command.password } : { username: command.username, password: command.password };
-          fields = await fillLogin(
+          result = await fillLogin(
             form,
             values,
-            report ? (input) => input === report.field && passwordSteps.formOf(report) !== null : canFill,
+            report
+              ? (input) =>
+                  input !== report.field
+                    ? "field_gone"
+                    : (check(input) ?? (passwordSteps.formOf(report) === null ? "field_gone" : null))
+              : check,
           );
-          for (const input of fields) filled.set(input, input.value);
+          for (const input of result.written) filled.set(input, input.value);
           break;
         case "fill_totp":
-          fields = await fillOtp(form, command.code, canFill);
+          result = await fillOtp(form, command.code, check);
           break;
-        case "fill_password":
-          fields = await fillNewPassword(form, command.password, canFill);
-          // A password field the detector didn't take as new still gets the value.
-          if (fields.length === 0 && field !== null && field.type === "password" && canFill(field)) {
-            fields = await fillNewPassword({ ...form, newPasswords: [field] }, command.password, canFill);
+        case "fill_password": {
+          // A password field the detector didn't take as new still gets the
+          // value; when it gets none either, its refusal tells why.
+          const password = field?.type === "password" ? field : null;
+          result = await fillNewPassword(form, command.password, check);
+          if (result.written.length === 0 && password !== null) {
+            result = await fillNewPassword({ ...form, newPasswords: [password] }, command.password, check);
           }
           // The user asked for it: offer to save it like a typed one.
-          for (const input of fields) tracker.track(input);
+          for (const input of result.written) tracker.track(input);
           break;
+        }
       }
     } finally {
-      if (fields.length === 0) watch?.stop();
+      if (result.written.length === 0) watch?.stop();
     }
-    if (fields.length === 0) return { result: { ok: false, reason: "obscured" } };
+    const fields = result.written;
+    if (fields.length === 0) return { result: { ok: false, reason: result.refusal ?? "nothing_to_fill" } };
     ui.closeMenu();
     if (command.kind !== "fill") return { result: { ok: true } };
     const wrote = (input: HTMLInputElement | null) => input !== null && fields.includes(input);
@@ -483,11 +544,11 @@ function startContentScript(ctx: ContentScriptContext) {
    */
   function checkAncestors(point: { x: number; y: number }): DocumentResult {
     const levels = ancestors();
-    if (levels === null) return { ok: false, reason: "obscured" };
+    if (levels === null) return { ok: false, reason: "frame_unchecked" };
     let at: { x: number; y: number } | null = point;
     for (const { host: frame, doc: parent, layout } of levels) {
       at = frameExposure(frame, at, layout, parent);
-      if (at === null) return { ok: false, reason: "obscured" };
+      if (at === null) return { ok: false, reason: "frame_hidden" };
     }
     // The outermost window of this origin: its parent, if any, is of another.
     const outer = levels.at(-1)?.doc.defaultView ?? window;
@@ -498,7 +559,7 @@ function startContentScript(ctx: ContentScriptContext) {
     } catch {
       // A window the browser doesn't name.
     }
-    return frame > 0 ? { ok: true, parent: { frame, x: at.x, y: at.y } } : { ok: false, reason: "obscured" };
+    return frame > 0 ? { ok: true, parent: { frame, x: at.x, y: at.y } } : { ok: false, reason: "frame_unchecked" };
   }
 
   /**
@@ -506,17 +567,19 @@ function startContentScript(ctx: ContentScriptContext) {
    * menu, the card beside it or the save bar, in this frame and in its
    * same-origin ancestors: the menu's field too, for the menu and the card. A
    * page element in the top layer within the click gate's wait counts as one
-   * there now. With the frame's URL now, which a single-page app may have
+   * there now. In this document, one open since before the popup doesn't. With the frame's URL now, which a single-page app may have
    * changed since the menu opened.
    */
   function guard(popup: GuardedPopup): DocumentResult {
     const target = ui.guardTarget(popup);
-    if (target === null) return { ok: false, reason: "obscured" };
+    // The menu's field left the document, or the popup closed.
+    if (target === null) return { ok: false, reason: "field_gone" };
     const { element: shown, field } = target;
     const refusal =
-      (field === null ? null : fieldExposure(field, guardLayout)) ?? popupExposure(ui.host, shown, guardLayout, doc);
+      (field === null ? null : fieldExposure(field, guardLayout)) ??
+      popupExposure(ui.host, shown, guardLayout, doc, topLayer.baseline);
     if (refusal !== null) return { ok: false, reason: refusal };
-    if (topLayer.seenWithin(MIN_VISIBLE_MS)) return { ok: false, reason: "obscured" };
+    if (topLayer.seenWithin(MIN_VISIBLE_MS)) return { ok: false, reason: "popup_covered" };
     const result = checkAncestors(popupCenter(shown, guardLayout));
     return result.ok ? { ...result, url: location.href } : result;
   }
@@ -528,7 +591,7 @@ function startContentScript(ctx: ContentScriptContext) {
    */
   function frameGuard(frame: Element, point: { x: number; y: number }): DocumentResult {
     const at = frameExposure(frame, point, guardLayout, doc);
-    return at === null ? { ok: false, reason: "obscured" } : checkAncestors(at);
+    return at === null ? { ok: false, reason: "frame_hidden" } : checkAncestors(at);
   }
 
   // endregion
@@ -593,6 +656,7 @@ function startContentScript(ctx: ContentScriptContext) {
     shadowRootOf,
     found: (root) => {
       tracker.listen(root, signal);
+      listenSettled(root);
       topLayer.adopt(root);
     },
     changed: (inputs, seen) => {
@@ -639,7 +703,10 @@ function startContentScript(ctx: ContentScriptContext) {
               // Only then: a sign-in may navigate, and the answer would go with the page.
               after?.();
             },
-            () => sendResponse(null),
+            (error: unknown) => {
+              console.warn("Keyguard: a fill failed", error);
+              sendResponse(null);
+            },
           );
         return true;
       case "guard":
@@ -648,7 +715,9 @@ function startContentScript(ctx: ContentScriptContext) {
         return false;
       case "focus_popup":
         sendResponse(
-          (ui.focusPopup(command.popup) ? { ok: true } : { ok: false, reason: "obscured" }) satisfies DocumentResult,
+          (ui.focusPopup(command.popup)
+            ? { ok: true }
+            : { ok: false, reason: "popup_covered" }) satisfies DocumentResult,
         );
         return false;
       case "has_focus":
@@ -657,7 +726,9 @@ function startContentScript(ctx: ContentScriptContext) {
         // `hasFocus()` holds too while focus is in a frame of the page, theirs included.
         setTimeout(
           () =>
-            sendResponse((doc.hasFocus() ? { ok: true } : { ok: false, reason: "obscured" }) satisfies DocumentResult),
+            sendResponse(
+              (doc.hasFocus() ? { ok: true } : { ok: false, reason: "popup_covered" }) satisfies DocumentResult,
+            ),
           0,
         );
         return true;
@@ -727,8 +798,9 @@ function startContentScript(ctx: ContentScriptContext) {
         void send({
           kind: "frame_report",
           probe: command.probe,
-          ok: result.ok,
-          ...(result.ok && result.parent ? { parent: result.parent } : {}),
+          ...(result.ok
+            ? { ok: true, ...(result.parent ? { parent: result.parent } : {}) }
+            : { ok: false, reason: result.reason }),
         });
         return false;
       }

@@ -89,6 +89,13 @@ describe("content script requests", () => {
         JSON.stringify(parent),
       ).toBeNull();
     }
+    // A parent's refusal names a known reason.
+    for (const reason of [undefined, "obscured", 7]) {
+      expect(
+        parseContentRequest({ kind: "frame_report", probe: "f".repeat(32), ok: false, reason, doc }),
+        String(reason),
+      ).toBeNull();
+    }
     expect(parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: -1, doc })).toBeNull();
     expect(parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: "now", doc })).toBeNull();
     // The frame of the menu or the card beside it: no other popup.
@@ -461,13 +468,14 @@ describe("inline menu", () => {
 
   it("asks the app for nothing when the page covers or fades the field or the menu", async () => {
     const { openMenu, state, sent, requests } = setup();
-    state.contentScript = (message) => (message.kind === "guard" ? { ok: false, reason: "obscured" } : { ok: true });
+    state.contentScript = (message) =>
+      message.kind === "guard" ? { ok: false, reason: "field_covered" } : { ok: true };
     const { port } = await openMenu("username");
     port.emit({ kind: "fill", handle: "h1" });
     await settle();
     expect(requests.map((it) => it.type)).toEqual(["suggest"]);
     expect(sent.map((it) => it.message.kind)).toEqual(["guard"]);
-    expect(port.posted).toContainEqual({ kind: "error", error: "obscured" });
+    expect(port.posted).toContainEqual({ kind: "error", error: "field_covered" });
   });
 
   it("suggests for the URL the content script reads as the menu opens, of the sender's origin only", async () => {
@@ -551,13 +559,19 @@ describe("inline menu", () => {
     expect(sent[2]!.message).toMatchObject({ kind: "frame_guard", frame: 1, x: 200, y: 150 });
     expect(requests.at(-1)).toMatchObject({ type: "fill", handle: "h1" });
 
-    // A parent that covers the frame refuses; nothing is released.
-    answers["frame_guard 1"] = { ok: false, reason: "obscured" };
-    sent.length = 0;
-    port.emit({ kind: "fill", handle: "h1" });
-    await settle();
-    expect(sent.map((it) => it.message.kind)).toEqual(["guard", "frame_guard", "frame_guard"]);
-    expect(port.posted.at(-2)).toEqual({ kind: "error", error: "obscured" });
+    // A parent that covers the frame refuses, with its reason; nothing is released.
+    for (const [answer, error] of [
+      [{ ok: false, reason: "frame_unchecked" }, "frame_unchecked"],
+      [{ ok: false, reason: "frame_hidden" }, "frame_hidden"],
+    ] as const) {
+      answers["frame_guard 1"] = answer;
+      sent.length = 0;
+      port.emit({ kind: "fill", handle: "h1" });
+      await settle();
+      expect(sent.map((it) => it.message.kind)).toEqual(["guard", "frame_guard", "frame_guard"]);
+      expect(port.posted.at(-2), error).toEqual({ kind: "error", error });
+    }
+    expect(requests.filter((it) => it.type === "fill")).toHaveLength(1);
   });
 
   it("refuses when a parent of another origin doesn't answer: no content script, an opaque origin, or too slow", async () => {
@@ -579,7 +593,7 @@ describe("inline menu", () => {
       await settle();
       expect(port.posted.filter((it) => it.kind === "error")).toEqual([]);
       await timeUp();
-      expect(port.posted).toContainEqual({ kind: "error", error: "obscured" });
+      expect(port.posted).toContainEqual({ kind: "error", error: "frame_unchecked" });
       expect(sent.map((it) => it.message.kind)).not.toContain("fill");
       expect(requests.map((it) => it.type)).toEqual(["suggest"]);
     }
@@ -698,6 +712,34 @@ describe("inline menu", () => {
     port.emit({ kind: "fill", handle: "h1" });
     await settle();
     expect(port.posted).toContainEqual({ kind: "error", error: "origin" });
+  });
+
+  it("reports a frame whose checks get no answer as one that navigated away", async () => {
+    const { openMenu, state, sent, requests } = setup();
+    for (const answer of [new Error("Could not establish connection. Receiving end does not exist."), undefined]) {
+      state.contentScript = (message) => (message.kind === "guard" ? answer : { ok: true });
+      const { port } = await openMenu("username");
+      port.emit({ kind: "fill", handle: "h1" });
+      await settle();
+      expect(port.posted, String(answer)).toContainEqual({ kind: "error", error: "origin" });
+    }
+    expect(sent.map((it) => it.message.kind)).toEqual(["guard", "guard"]);
+    expect(requests.map((it) => it.type)).toEqual(["suggest", "suggest"]);
+  });
+
+  it("tells the page's refusal of a fill, and a fill that failed in the page", async () => {
+    const { openMenu, state } = setup();
+    state.contentScript = (message) =>
+      message.kind === "guard" ? { ok: true } : { ok: false, reason: "nothing_to_fill" };
+    const { port } = await openMenu("username");
+    port.emit({ kind: "fill", handle: "h1" });
+    await settle();
+    expect(port.posted.at(-2)).toEqual({ kind: "error", error: "nothing_to_fill" });
+    // The content script threw: it answers `null`.
+    state.contentScript = (message) => (message.kind === "guard" ? { ok: true } : null);
+    port.emit({ kind: "fill", handle: "h1" });
+    await settle();
+    expect(port.posted.at(-2)).toEqual({ kind: "error", error: "unknown" });
   });
 
   it("offers Fill TOTP on code fields for 2 minutes after a login fill on the tab", async () => {
@@ -841,11 +883,11 @@ describe("inline menu", () => {
     const context = setup();
     const { port } = await context.openMenu("username");
     context.state.contentScript = (message) =>
-      message.kind === "guard" ? { ok: false, reason: "obscured" } : undefined;
+      message.kind === "guard" ? { ok: false, reason: "popup_covered" } : undefined;
     port.emit({ kind: "create" });
     await settle();
     expect(context.requests.filter((it) => it.type === "save")).toEqual([]);
-    expect(port.posted).toContainEqual({ kind: "error", error: "obscured" });
+    expect(port.posted).toContainEqual({ kind: "error", error: "popup_covered" });
 
     context.state.contentScript = () => ({ ok: true });
     context.state.app = (request) => (request.type === "save" ? new ProtocolError("busy") : undefined);
@@ -1527,14 +1569,14 @@ describe("save bar actions", () => {
       await offered(context);
       const bar = await openBar(context);
       context.state.contentScript = (message) =>
-        message.kind === "guard" ? { ok: false, reason: "obscured" } : undefined;
+        message.kind === "guard" ? { ok: false, reason: "popup_covered" } : undefined;
       bar.emit({ kind: action, offer: bar.offer() });
       await settle();
       expect(
         context.requests.map((it) => it.type),
         action,
       ).toEqual(["suggest"]);
-      expect(bar.posted, action).toContainEqual({ kind: "error", error: "obscured" });
+      expect(bar.posted, action).toContainEqual({ kind: "error", error: "popup_covered" });
       expect(bar.disconnected, action).toBe(false);
     }
   });
@@ -3200,11 +3242,11 @@ describe("passkeys in the inline menu", () => {
     const context = passkeySetup();
     const { port } = await context.openMenu("username", contentSender(), true);
     context.state.contentScript = (message) =>
-      message.kind === "guard" ? { ok: false, reason: "obscured" } : undefined;
+      message.kind === "guard" ? { ok: false, reason: "popup_covered" } : undefined;
     port.emit({ kind: "passkey", handle: "pk1" });
     await settle();
     expect(context.state.picks).toEqual([]);
-    expect(port.posted).toContainEqual({ kind: "error", error: "obscured" });
+    expect(port.posted).toContainEqual({ kind: "error", error: "popup_covered" });
 
     context.state.contentScript = () => ({ ok: true });
     context.state.pickError = new ProtocolError("user_denied");

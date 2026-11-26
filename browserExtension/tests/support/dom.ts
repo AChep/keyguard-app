@@ -1,8 +1,8 @@
 // DOM helpers for tests under happy-dom, which has computed styles but no
 // layout: boxes, hit testing and visibility come from the test.
 import { detectFormOf } from "../../src/lib/content/detect";
-import { fillLogin, type LoginValues } from "../../src/lib/content/fill";
-import { isFillable, parentOf, type Layout } from "../../src/lib/content/guards";
+import { fillLogin, type FieldCheck, type LoginValues } from "../../src/lib/content/fill";
+import { fieldRefusal, parentOf, type Layout } from "../../src/lib/content/guards";
 import { watchSignIn, type LoginFill, type SignInWatch, type SubmitOptions } from "../../src/lib/content/submit";
 
 export interface Box {
@@ -80,16 +80,17 @@ export interface WatchedFill extends LoginFill {
  */
 export function submitSetup(filled: Map<HTMLInputElement, string>) {
   const layout = testLayout();
+  const check: FieldCheck = (input) => fieldRefusal(input, layout);
   const options: SubmitOptions = {
     ...detectOptions,
     layout,
-    canFill: (input) => isFillable(input, layout),
+    canFill: (input) => check(input) === null,
     filledValue: (input) => filled.get(input),
   };
   async function fill(id: string, values: LoginValues, root: Document | ShadowRoot = document): Promise<WatchedFill> {
     const form = detectFormOf(byId(id, root), detectOptions)!;
     const watch = watchSignIn(form.root);
-    const written = await fillLogin(form, values, options.canFill);
+    const { written } = await fillLogin(form, values, check);
     for (const input of written) filled.set(input, input.value);
     return { form, written, values, watch };
   }

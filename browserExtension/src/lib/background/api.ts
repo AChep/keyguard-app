@@ -36,7 +36,7 @@ export type ExtensionStatus =
 /**
  * Why a call failed: an error code of protocol/README.md §9, or
  * `disconnected` (no session), `unsupported_page` (the tab can't be filled),
- * a fill refusal of ../page/messages.ts (`no_form`, `obscured`, `origin`),
+ * a fill refusal of ../page/messages.ts (`no_form`, `field_covered`, …),
  * `invalid_response`, `unknown`.
  */
 export type CallError = string;

@@ -4,16 +4,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fieldExposure,
+  fieldRefusal,
+  fieldShown,
   frameElementOf,
   frameExposure,
-  isFillable,
   isOpaqueOrigin,
+  MIN_SHOWN_OPACITY,
+  opacityOf,
   popupExposure,
   sameOriginFrames,
   TopLayerWatch,
   transparency,
 } from "../src/lib/content/guards";
 import { shadowRootReader } from "../src/lib/content/shadowRoots";
+import type { FillRefusal } from "../src/lib/page/messages";
 import { ClickGate, MIN_VISIBLE_MS, tracksVisibility } from "../src/lib/ui/clickGate";
 import { byId, render, testLayout, TOP_LAYER, type Box } from "./support/dom";
 
@@ -50,7 +54,7 @@ describe("opaque origins", () => {
 });
 
 describe("fillable fields", () => {
-  it("takes enabled, rendered and visible inputs the page doesn't opt out only", () => {
+  it("takes enabled, rendered and visible inputs the page doesn't opt out only, and tells why not", () => {
     render(`
       <input id="ok">
       <input id="readonly" readonly>
@@ -58,16 +62,44 @@ describe("fillable fields", () => {
       <input id="hidden-type" type="hidden">
       <div style="display:none"><input id="undisplayed"></div>
       <input id="invisible" style="visibility:hidden">
+      <input id="collapsed" style="visibility:collapse">
+      <div style="opacity:0"><input id="transparent"></div>
       <input id="ignored" data-1p-ignore>
       <form data-lpignore="true"><input id="in-ignored-form"></form>`);
     const layout = testLayout();
     // A read-only field may turn writable on focus; fills check then.
-    for (const id of ["ok", "readonly"]) expect(isFillable(byId(id), layout), id).toBe(true);
-    for (const id of ["disabled", "hidden-type", "undisplayed", "invisible", "ignored", "in-ignored-form"]) {
-      expect(isFillable(byId(id), layout), id).toBe(false);
-    }
+    for (const id of ["ok", "readonly"]) expect(fieldRefusal(byId(id), layout), id).toBeNull();
+    const refusals: [string, FillRefusal][] = [
+      ["disabled", "not_editable"],
+      ["ignored", "field_opted_out"],
+      ["in-ignored-form", "field_opted_out"],
+      ["hidden-type", "field_hidden"],
+      ["undisplayed", "field_hidden"],
+      ["invisible", "field_hidden"],
+      ["collapsed", "field_hidden"],
+      ["transparent", "field_hidden"],
+    ];
+    for (const [id, refusal] of refusals) expect(fieldRefusal(byId(id), layout), id).toBe(refusal);
     const detached = document.createElement("input");
-    expect(isFillable(detached, layout)).toBe(false);
+    expect(fieldRefusal(detached, layout)).toBe("field_gone");
+  });
+
+  it("takes a faded field from a minimum opacity, as fills from the popup or the shortcut do", () => {
+    render(`
+      <div style="opacity:0.5"><input id="field"></div>
+      <div style="opacity:0.05"><input id="honeypot"></div>
+      <div style="opacity:0"><input id="invisible"></div>`);
+    const layout = testLayout();
+    const field = byId("field");
+    expect(fieldRefusal(field, layout)).toBe("field_hidden");
+    expect(fieldRefusal(field, layout, 1)).toBe("field_hidden");
+    expect(fieldRefusal(field, layout, MIN_SHOWN_OPACITY)).toBeNull();
+    expect(fieldRefusal(byId("honeypot"), layout, MIN_SHOWN_OPACITY)).toBe("field_hidden");
+    expect(fieldRefusal(byId("invisible"), layout, MIN_SHOWN_OPACITY)).toBe("field_hidden");
+    // The shortcut's focused field: any opacity, but still shown.
+    expect(fieldRefusal(byId("invisible"), layout, 0)).toBeNull();
+    byId<HTMLElement>("invisible").style.visibility = "hidden";
+    expect(fieldRefusal(byId("invisible"), layout, 0)).toBe("field_hidden");
   });
 });
 
@@ -149,6 +181,36 @@ describe("transparency", () => {
   });
 });
 
+describe("opacity", () => {
+  it("multiplies the opacities from the element up to <html>, `filter: opacity()` included", () => {
+    render(`<div id="outer"><div id="inner"><input id="field"></div></div>`);
+    const layout = testLayout();
+    const field = byId("field");
+    expect(opacityOf(field, layout)).toBe(1);
+
+    byId<HTMLElement>("outer").style.opacity = "0.5";
+    byId<HTMLElement>("inner").style.opacity = "0.5";
+    expect(opacityOf(field, layout)).toBeCloseTo(0.25);
+
+    byId<HTMLElement>("inner").removeAttribute("style");
+    byId<HTMLElement>("inner").style.filter = "opacity(40%)";
+    expect(opacityOf(field, layout)).toBeCloseTo(0.2);
+
+    document.body.style.opacity = "0";
+    expect(opacityOf(field, layout)).toBe(0);
+  });
+
+  it("counts a slot of a closed shadow root it can't find as transparent", () => {
+    render(`<x-login id="host"><input id="field"></x-login>`);
+    const host = byId<HTMLElement>("host");
+    const root = host.attachShadow({ mode: "closed" });
+    root.innerHTML = `${`<slot name="decoy"></slot>`.repeat(32)}<slot></slot>`;
+    const layout = testLayout({ shadowRoot: (element) => (element === host ? root : element.shadowRoot) });
+    expect(opacityOf(byId("field"), layout)).toBe(0);
+    expect(fieldRefusal(byId("field"), layout, MIN_SHOWN_OPACITY)).toBe("field_hidden");
+  });
+});
+
 describe("field exposure", () => {
   it("needs the field on top at its center, in the viewport, with a real size", () => {
     render(`<input id="field"><div id="overlay"></div>`);
@@ -162,28 +224,46 @@ describe("field exposure", () => {
 
     // Covered by a page element.
     hit = overlay;
-    expect(fieldExposure(field, layout)).toBe("obscured");
+    expect(fieldExposure(field, layout)).toBe("field_covered");
     hit = field;
 
     // Scrolled out of the viewport.
     boxes.set(field, { left: 100, top: 2000, width: 200, height: 30 });
-    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("obscured");
+    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("field_off_screen");
 
     // Shrunk to nothing.
     boxes.set(field, { left: 100, top: 100, width: 1, height: 1 });
-    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("obscured");
+    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("field_hidden");
 
     // Faded out.
     boxes.set(field, box);
     document.body.style.opacity = "0.5";
-    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("obscured");
+    expect(fieldExposure(field, testLayout({ boxes, hit: () => field }))).toBe("field_hidden");
+  });
+
+  it("tells a hidden field, a disabled one, one the page opts out and one it removed", () => {
+    render(`<input id="field">`);
+    const field = byId("field");
+    const layout = testLayout({ hit: () => field });
+    field.style.visibility = "hidden";
+    expect(fieldExposure(field, layout)).toBe("field_hidden");
+    field.style.visibility = "";
+    field.disabled = true;
+    expect(fieldExposure(field, layout)).toBe("not_editable");
+    field.disabled = false;
+    field.setAttribute("data-lpignore", "true");
+    expect(fieldExposure(field, layout)).toBe("field_opted_out");
+    field.removeAttribute("data-lpignore");
+    field.readOnly = true;
+    field.remove();
+    expect(fieldExposure(field, layout)).toBe("field_gone");
   });
 
   it("refuses a field that is read-only with focus: the page shows it", () => {
     render(`<input id="field" readonly>`);
     const field = byId("field");
     const layout = testLayout({ hit: () => field });
-    expect(fieldExposure(field, layout)).toBe("obscured");
+    expect(fieldExposure(field, layout)).toBe("not_editable");
     field.readOnly = false;
     expect(fieldExposure(field, layout)).toBeNull();
   });
@@ -194,7 +274,85 @@ describe("field exposure", () => {
     root.innerHTML = `<input id="inner">`;
     const inner = byId("inner", root);
     expect(fieldExposure(inner, testLayout({ hit: () => inner }))).toBeNull();
-    expect(fieldExposure(inner, testLayout({ hit: () => byId<HTMLElement>("host") }))).toBe("obscured");
+    expect(fieldExposure(inner, testLayout({ hit: () => byId<HTMLElement>("host") }))).toBe("field_covered");
+  });
+});
+
+describe("field shown", () => {
+  // The field's middle: its left quarter, center and right quarter.
+  const box: Box = { left: 100, top: 100, width: 200, height: 30 };
+  const points = ["150,115", "200,115", "250,115"];
+
+  /** A layout where [hits] says what's on top at each of the field's points; nothing elsewhere. */
+  function layoutOf(
+    field: HTMLInputElement,
+    hits: Record<string, Element>,
+    viewport?: { width: number; height: number },
+  ) {
+    return testLayout({ boxes: new Map([[field, box]]), hit: (x, y) => hits[`${x},${y}`] ?? null, viewport });
+  }
+
+  it("takes a field under its own label at the center, which a click doesn't", () => {
+    render(`<label for="field" id="label"><span id="text">Email</span></label><input id="field">`);
+    const field = byId("field");
+    const layout = layoutOf(field, Object.fromEntries(points.map((point) => [point, byId<HTMLElement>("text")])));
+    expect(fieldShown(field, layout)).toBeNull();
+    expect(fieldExposure(field, layout)).toBe("field_covered");
+  });
+
+  it("takes a field on top at a side point only", () => {
+    render(`<input id="field"><div id="mask"></div>`);
+    const field = byId("field");
+    const mask = byId<HTMLElement>("mask");
+    for (const side of [points[0]!, points[2]!]) {
+      const hits = Object.fromEntries(points.map((point) => [point, point === side ? field : mask]));
+      const layout = layoutOf(field, hits);
+      expect(fieldShown(field, layout)).toBeNull();
+      expect(fieldExposure(field, layout)).toBe("field_covered");
+    }
+  });
+
+  it("refuses a field covered at all three points by something else, a label of another field too", () => {
+    render(`<label for="other" id="label">Email</label><input id="other"><input id="field">`);
+    const field = byId("field");
+    const label = byId<HTMLElement>("label");
+    expect(fieldShown(field, layoutOf(field, Object.fromEntries(points.map((point) => [point, label]))))).toBe(
+      "field_covered",
+    );
+    // A side point out of the viewport doesn't count, even with the field there.
+    const hits = { [points[0]!]: label, [points[1]!]: label, "250,115": field };
+    expect(fieldShown(field, layoutOf(field, hits, { width: 240, height: 768 }))).toBe("field_covered");
+  });
+
+  it("refuses as fieldExposure does before the hit test", () => {
+    render(`<input id="field">`);
+    const field = byId("field");
+    const both = (layout: ReturnType<typeof testLayout>) => [fieldShown(field, layout), fieldExposure(field, layout)];
+    const shown = testLayout({ hit: () => field });
+    const boxes = new Map<Element, Box>();
+    const at = (rect: Box) => (boxes.set(field, rect), testLayout({ boxes, hit: () => field }));
+    expect(both(shown)).toEqual([null, null]);
+    expect(both(at({ left: 100, top: 2000, width: 200, height: 30 }))).toEqual([
+      "field_off_screen",
+      "field_off_screen",
+    ]);
+    expect(both(at({ left: 100, top: 100, width: 1, height: 1 }))).toEqual(["field_hidden", "field_hidden"]);
+    // Its center out of the viewport, though a quarter is in it.
+    expect(both(at({ left: 900, top: 100, width: 400, height: 30 }))).toEqual(["field_off_screen", "field_off_screen"]);
+    field.readOnly = true;
+    expect(both(shown)).toEqual(["not_editable", "not_editable"]);
+    field.readOnly = false;
+    field.style.opacity = "0.5";
+    expect(both(shown)).toEqual(["field_hidden", "field_hidden"]);
+    field.removeAttribute("style");
+    field.disabled = true;
+    expect(both(shown)).toEqual(["not_editable", "not_editable"]);
+    field.disabled = false;
+    field.setAttribute("data-lpignore", "true");
+    expect(both(shown)).toEqual(["field_opted_out", "field_opted_out"]);
+    field.removeAttribute("data-lpignore");
+    field.remove();
+    expect(both(shown)).toEqual(["field_gone", "field_gone"]);
   });
 });
 
@@ -212,16 +370,16 @@ describe("popup exposure", () => {
   it("needs the menu to be what the page hits at its center", () => {
     const { host, popup, boxes, decoy } = setup();
     expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBeNull();
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => decoy }), document)).toBe("obscured");
+    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => decoy }), document)).toBe("popup_covered");
   });
 
   it("refuses when the page fades the host or the root", () => {
     const { host, popup, boxes } = setup();
     host.style.setProperty("opacity", "0", "important");
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("obscured");
+    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("popup_covered");
     host.removeAttribute("style");
     document.documentElement.style.opacity = "0.9";
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("obscured");
+    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("popup_covered");
   });
 
   /** Puts [element] in the top layer, as an open popover or a modal dialog. */
@@ -236,7 +394,28 @@ describe("popup exposure", () => {
     // Far from the menu, it still counts: its content needn't be in its box.
     boxes.set(decoy, { left: 600, top: 600, width: 50, height: 50 });
     open(decoy);
-    expect(popupExposure(host, popup, layout, document)).toBe("obscured");
+    expect(popupExposure(host, popup, layout, document)).toBe("popup_covered");
+  });
+
+  it("takes a popover open since before the menu as under it, but not one opened after", () => {
+    const { host, popup, boxes, decoy } = setup();
+    const layout = testLayout({ boxes, topHit: () => host });
+    // A toast area, open as the menu opened.
+    const toasts = document.createElement("div");
+    document.body.append(toasts);
+    open(toasts);
+    expect(popupExposure(host, popup, layout, document)).toBe("popup_covered");
+    const baseline = new Set([toasts]);
+    expect(popupExposure(host, popup, layout, document, baseline)).toBeNull();
+    open(decoy);
+    expect(popupExposure(host, popup, layout, document, baseline)).toBe("popup_covered");
+    decoy.removeAttribute(TOP_LAYER);
+    // Nor the fullscreen element, whatever the baseline.
+    const fullscreen = {
+      fullscreenElement: toasts,
+      querySelectorAll: (selector: string) => document.querySelectorAll(selector),
+    } as unknown as Document;
+    expect(popupExposure(host, popup, layout, fullscreen, baseline)).toBe("popup_covered");
   });
 
   it("refuses a 1x1 popover whose fixed child covers the menu, without pointer events", () => {
@@ -256,7 +435,7 @@ describe("popup exposure", () => {
     const layout = testLayout({ boxes, topHit: () => host });
     expect(popupExposure(host, popup, layout, document)).toBeNull();
     open(popover);
-    expect(popupExposure(host, popup, layout, document)).toBe("obscured");
+    expect(popupExposure(host, popup, layout, document)).toBe("popup_covered");
   });
 
   it("refuses a popover whose backdrop covers the menu", () => {
@@ -271,7 +450,7 @@ describe("popup exposure", () => {
       [popover, { left: 900, top: 700, width: 10, height: 10 }],
     ]);
     open(popover);
-    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("obscured");
+    expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => host }), document)).toBe("popup_covered");
   });
 
   it("refuses a popover in a shadow root of the page, open or closed where the content script sees it", () => {
@@ -297,7 +476,7 @@ describe("popup exposure", () => {
       });
       expect(popupExposure(host, popup, layout, document), mode).toBeNull();
       open(popover);
-      expect(popupExposure(host, popup, layout, document), mode).toBe("obscured");
+      expect(popupExposure(host, popup, layout, document), mode).toBe("popup_covered");
       outer.remove();
     }
   });
@@ -339,7 +518,7 @@ describe("popup exposure", () => {
       expect(
         popupExposure(host, popup, testLayout({ boxes, topHit: () => host, shadowRoot: guard }), document),
         name,
-      ).toBe("obscured");
+      ).toBe("popup_covered");
     }
   });
 
@@ -369,13 +548,13 @@ describe("popup exposure", () => {
     const layout = testLayout({ boxes, topHit: () => host });
     expect(popupExposure(host, popup, layout, document)).toBeNull();
     open(decoy);
-    expect(popupExposure(host, popup, layout, document)).toBe("obscured");
+    expect(popupExposure(host, popup, layout, document)).toBe("popup_covered");
     decoy.removeAttribute(TOP_LAYER);
     const fullscreen = {
       fullscreenElement: dialog,
       querySelectorAll: (selector: string) => document.querySelectorAll(selector),
     } as unknown as Document;
-    expect(popupExposure(host, popup, layout, fullscreen)).toBe("obscured");
+    expect(popupExposure(host, popup, layout, fullscreen)).toBe("popup_covered");
   });
 
   it("refuses a popover around the host's dialog, which the page can show again over the menu", () => {
@@ -390,7 +569,7 @@ describe("popup exposure", () => {
     const layout = testLayout({ boxes, topHit: () => host });
     expect(popupExposure(host, popup, layout, document)).toBeNull();
     open(popover);
-    expect(popupExposure(host, popup, layout, document)).toBe("obscured");
+    expect(popupExposure(host, popup, layout, document)).toBe("popup_covered");
   });
 
   it("looks through the page's shadow root when the host is in a dialog there", () => {
@@ -408,7 +587,7 @@ describe("popup exposure", () => {
       popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => host }), document),
     ).toBeNull();
     expect(popupExposure(host, popup, testLayout({ boxes, topHit: () => modal, hit: () => modal }), document)).toBe(
-      "obscured",
+      "popup_covered",
     );
   });
 });
@@ -718,6 +897,133 @@ describe("top-layer watch", () => {
     Object.defineProperty(other, "matches", { value: (selector: string) => selector === ":modal", configurable: true });
     advance(1);
     toggle(other, "toggle");
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+  });
+
+  /** Fires a toggle event of the popover API at [element] with its `newState`. */
+  function toggleTo(element: Element, type: "beforetoggle" | "toggle", newState: "open" | "closed") {
+    element.dispatchEvent(Object.assign(new Event(type), { newState }));
+  }
+
+  it("takes what was open as the popup opened as under it, until it closes", () => {
+    const { watch, decoy, frame, advance } = setup();
+    decoy.setAttribute(TOP_LAYER, "");
+    watch.start();
+    expect(watch.baseline.has(decoy)).toBe(true);
+    frame.run();
+    // The `toggle` of its opening, queued before the popup opened.
+    toggleTo(decoy, "toggle", "open");
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(false);
+    expect(watch.baseline.has(decoy)).toBe(true);
+
+    // It closes: that doesn't count.
+    toggleTo(decoy, "beforetoggle", "closed");
+    decoy.removeAttribute(TOP_LAYER);
+    toggleTo(decoy, "toggle", "closed");
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(false);
+    expect(watch.baseline.has(decoy)).toBe(false);
+    // Open again, it's over the popup.
+    advance(1);
+    toggleTo(decoy, "beforetoggle", "open");
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+    advance(MIN_VISIBLE_MS + 1);
+    decoy.setAttribute(TOP_LAYER, "");
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+  });
+
+  it("counts one of the baseline opening again after it closed unseen, or that a frame missed", () => {
+    const { watch, decoy, frame, advance } = setup();
+    decoy.setAttribute(TOP_LAYER, "");
+    watch.start();
+    // Out of the document and back: it closed without events.
+    advance(1);
+    toggleTo(decoy, "beforetoggle", "open");
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+    expect(watch.baseline.has(decoy)).toBe(false);
+    watch.stop();
+
+    // A modal dialog closed and shown again, without toggle events.
+    advance(MIN_VISIBLE_MS + 1);
+    const dialog = document.createElement("dialog");
+    document.body.append(dialog);
+    dialog.setAttribute(TOP_LAYER, "");
+    watch.start();
+    expect(watch.baseline.has(dialog)).toBe(true);
+    dialog.removeAttribute(TOP_LAYER);
+    frame.run();
+    expect(watch.baseline.has(dialog)).toBe(false);
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(false);
+    dialog.setAttribute(TOP_LAYER, "");
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+
+    // Between two frames, by its `close` event.
+    watch.stop();
+    advance(MIN_VISIBLE_MS + 1);
+    watch.start();
+    expect(watch.baseline.has(dialog)).toBe(true);
+    dialog.dispatchEvent(new Event("close"));
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+  });
+
+  it("marks what opens after the popup, and drops the baseline as it stops", () => {
+    const { watch, decoy, frame, advance } = setup();
+    const toasts = document.createElement("div");
+    toasts.setAttribute("popover", "manual");
+    toasts.setAttribute(TOP_LAYER, "");
+    document.body.append(toasts);
+    watch.start();
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(false);
+    advance(1);
+    toggleTo(decoy, "beforetoggle", "open");
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+    advance(MIN_VISIBLE_MS + 1);
+    decoy.setAttribute(TOP_LAYER, "");
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+    expect(watch.baseline.has(decoy)).toBe(false);
+    watch.stop();
+    expect(watch.baseline.size).toBe(0);
+  });
+
+  it("counts a shadow root's open popover as it's adopted: it may be newer than the popup", () => {
+    const { watch, frame } = setup();
+    watch.start();
+    const later = document.createElement("x-later");
+    document.body.append(later);
+    const root = later.attachShadow({ mode: "open" });
+    root.innerHTML = `<div id="late" popover="manual" ${TOP_LAYER}></div>`;
+    watch.adopt(root);
+    frame.run();
+    expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
+  });
+
+  it("has no baseline in the ancestors' documents: what's open there counts", () => {
+    render(`<iframe id="frame"></iframe><div id="banner" popover="manual"></div>`);
+    const banner = byId<HTMLElement>("banner");
+    banner.setAttribute(TOP_LAYER, "");
+    const frame = frames();
+    // The popup's document: another one, with nothing open.
+    const inner = document.implementation.createHTMLDocument();
+    const innerHost = inner.createElement("div");
+    inner.body.append(innerHost);
+    Object.defineProperty(inner, "defaultView", { value: window, configurable: true });
+    const watch = new TopLayerWatch({
+      documents: () => [
+        { doc: inner, host: innerHost, layout: testLayout() },
+        { doc: document, host: byId("frame"), layout: testLayout() },
+      ],
+      open: () => true,
+      now: () => 0,
+    });
+    watch.start();
+    expect(watch.baseline.size).toBe(0);
+    frame.run();
     expect(watch.seenWithin(MIN_VISIBLE_MS)).toBe(true);
   });
 

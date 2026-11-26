@@ -9,9 +9,18 @@
 //   UI transparent, or cover it with decoys, and trick a click. Before showing
 //   the UI and before acting on a click, nothing from the field up to the root
 //   may be transparent or hidden, and the field and the menu must be what's on
-//   top at their centers. Before acting on a click in the menu or the save
-//   bar, the page may have no top layer of its own open, nor have had one
-//   shortly before: decoys over them that no hit test sees can only be there.
+//   top at their centers. The icon, and the menu as it opens, take a field on
+//   top at a quarter or the middle of its width, or under its own label there,
+//   as one a floating label lies over; a click takes it at the center only.
+//   Fills from the menu and of password steps take fully opaque fields only.
+//   Fills from the popup or the shortcut take fields at MIN_SHOWN_OPACITY or
+//   more, as a form dimmed while busy, but not an invisible honeypot; the
+//   shortcut takes the focused field at any, as an invisible code input under
+//   drawn boxes. Before acting on a click in the menu or the save bar, the
+//   page may have no top layer of its own open, nor have had one shortly
+//   before, but what was open as the popup opened and stayed open since:
+//   decoys over them that no hit test sees can only be there, and only once
+//   opened after them.
 //   A page can also fade or cover the frame that holds the menu: each parent
 //   must show the frame where the menu is, with no top layer of its own and
 //   no transform but a translation. The content script checks the parents of
@@ -53,21 +62,26 @@ export function isOpaqueOrigin(win: { origin?: string; location: { origin: strin
   return ownOrigin(win) === "null";
 }
 
-/**
- * Whether a fill may pick a field: enabled, not hidden, rendered, not opted
- * out. It may still be read-only, see [setFieldValue].
- */
-export function isFillable(input: HTMLInputElement, layout: Pick<Layout, "rendered" | "style">): boolean {
-  return fillableStyle(input, layout) !== null;
-}
+/** The opacity from which fills from the popup or the shortcut take a field as shown, see [fieldRefusal]. */
+export const MIN_SHOWN_OPACITY = 0.1;
 
-/** The computed style of a fillable field, for the checks after; `null` when it isn't fillable. */
-function fillableStyle(
+/**
+ * Why a fill may not write into a field: it left the document, is disabled,
+ * opted out by the page, `type=hidden`, not rendered, `visibility: hidden`
+ * or shown below [minOpacity], see [opacityOf]; `null` when it may. It may
+ * still be read-only, see [setFieldValue].
+ */
+export function fieldRefusal(
   input: HTMLInputElement,
-  layout: Pick<Layout, "rendered" | "style">,
-): CSSStyleDeclaration | null {
-  if (!input.isConnected || input.disabled || input.type === "hidden" || isIgnored(input)) return null;
-  return shownStyle(input, layout);
+  layout: Pick<Layout, "rendered" | "style" | "shadowRoot">,
+  minOpacity = 1,
+): FillRefusal | null {
+  if (!input.isConnected) return "field_gone";
+  if (input.disabled) return "not_editable";
+  if (isIgnored(input)) return "field_opted_out";
+  if (input.type === "hidden") return "field_hidden";
+  const style = shownStyle(input, layout);
+  return style === null || opacityOf(input, layout, style) < minOpacity ? "field_hidden" : null;
 }
 
 /** The computed style of an element with boxes and not `visibility: hidden`; `null` when the page doesn't show it. */
@@ -77,7 +91,7 @@ export function shownStyle(element: Element, layout: Pick<Layout, "rendered" | "
   return style.visibility !== "hidden" && style.visibility !== "collapse" ? style : null;
 }
 
-function opacityOf(style: CSSStyleDeclaration): number {
+function styleOpacity(style: CSSStyleDeclaration): number {
   const opacity = style.opacity === "" ? 1 : Number.parseFloat(style.opacity);
   // `filter: opacity(…)` fades too.
   const filter = /opacity\(\s*([\d.]+)(%?)\s*\)/.exec(style.filter ?? "");
@@ -144,13 +158,28 @@ export function transparency(
   style: CSSStyleDeclaration = layout.style(element),
 ): "transparent" | "hidden" | null {
   if (style.visibility === "hidden" || style.visibility === "collapse") return "hidden";
+  return opacityOf(element, layout, style) < 1 ? "transparent" : null;
+}
+
+/**
+ * How opaque an element shows through its ancestors in the flat tree, up to
+ * and including `<html>`: the product of their opacities. [style] is the
+ * element's own, when the caller read it already.
+ */
+export function opacityOf(
+  element: Element,
+  layout: Pick<Layout, "style" | "shadowRoot">,
+  style: CSSStyleDeclaration = layout.style(element),
+): number {
   const shadowRootOf = (node: Element) => layout.shadowRoot(node);
+  let opacity = 1;
   for (let node: Element | null | undefined = element; node !== null; node = flatParentOf(node, shadowRootOf)) {
     // A slot it can't find fails closed. A slot is `display: contents` unless
     // styled: without a box, its own opacity fades nothing, but it counts.
-    if (node === undefined || opacityOf(node === element ? style : layout.style(node)) < 1) return "transparent";
+    if (node === undefined) return 0;
+    opacity *= Math.min(styleOpacity(node === element ? style : layout.style(node)), 1);
   }
-  return null;
+  return opacity;
 }
 
 function center(rect: { left: number; top: number; width: number; height: number }) {
@@ -173,43 +202,86 @@ export function isWithin(inner: Element, outer: Element): boolean {
 }
 
 /**
- * Whether the page shows a field: fully opaque and visible, in the viewport,
- * and on top at its center (anything else there is covering it).
+ * Whether the page shows a field: not read-only, one a fill may write, see
+ * [fieldRefusal], at least 4x4 px, in the viewport, and on top at its
+ * center (anything else there is covering it). Before acting on a click.
  */
 export function fieldExposure(field: HTMLInputElement, layout: Layout): FillRefusal | null {
-  // Read-only with focus: the page shows the field, it doesn't ask for it.
-  const style = field.readOnly ? null : fillableStyle(field, layout);
-  if (style === null || transparency(field, layout, style) !== null) return "obscured";
-  const rect = layout.rect(field);
-  if (rect.width < 4 || rect.height < 4) return "obscured";
-  const point = center(rect);
-  if (!inViewport(point, layout.viewport())) return "obscured";
+  const box = fieldBox(field, layout);
+  if (typeof box === "string") return box;
+  const point = center(box);
   const hit = layout.hit(point.x, point.y);
-  return hit !== null && isWithin(hit, field) ? null : "obscured";
+  return hit !== null && isWithin(hit, field) ? null : "field_covered";
+}
+
+/**
+ * Whether the page shows a field enough for the icon and to open the menu:
+ * as [fieldExposure], but on top at the left quarter, the center or the right
+ * quarter of its middle, those in the viewport, or under one of its labels
+ * there. A floating label, a mask or a placeholder layer may lie over the
+ * center; a click in the menu still takes [fieldExposure].
+ */
+export function fieldShown(field: HTMLInputElement, layout: Layout): FillRefusal | null {
+  const box = fieldBox(field, layout);
+  if (typeof box === "string") return box;
+  const viewport = layout.viewport();
+  const labels = Array.from(field.labels ?? []);
+  const y = box.top + box.height / 2;
+  for (const share of [0.5, 0.25, 0.75]) {
+    const point = { x: box.left + box.width * share, y };
+    if (!inViewport(point, viewport)) continue;
+    const hit = layout.hit(point.x, point.y);
+    if (hit !== null && (isWithin(hit, field) || labels.some((label) => isWithin(hit, label)))) return null;
+  }
+  return "field_covered";
+}
+
+/**
+ * The checks of [fieldExposure] and [fieldShown] before the hit test: the
+ * field's box when they pass, with its center in the viewport.
+ */
+function fieldBox(
+  field: HTMLInputElement,
+  layout: Layout,
+): FillRefusal | { left: number; top: number; width: number; height: number } {
+  // Read-only with focus: the page shows the field, it doesn't ask for it.
+  if (field.readOnly && field.isConnected) return "not_editable";
+  const refusal = fieldRefusal(field, layout);
+  if (refusal !== null) return refusal;
+  const rect = layout.rect(field);
+  if (rect.width < 4 || rect.height < 4) return "field_hidden";
+  return inViewport(center(rect), layout.viewport()) ? rect : "field_off_screen";
 }
 
 /**
  * Whether the extension's popup (menu or save bar) is what the user sees at
  * its center: open, fully opaque, the top hit there, and with no top-layer
- * element of the page open, see [pageTopLayer].
+ * element of the page open but those of [baseline], see [pageTopLayer].
  *
  * [host] is the element of the page that holds the extension's closed shadow
- * root; [popup] is the popover in it.
+ * root; [popup] is the popover in it. [baseline] is what [TopLayerWatch] saw
+ * open in [doc] as the popup opened.
  */
-export function popupExposure(host: Element, popup: HTMLElement, layout: Layout, doc: Document): FillRefusal | null {
-  if (!layout.rendered(popup)) return "obscured";
+export function popupExposure(
+  host: Element,
+  popup: HTMLElement,
+  layout: Layout,
+  doc: Document,
+  baseline?: ReadonlySet<Element>,
+): FillRefusal | null {
+  if (!layout.rendered(popup)) return "popup_covered";
   // Top-layer elements escape their ancestors' effects, but the page can
   // still style the host; check both.
-  if (transparency(popup, layout) !== null) return "obscured";
+  if (transparency(popup, layout) !== null) return "popup_covered";
   const point = center(layout.rect(popup));
-  if (!inViewport(point, layout.viewport())) return "obscured";
+  if (!inViewport(point, layout.viewport())) return "popup_covered";
   // From the page, every node of the closed shadow root is the host. In a
   // dialog in a shadow root of the page, the document hits that root's host;
   // look through.
   const top =
     host.getRootNode() === host.ownerDocument ? layout.topHit(point.x, point.y) : layout.hit(point.x, point.y);
-  if (top !== host) return "obscured";
-  return pageTopLayer(host, layout, doc) ? "obscured" : null;
+  if (top !== host) return "popup_covered";
+  return pageTopLayer(host, layout, doc, baseline) ? "popup_covered" : null;
 }
 
 /**
@@ -220,18 +292,30 @@ export function popupExposure(host: Element, popup: HTMLElement, layout: Layout,
  * the top layer, where an element opened after the popup goes over it. Such
  * an element may be small, as a 1x1 popover, and cover the popup with a
  * `position: fixed` child or its `::backdrop`: any of them counts, wherever it
- * is. Only the modal dialogs around [host] don't: the popup opened over them,
- * and the content script closes it when one closes, as to show it again.
+ * is. The modal dialogs around [host] don't: the popup opened over them, and
+ * the content script closes it when one closes, as to show it again. Nor do
+ * the elements of [baseline]: open since before the popup, they're under it.
+ * The fullscreen element always counts.
  */
-function pageTopLayer(host: Element, layout: Layout, doc: Document): boolean {
+function pageTopLayer(host: Element, layout: Layout, doc: Document, baseline?: ReadonlySet<Element>): boolean {
   if (doc.fullscreenElement) return true;
-  for (const root of rootsOf(doc, host, layout)) if (hasPageTopLayer(root, host, layout)) return true;
+  for (const root of rootsOf(doc, host, layout)) if (hasPageTopLayer(root, host, layout, baseline)) return true;
   return false;
 }
 
-/** Whether [root] has an element of the page in the top layer: any but a modal dialog around [host]. */
-function hasPageTopLayer(root: Document | ShadowRoot, host: Element, layout: Pick<Layout, "topLayer">): boolean {
-  return layout.topLayer(root).some((element) => element.localName !== "dialog" || !isWithin(host, element));
+/** The elements of the page in the top layer of [root]: any but a modal dialog around [host]. */
+function pageTopLayerOf(root: Document | ShadowRoot, host: Element, layout: Pick<Layout, "topLayer">): Element[] {
+  return layout.topLayer(root).filter((element) => element.localName !== "dialog" || !isWithin(host, element));
+}
+
+/** Whether [root] has an element of the page in the top layer, see [pageTopLayerOf], but those of [baseline]. */
+function hasPageTopLayer(
+  root: Document | ShadowRoot,
+  host: Element,
+  layout: Pick<Layout, "topLayer">,
+  baseline?: ReadonlySet<Element>,
+): boolean {
+  return pageTopLayerOf(root, host, layout).some((element) => baseline?.has(element) !== true);
 }
 
 /**
@@ -281,6 +365,12 @@ export interface TopLayerWatchDeps {
  * the popup opened or since; each `beforetoggle`, `toggle` and
  * `fullscreenchange` counts too, as for a decoy shown and hidden between two
  * frames. Events of the extension's own popovers stay in its closed root.
+ *
+ * What was open in the UI's document as the popup opened, its [baseline], is
+ * under the popup and doesn't count while it stays open, nor as it closes.
+ * Its toggle or `close`, or a frame without it, takes it out: open again, it
+ * counts. The ancestors' documents have none: the frame that holds the popup
+ * isn't in the top layer, and any of theirs can cover it.
  */
 export class TopLayerWatch {
   private seenAt = Number.NEGATIVE_INFINITY;
@@ -289,6 +379,9 @@ export class TopLayerWatch {
     /** Each root watched, with the document it's in. */
     roots: Map<Document | ShadowRoot, WatchedDocument>;
     documents: WatchedDocument[];
+    baseline: Set<Element>;
+    /** Elements of the baseline that closed, while they stay closed: their closing events don't count. */
+    closed: Set<Element>;
     frame: number;
   } | null = null;
   private readonly now: () => number;
@@ -302,18 +395,32 @@ export class TopLayerWatch {
     if (this.running !== null) return;
     const abort = new AbortController();
     const documents = this.deps.documents();
-    this.running = { abort, roots: new Map(), documents, frame: 0 };
+    const baseline = new Set<Element>();
+    this.running = { abort, roots: new Map(), documents, baseline, closed: new Set(), frame: 0 };
     for (const watched of documents) {
-      for (const root of rootsOf(watched.doc, watched.host, watched.layout)) this.watch(root, watched);
+      for (const root of rootsOf(watched.doc, watched.host, watched.layout)) {
+        this.watch(root, watched);
+        if (watched !== documents[0]) continue;
+        for (const element of pageTopLayerOf(root, watched.host, watched.layout)) baseline.add(element);
+      }
       watched.doc.addEventListener("fullscreenchange", () => this.mark(), { capture: true, signal: abort.signal });
     }
     this.onFrame();
   }
 
-  /** Watches a shadow root of the UI's document found while a popup is open, as one attached since. */
+  /**
+   * Watches a shadow root of the UI's document found while a popup is open, as
+   * one attached since. What's open in it already counts: it may be newer than
+   * the popup.
+   */
   adopt(root: ShadowRoot): void {
     const watched = this.running?.documents[0];
     if (watched !== undefined) this.watch(root, watched);
+  }
+
+  /** The elements of the page open in the top layer of the UI's document since before the popup, see [popupExposure]. */
+  get baseline(): ReadonlySet<Element> {
+    return this.running?.baseline ?? EMPTY;
   }
 
   /** Whether the page had an element of its own in the top layer within the last [ms]. */
@@ -336,20 +443,41 @@ export class TopLayerWatch {
     const options = { capture: true, signal: running.abort.signal };
     root.addEventListener("beforetoggle", (event) => this.onToggle(event, watched.host), options);
     root.addEventListener("toggle", (event) => this.onToggle(event, watched.host), options);
+    // A modal dialog closed, where the browser has no toggle events for dialogs.
+    root.addEventListener("close", (event) => this.leaveBaseline(event.target), options);
   }
 
   private mark() {
     this.seenAt = this.now();
   }
 
+  /** [element] closed: it leaves the baseline, if in it. */
+  private leaveBaseline(element: EventTarget | null) {
+    const running = this.running;
+    if (running === null || !(element instanceof Element) || !running.baseline.delete(element)) return;
+    running.closed.add(element);
+  }
+
   /**
    * A popover of the page opening or closing, or a modal dialog but one
    * around [host]: one closing is still modal as `beforetoggle` fires, one
    * opening as `toggle` does. `<details>` toggles too, outside the top layer.
+   * One of the [baseline] closing leaves it and doesn't count; one opening
+   * counts: it closed unseen, as out of the document. The `toggle` of its
+   * opening may come after the popup opened.
    */
   private onToggle(event: Event, host: Element) {
     const target = event.target;
     if (!(target instanceof Element) || target === host) return;
+    const running = this.running;
+    const state = (event as Event & { newState?: unknown }).newState;
+    if (running !== null && state === "closed" && (running.baseline.has(target) || running.closed.has(target))) {
+      this.leaveBaseline(target);
+      return;
+    }
+    if (running?.baseline.has(target) && event.type === "toggle" && state === "open") return;
+    running?.baseline.delete(target);
+    running?.closed.delete(target);
     const popover = target.hasAttribute("popover");
     if (!popover && (target.localName !== "dialog" || !matches(target, ":modal"))) return;
     if (popover || !isWithin(host, target)) this.mark();
@@ -364,11 +492,21 @@ export class TopLayerWatch {
       return;
     }
     let seen = running.documents.some(({ doc }) => doc.fullscreenElement);
-    for (const [root, { host, layout }] of running.roots) seen ||= hasPageTopLayer(root, host, layout);
+    const open = new Set<Element>();
+    for (const [root, { host, layout }] of running.roots) {
+      for (const element of pageTopLayerOf(root, host, layout)) {
+        open.add(element);
+        seen ||= !running.baseline.has(element);
+      }
+    }
+    // Closed unseen: open again, it's over the popup.
+    for (const element of running.baseline) if (!open.has(element)) this.leaveBaseline(element);
     if (seen) this.mark();
     running.frame = running.documents[0]?.doc.defaultView?.requestAnimationFrame(() => this.onFrame()) ?? 0;
   }
 }
+
+const EMPTY: ReadonlySet<Element> = new Set();
 
 /** `element.matches`, false for a selector the browser doesn't know. */
 function matches(element: Element, selector: string): boolean {

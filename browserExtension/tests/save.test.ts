@@ -260,8 +260,8 @@ describe("save tracker", () => {
       <form id="login"><input id="lu" name="email"><input id="lp" type="password"></form>`);
     // Its key events, and the blur and focus that end it, aren't the user's;
     // the keydown comes before the write, with the page's value still in.
-    await fillLogin(detectFormOf(byId("u"), detectOptions)!, { username: "ann" }, () => true);
-    await fillLogin(detectFormOf(byId("lp"), detectOptions)!, { username: "ann", password: "secret" }, () => true);
+    await fillLogin(detectFormOf(byId("u"), detectOptions)!, { username: "ann" }, () => null);
+    await fillLogin(detectFormOf(byId("lp"), detectOptions)!, { username: "ann", password: "secret" }, () => null);
     tracker.flush();
     expect(usernames).toEqual([]);
     expect(reports).toEqual([]);

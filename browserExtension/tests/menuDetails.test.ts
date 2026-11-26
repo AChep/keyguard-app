@@ -531,10 +531,13 @@ describe("the card beside the inline menu", () => {
     const context = setup();
     const { card, menu, requests, state } = await showing("h1", context);
     context.state.contentScript = (message) =>
-      message.kind === "guard" ? { ok: false, reason: "obscured" } : { ok: true };
+      message.kind === "guard" ? { ok: false, reason: "popup_covered" } : { ok: true };
     await copy(card, "copy_password");
     await copy(card, "copy_username");
-    expect(card.posted.filter((it) => it.kind === "error").map((it) => it.error)).toEqual(["obscured", "obscured"]);
+    expect(card.posted.filter((it) => it.kind === "error").map((it) => it.error)).toEqual([
+      "popup_covered",
+      "popup_covered",
+    ]);
     expect(requests.map((it) => it.type)).toEqual(["suggest"]);
     // A single-page app moved on since the menu opened: the menu shows its matches instead.
     context.state.contentScript = (message) =>
@@ -612,7 +615,7 @@ describe("the card beside the inline menu", () => {
           ? focus.focused
           : focus.focused
             ? { ok: true }
-            : { ok: false, reason: "obscured" };
+            : { ok: false, reason: "popup_covered" };
     return focus;
   }
 
@@ -1038,9 +1041,9 @@ describe("the card beside the inline menu", () => {
     const context = setup();
     const { card, state } = await showing("h1", context);
     context.state.contentScript = (message) =>
-      message.kind === "guard" ? { ok: false, reason: "obscured" } : { ok: true };
+      message.kind === "guard" ? { ok: false, reason: "popup_covered" } : { ok: true };
     await copyUri(card, 0);
-    expect(card.posted.filter((it) => it.kind === "error").map((it) => it.error)).toEqual(["obscured"]);
+    expect(card.posted.filter((it) => it.kind === "error").map((it) => it.error)).toEqual(["popup_covered"]);
     expect(card.posted.filter((it) => it.kind === "copied")).toEqual([]);
     expect(state.copies).toEqual([]);
   });

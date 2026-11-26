@@ -3282,8 +3282,16 @@
     <string name="browser_extension_options_browser_saving_other_extension">Another extension manages this setting.</string>
     <string name="browser_extension_options_browser_saving_not_controllable">The browser or a policy manages this setting.</string>
     <string name="browser_extension_error_no_form">Keyguard found no login form on this page.</string>
-    <string name="browser_extension_error_obscured">The page hides or covers the field, so Keyguard didn’t fill it.</string>
-    <string name="browser_extension_error_save_bar_obscured">The page covers this bar. Close what’s open on the page, then try again.</string>
+    <string name="browser_extension_error_nothing_to_fill">This login has nothing to fill into this form.</string>
+    <string name="browser_extension_error_no_otp_field">Keyguard found no one-time code field on this page.</string>
+    <string name="browser_extension_error_not_editable">The field is read-only, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_field_opted_out">The page asks password managers not to fill this field.</string>
+    <string name="browser_extension_error_field_hidden">The page hides the field, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_field_off_screen">The field is off screen. Scroll to it, then try again.</string>
+    <string name="browser_extension_error_field_covered">Something on the page covers the field, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_popup_covered">The page covers Keyguard. Close what’s open on the page, then try again.</string>
+    <string name="browser_extension_error_frame_hidden">The page hides or covers the frame with this field.</string>
+    <string name="browser_extension_error_frame_unchecked">Keyguard couldn’t check the page around this frame, so it didn’t fill it.</string>
     <string name="browser_extension_error_page_changed">The page changed. Try again.</string>
     <!-- Browser extension: the integration in the app's settings and request log -->
     <string name="browser_extension_title">Browser extension</string>

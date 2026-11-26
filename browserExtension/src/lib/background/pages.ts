@@ -891,7 +891,10 @@ export class PageController {
     try {
       [response, icon] = await Promise.all([logins, iconRequest]);
     } catch (error) {
-      if (latest()) this.post(menu.port, { kind: "error", error: callErrorOf(error) });
+      if (latest()) {
+        console.warn("Keyguard: the menu's suggest failed", error);
+        this.post(menu.port, { kind: "error", error: callErrorOf(error) });
+      }
       return;
     }
     if (!latest()) return;
@@ -1076,7 +1079,10 @@ export class PageController {
       await action(signal);
     } catch (error) {
       // A cancelled request is no failure: the page closed.
-      if (!signal.aborted && !isCancelled(error)) this.post(session.port, { kind: "error", error: callErrorOf(error) });
+      if (!signal.aborted && !isCancelled(error)) {
+        console.warn(`Keyguard: an action in the ${session.kind} failed`, error);
+        this.post(session.port, { kind: "error", error: callErrorOf(error) });
+      }
     } finally {
       session.busy = false;
       if (!signal.aborted) {
@@ -1098,16 +1104,18 @@ export class PageController {
     try {
       answer = await this.send(frame, { kind: "guard", popup });
     } catch {
-      throw new CallFailure("obscured");
+      // The frame navigated or closed since, as for [fill].
+      throw new CallFailure("origin");
     }
-    const result = parseDocumentResult(answer, "obscured");
+    // A missing or malformed answer: as from a document that's gone.
+    const result = parseDocumentResult(answer, "origin");
     if (!result.ok) throw new CallFailure(result.reason);
     const url = currentUrl(frame, result.url);
     // The document answers for its origin only, see ../page/messages.ts.
     if (url === null) throw new CallFailure("origin");
     let parent = result.parent;
     for (let checks = 0; parent !== undefined; checks++) {
-      if (checks === MAX_PARENT_CHECKS) throw new CallFailure("obscured");
+      if (checks === MAX_PARENT_CHECKS) throw new CallFailure("frame_unchecked");
       parent = await this.parentShows(frame.tabId, parent);
     }
     return url;
@@ -1132,7 +1140,8 @@ export class PageController {
         return true;
       },
     );
-    if (answer === null || !answer.ok) throw new CallFailure("obscured");
+    if (answer === null) throw new CallFailure("frame_unchecked");
+    if (!answer.ok) throw new CallFailure(answer.reason);
     return answer.parent;
   }
 
@@ -1159,7 +1168,7 @@ export class PageController {
   /** Has the content script of [frame] move focus into the frame of [popup], the menu or its card; whether it did. */
   private async focusPopup(frame: FrameRef, popup: "menu" | "menu_details"): Promise<boolean> {
     try {
-      return parseDocumentResult(await this.send(frame, { kind: "focus_popup", popup }), "obscured").ok;
+      return parseDocumentResult(await this.send(frame, { kind: "focus_popup", popup }), "popup_covered").ok;
     } catch {
       return false;
     }
@@ -1168,7 +1177,7 @@ export class PageController {
   /** Whether the document of [frame] still has focus, as its content script tells; false when it's gone. */
   private async hasFocus(frame: FrameRef): Promise<boolean> {
     try {
-      return parseDocumentResult(await this.send(frame, { kind: "has_focus" }), "obscured").ok;
+      return parseDocumentResult(await this.send(frame, { kind: "has_focus" }), "popup_covered").ok;
     } catch {
       return false;
     }
@@ -1203,6 +1212,8 @@ export class PageController {
       // The frame navigated or closed since.
       throw new CallFailure("origin");
     }
+    // `null`: the content script's fill threw, and it logged why.
+    if (answer === null) throw new CallFailure("unknown");
     const result = parseDocumentResult(answer, "no_form");
     if (!result.ok) throw new CallFailure(result.reason);
     return result.passwordStep === true;

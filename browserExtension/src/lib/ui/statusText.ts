@@ -2,6 +2,7 @@
 // the popup and the toolbar button's title.
 import type { CallError, ExtensionStatus } from "../background/api";
 import { t, type I18nKey } from "../i18n";
+import type { FillRefusal } from "../page/messages";
 
 const TITLES: Record<ExtensionStatus["kind"], I18nKey> = {
   starting: "loading",
@@ -39,7 +40,25 @@ export function needsAttention(status: ExtensionStatus): boolean {
   }
 }
 
+/** The page refusals: each has its own text. */
+const REFUSALS: Record<FillRefusal, I18nKey> = {
+  no_form: "browser_extension_error_no_form",
+  nothing_to_fill: "browser_extension_error_nothing_to_fill",
+  no_otp_field: "browser_extension_error_no_otp_field",
+  not_editable: "browser_extension_error_not_editable",
+  field_gone: "browser_extension_error_page_changed",
+  field_opted_out: "browser_extension_error_field_opted_out",
+  field_hidden: "browser_extension_error_field_hidden",
+  field_off_screen: "browser_extension_error_field_off_screen",
+  field_covered: "browser_extension_error_field_covered",
+  popup_covered: "browser_extension_error_popup_covered",
+  frame_hidden: "browser_extension_error_frame_hidden",
+  frame_unchecked: "browser_extension_error_frame_unchecked",
+  origin: "browser_extension_error_page_changed",
+};
+
 const ERRORS: Partial<Record<CallError, I18nKey>> = {
+  ...REFUSALS,
   user_denied: "browser_extension_error_user_denied",
   approval_timeout: "browser_extension_error_approval_timeout",
   vault_locked: "browser_extension_error_vault_locked",
@@ -48,9 +67,6 @@ const ERRORS: Partial<Record<CallError, I18nKey>> = {
   busy: "browser_extension_error_busy",
   disconnected: "browser_extension_error_disconnected",
   unsupported_page: "browser_extension_page_unsupported_text",
-  no_form: "browser_extension_error_no_form",
-  obscured: "browser_extension_error_obscured",
-  origin: "browser_extension_error_page_changed",
 };
 
 export function errorText(error: CallError): string {

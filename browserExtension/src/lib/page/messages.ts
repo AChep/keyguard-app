@@ -94,7 +94,9 @@ export type ContentRequest =
    * The answer to a `frame_guard` of the document that holds the frame: as a
    * [DocumentResult] of a `guard`, without a URL. Answers `null`.
    */
-  | { kind: "frame_report"; probe: string; ok: boolean; parent?: FrameCheck };
+  | ({ kind: "frame_report"; probe: string } & (
+      { ok: true; parent?: FrameCheck } | { ok: false; reason: FillRefusal }
+    ));
 
 /** A [ContentRequest] as sent, with the token of the sender's document. */
 export type ContentMessage = ContentRequest & { doc: string };
@@ -128,12 +130,39 @@ export interface UiToken {
 /** The popups whose actions the content script checks first, see [DocumentCommand] `guard`. */
 export type GuardedPopup = "menu" | "menu_details" | "save_bar";
 
-/** Why a frame didn't fill. */
+/** Why a frame didn't fill, or refused a click in a popup. */
 export type FillRefusal =
-  /** No form or field to fill. */
+  /** No form for the fill. */
   | "no_form"
-  /** The field or the menu is transparent, hidden or covered. */
-  | "obscured"
+  /** The form has no field for the values: no new-password field, or none for the login's values. */
+  | "nothing_to_fill"
+  /** A one-time code fill's form has no one-time code field. */
+  | "no_otp_field"
+  /** The fill's field is disabled, or stays read-only once it has focus. */
+  | "not_editable"
+  /** The menu's field, or the fill's, is no longer in the document. */
+  | "field_gone"
+  /** The page opts the field out of password managers, as with `data-1p-ignore`, on it or its form. */
+  | "field_opted_out"
+  /** The page doesn't show the field: not rendered, `visibility: hidden`, transparent, or under 4x4 px. */
+  | "field_hidden"
+  /** The field's center is outside the viewport. */
+  | "field_off_screen"
+  /** Another element is on top at the field's center. */
+  | "field_covered"
+  /**
+   * The menu, the card beside it or the save bar isn't on top, or is
+   * transparent; or a top-layer element of the page is open, or was shortly
+   * before.
+   */
+  | "popup_covered"
+  /** An ancestor frame hides, covers or transforms the frame, see ../content/guards.ts `frameExposure`. */
+  | "frame_hidden"
+  /**
+   * An ancestor frame couldn't be checked: the browser doesn't name the frame,
+   * a parent of another origin didn't answer, or there are too many of them.
+   */
+  | "frame_unchecked"
   /** The frame shows another origin than the one the values are for. */
   | "origin";
 
@@ -179,7 +208,7 @@ export type DocumentCommand =
   /**
    * Whether the document has focus, once focus settled: also while it's in
    * the frame of the menu or of the card. Answers a [DocumentResult]: `ok`
-   * when it has; else `obscured`. See [MenuRequest] `blurred`.
+   * when it has; else `popup_covered`. See [MenuRequest] `blurred`.
    */
   | { kind: "has_focus" }
   | { kind: "save_bar_resize"; height: number }
@@ -542,7 +571,23 @@ const ROLES: ReadonlySet<string> = new Set<FieldRole>(["username", "current-pass
 const TOKEN = /^[0-9a-f]{32}$/;
 const MAX_VALUE_LENGTH = 4096;
 const MAX_HANDLE_LENGTH = 64;
-const REFUSALS: ReadonlySet<string> = new Set<FillRefusal>(["no_form", "obscured", "origin"]);
+/** Every [FillRefusal]: the compiler checks that none is missing. */
+export const FILL_REFUSALS = Object.keys({
+  no_form: true,
+  nothing_to_fill: true,
+  no_otp_field: true,
+  not_editable: true,
+  field_gone: true,
+  field_opted_out: true,
+  field_hidden: true,
+  field_off_screen: true,
+  field_covered: true,
+  popup_covered: true,
+  frame_hidden: true,
+  frame_unchecked: true,
+  origin: true,
+} satisfies Record<FillRefusal, true>) as readonly FillRefusal[];
+const REFUSALS: ReadonlySet<string> = new Set(FILL_REFUSALS);
 
 const isValue = (value: unknown): value is string => typeof value === "string" && value.length <= MAX_VALUE_LENGTH;
 const isOptionalValue = (value: unknown): value is string | undefined =>
@@ -570,12 +615,16 @@ export function parseFrameCheck(value: unknown): FrameCheck | null {
     : null;
 }
 
-/** A document's answer to a [DocumentCommand]; refused with [missing] when there's none, or it's malformed. */
+/**
+ * A document's answer to a [DocumentCommand]; refused with [missing] when
+ * there's none, or it's malformed, and with `frame_unchecked` when its
+ * parent to check is.
+ */
 export function parseDocumentResult(value: unknown, missing: FillRefusal): DocumentResult {
   if (isObject(value) && value.ok === true) {
     const parent = parseFrameCheck(value.parent);
     // A parent to check that can't be read fails closed.
-    if (value.parent !== undefined && parent === null) return { ok: false, reason: missing };
+    if (value.parent !== undefined && parent === null) return { ok: false, reason: "frame_unchecked" };
     return {
       ok: true,
       ...(typeof value.url === "string" ? { url: value.url } : {}),
@@ -584,10 +633,12 @@ export function parseDocumentResult(value: unknown, missing: FillRefusal): Docum
       ...(value.passwordStep === true ? { passwordStep: true } : {}),
     };
   }
-  if (isObject(value) && value.ok === false && typeof value.reason === "string" && REFUSALS.has(value.reason)) {
-    return { ok: false, reason: value.reason as FillRefusal };
-  }
+  if (isObject(value) && value.ok === false && isFillRefusal(value.reason)) return { ok: false, reason: value.reason };
   return { ok: false, reason: missing };
+}
+
+export function isFillRefusal(value: unknown): value is FillRefusal {
+  return typeof value === "string" && REFUSALS.has(value);
 }
 
 export function isRole(value: unknown): value is FieldRole {
@@ -687,14 +738,15 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
     case "top_report":
       return isToken(message.probe) ? { kind: "top_report", probe: message.probe } : null;
     case "frame_report": {
+      if (!isToken(message.probe)) return null;
+      if (message.ok === false) {
+        return isFillRefusal(message.reason)
+          ? { kind: "frame_report", probe: message.probe, ok: false, reason: message.reason }
+          : null;
+      }
       const parent = parseFrameCheck(message.parent);
-      if (
-        !isToken(message.probe) ||
-        typeof message.ok !== "boolean" ||
-        (message.parent !== undefined && parent === null)
-      )
-        return null;
-      return { kind: "frame_report", probe: message.probe, ok: message.ok, ...(parent !== null ? { parent } : {}) };
+      if (message.ok !== true || (message.parent !== undefined && parent === null)) return null;
+      return { kind: "frame_report", probe: message.probe, ok: true, ...(parent !== null ? { parent } : {}) };
     }
     default:
       return null;

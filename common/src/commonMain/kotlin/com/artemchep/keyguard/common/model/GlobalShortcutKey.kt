@@ -71,4 +71,5 @@ enum class GlobalShortcutKey {
     F10,
     F11,
     F12,
+    Backslash,
 }

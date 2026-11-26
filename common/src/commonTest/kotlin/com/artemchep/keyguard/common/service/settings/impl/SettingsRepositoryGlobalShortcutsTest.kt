@@ -46,7 +46,17 @@ class SettingsRepositoryGlobalShortcutsTest {
                     }
                 assertEquals(
                     GlobalShortcutBinding(key, shift = true, meta = true),
-                    config[action].resolve(action, Platform.Desktop.MacOS.Jvm),
+                    config[action].resolve(action, Platform.Desktop.MacOS.Jvm(majorVersion = 26)),
+                )
+                val macos27 =
+                    if (action == GlobalShortcutAction.QuickSearch) {
+                        GlobalShortcutBinding(GlobalShortcutKey.Backslash, alt = true, meta = true)
+                    } else {
+                        GlobalShortcutBinding(key, shift = true, meta = true)
+                    }
+                assertEquals(
+                    macos27,
+                    config[action].resolve(action, Platform.Desktop.MacOS.Jvm(majorVersion = 27)),
                 )
                 for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.Linux.native)) {
                     assertEquals(

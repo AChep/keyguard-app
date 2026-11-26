@@ -64,6 +64,7 @@ public enum class GlobalHotKeyKey {
     F10,
     F11,
     F12,
+    Backslash,
 }
 
 public data class GlobalHotKeySpec(
@@ -75,7 +76,7 @@ public data class GlobalHotKeySpec(
 )
 
 /**
- * Letters and digits carry their ASCII character above the ANSI key code. The native side
+ * Letters, digits and the backslash carry their ASCII character above the ANSI key code. The native side
  * registers the key that types this character in the current Latin layout, and falls back
  * to the ANSI position.
  */
@@ -90,6 +91,7 @@ private val GlobalHotKeyKey.macosCharacter: Char?
     get() = when (this) {
         in GlobalHotKeyKey.A..GlobalHotKeyKey.Z -> 'a' + (ordinal - GlobalHotKeyKey.A.ordinal)
         in GlobalHotKeyKey.Digit0..GlobalHotKeyKey.Digit9 -> '0' + (ordinal - GlobalHotKeyKey.Digit0.ordinal)
+        GlobalHotKeyKey.Backslash -> '\\'
         else -> null
     }
 
@@ -158,6 +160,7 @@ private val GlobalHotKeyKey.macosAnsiKeyCode: Int?
         GlobalHotKeyKey.F10 -> 0x6D
         GlobalHotKeyKey.F11 -> 0x67
         GlobalHotKeyKey.F12 -> 0x6F
+        GlobalHotKeyKey.Backslash -> 0x2A
     }
 
 internal val GlobalHotKeyKey.windowsKeyCode: Int
@@ -225,6 +228,7 @@ internal val GlobalHotKeyKey.windowsKeyCode: Int
         GlobalHotKeyKey.F10 -> 0x79
         GlobalHotKeyKey.F11 -> 0x7A
         GlobalHotKeyKey.F12 -> 0x7B
+        GlobalHotKeyKey.Backslash -> 0xDC
     }
 
 internal val GlobalHotKeyKey.x11KeySym: Int
@@ -292,4 +296,5 @@ internal val GlobalHotKeyKey.x11KeySym: Int
         GlobalHotKeyKey.F10 -> 0xFFC7
         GlobalHotKeyKey.F11 -> 0xFFC8
         GlobalHotKeyKey.F12 -> 0xFFC9
+        GlobalHotKeyKey.Backslash -> 0x005C
     }

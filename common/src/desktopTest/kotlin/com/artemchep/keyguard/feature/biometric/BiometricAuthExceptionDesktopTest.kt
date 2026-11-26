@@ -29,7 +29,7 @@ class BiometricAuthExceptionDesktopTest {
     @Test
     fun `lost persistent desktop credentials still invalidate enrollment`() {
         val source = BiometricsException(BiometricsStatus.CREDENTIAL_NOT_FOUND, "Credential missing")
-        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm)) {
+        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm(majorVersion = 26))) {
             assertEquals(ERROR_KEY_INVALIDATED, source.toBiometricAuthException(platform).code)
         }
     }

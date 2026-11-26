@@ -68,7 +68,7 @@ class SettingsCatalogTest {
         val platforms = listOf(
             Platform.Desktop.Linux(isFlatpak = false),
             Platform.Desktop.Linux(isFlatpak = true),
-            Platform.Desktop.MacOS.Jvm,
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26),
         )
         platforms.forEach { platform ->
             val autofill = settingsCatalog(
@@ -93,7 +93,7 @@ class SettingsCatalogTest {
         val platforms = listOf(
             Platform.Desktop.Linux(isFlatpak = false),
             Platform.Desktop.Windows,
-            Platform.Desktop.MacOS.Jvm,
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26),
         )
         platforms.forEach { platform ->
             fun ids(free: Boolean) = settingsCatalog(
@@ -111,7 +111,7 @@ class SettingsCatalogTest {
     fun `host capability overrides only remove their own routes`() {
         val items = settingsCatalog(
             config = FlavorConfig(isFreeAsBeer = false),
-            platform = Platform.Desktop.MacOS.Native,
+            platform = Platform.Desktop.MacOS.Native(majorVersion = 26),
             release = true,
             includeAutofill = false,
             includeWatchtower = false,

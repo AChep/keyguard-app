@@ -80,9 +80,9 @@ class AutofillMetadataTest {
     @Test
     fun releaseCapabilitiesIncludeAppleAndDesktopButNotUnsupportedAndroidDevices() {
         assertTrue(Platform.Mobile.Ios.Native.hasAutofill())
-        assertTrue(Platform.Desktop.MacOS.Native.hasAutofill())
+        assertTrue(Platform.Desktop.MacOS.Native(majorVersion = 26).hasAutofill())
         // The browser extension.
-        assertTrue(Platform.Desktop.MacOS.Jvm.hasAutofill())
+        assertTrue(Platform.Desktop.MacOS.Jvm(majorVersion = 26).hasAutofill())
         assertTrue(Platform.Mobile.Android(false, false, 35).hasAutofill())
         assertFalse(Platform.Mobile.Android(true, false, 35).hasAutofill())
         assertFalse(Platform.Mobile.Android(false, true, 35).hasAutofill())

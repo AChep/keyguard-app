@@ -5,10 +5,10 @@ import com.artemchep.keyguard.platform.Platform
 fun Platform.hasAutofill(): Boolean = when (this) {
     is Platform.Mobile.Android -> !isChromebook && !isWatch
     is Platform.Mobile.Ios -> true
-    Platform.Desktop.MacOS.Native -> true
+    is Platform.Desktop.MacOS.Native -> true
     // Browser extension, plus the passkey provider on Windows.
     is Platform.Desktop.Linux,
-    Platform.Desktop.MacOS.Jvm,
+    is Platform.Desktop.MacOS.Jvm,
     Platform.Desktop.Windows,
     -> true
     else -> false

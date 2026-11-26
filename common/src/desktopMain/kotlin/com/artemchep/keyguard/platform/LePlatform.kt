@@ -56,7 +56,9 @@ actual val CurrentPlatform: Platform by lazy {
             Platform.Desktop.Windows
 
         SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX ->
-            Platform.Desktop.MacOS.Jvm
+            Platform.Desktop.MacOS.Jvm(
+                majorVersion = parseMacosMajorVersion(System.getProperty("os.version")) ?: 0,
+            )
 
         SystemUtils.IS_OS_LINUX ->
             Platform.Desktop.Linux(
@@ -66,3 +68,10 @@ actual val CurrentPlatform: Platform by lazy {
         else -> Platform.Desktop.Other
     }
 }
+
+/** Parses the major version of an `os.version` value, e.g. `"27.2"` → 27. */
+internal fun parseMacosMajorVersion(version: String?): Int? =
+    version
+        ?.substringBefore('.')
+        ?.trim()
+        ?.toIntOrNull()

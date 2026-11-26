@@ -39,7 +39,7 @@ class QuickSearchInteractionTest {
             shortcut = quickSearchShortcut(QuickSearchActionType.Autotype),
         )
         val state = QuickSearchState(actions = listOf(action), defaultAction = QuickSearchActionType.CopyPrimary)
-        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm)) {
+        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm(majorVersion = 26))) {
             val input = QuickSearchKeyInput(
                 key = Key.T,
                 type = KeyEventType.KeyDown,
@@ -228,7 +228,7 @@ class QuickSearchInteractionTest {
                     key = Key.Delete,
                     isCtrlPressed = true,
                 ),
-                platform = Platform.Desktop.MacOS.Jvm,
+                platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26),
             ),
         )
         assertTrue(

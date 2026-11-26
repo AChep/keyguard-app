@@ -9,7 +9,7 @@ class ShortcutTextTest {
     @Test
     fun `modifiers preserve order and bold key spans`() {
         listOf(
-            Platform.Desktop.MacOS.Jvm to listOf("⌃", "⇧", "⌥", "K"),
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26) to listOf("⌃", "⇧", "⌥", "K"),
             Platform.Desktop.Windows to listOf("Ctrl", "Shift", "Alt", "K"),
             Platform.Desktop.Linux.native to listOf("Ctrl", "Shift", "Alt", "K"),
         ).forEach { (platform, labels) ->
@@ -29,7 +29,7 @@ class ShortcutTextTest {
 
     @Test
     fun `macos distinguishes physical control from command`() {
-        val platform = Platform.Desktop.MacOS.Jvm
+        val platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26)
         assertEquals("⌃+K", shortcutText("K", ctrl = true, platform = platform).text)
         assertEquals("⌘+K", shortcutText("K", meta = true, platform = platform).text)
 
@@ -50,7 +50,7 @@ class ShortcutTextTest {
     @Test
     fun `plain shortcuts preserve the supplied key label and bold span`() {
         listOf(
-            Platform.Desktop.MacOS.Jvm,
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26),
             Platform.Desktop.Windows,
             Platform.Desktop.Linux.native,
         ).forEach { platform ->

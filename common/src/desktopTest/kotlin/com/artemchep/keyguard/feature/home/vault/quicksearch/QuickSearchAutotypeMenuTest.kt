@@ -27,7 +27,7 @@ class QuickSearchAutotypeMenuTest {
             title = "Auto-type",
             shortcut = quickSearchShortcut(QuickSearchActionType.Autotype),
         )))
-        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm)) {
+        for (platform in listOf(Platform.Desktop.Windows, Platform.Desktop.MacOS.Jvm(majorVersion = 26))) {
             val input = QuickSearchKeyInput(
                 key = Key.T,
                 type = KeyEventType.KeyDown,

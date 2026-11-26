@@ -19,7 +19,7 @@ class ShortcutRecorderTest {
     ) = handle(key, ctrl, shift, alt, meta, altGraph)
 
     @Test fun `captures exact modifiers and ignores modifier keys`() {
-        val recorder = ShortcutRecorder(Platform.Desktop.MacOS.Jvm)
+        val recorder = ShortcutRecorder(Platform.Desktop.MacOS.Jvm(majorVersion = 26))
         assertEquals(ShortcutRecorder.Result.Ignored, recorder.press(Key.CtrlLeft, ctrl = true))
         assertEquals(ShortcutRecorder.Result.Ignored, recorder.press(Key.MetaRight, ctrl = true, meta = true))
         assertEquals(
@@ -29,6 +29,15 @@ class ShortcutRecorderTest {
         assertEquals(
             ShortcutRecorder.Result.Captured(GlobalShortcutBinding(GlobalShortcutKey.K, shift = true, meta = true)),
             recorder.press(Key.K, shift = true, meta = true),
+        )
+    }
+
+    @Test fun `records option command backslash`() {
+        val binding = GlobalShortcutBinding(GlobalShortcutKey.Backslash, alt = true, meta = true)
+        assertEquals(
+            ShortcutRecorder.Result.Captured(binding),
+            ShortcutRecorder(Platform.Desktop.MacOS.Jvm(majorVersion = 26))
+                .press(Key.Backslash, alt = true, meta = true),
         )
     }
 
@@ -65,7 +74,7 @@ class ShortcutRecorderTest {
     @Test fun `rejects platform unsupported and unmapped keys`() {
         assertEquals(
             ShortcutRecorder.Result.Invalid,
-            ShortcutRecorder(Platform.Desktop.MacOS.Jvm).press(Key.Insert, meta = true),
+            ShortcutRecorder(Platform.Desktop.MacOS.Jvm(majorVersion = 26)).press(Key.Insert, meta = true),
         )
         assertEquals(
             ShortcutRecorder.Result.Invalid,

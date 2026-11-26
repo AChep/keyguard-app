@@ -35,7 +35,7 @@ class BiometricKeyRepositoryDesktopTest {
     fun `macos key is assumed to persist`() = runTest {
         val repository = BiometricKeyRepositoryDesktop(
             keychainRepository = FakeKeychainRepository(),
-            platform = Platform.Desktop.MacOS.Jvm,
+            platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26),
         )
 
         assertTrue(repository.exists().bind())

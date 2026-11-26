@@ -19,8 +19,10 @@ On Linux without a system tray, the window opens after 10 seconds.
 
 | Linux and Windows | macOS | Action |
 | :---------------- | :---- | :----- |
-| Ctrl+Shift+Space | Cmd+Shift+Space | Open Quick search |
+| Ctrl+Shift+Space | Cmd+Option+\\ | Open Quick search |
 | Ctrl+Shift+L | Cmd+Shift+L | Lock the vault |
+
+On macOS 26 and earlier, Quick search opens with Cmd+Shift+Space.
 
 ### Quick search
 

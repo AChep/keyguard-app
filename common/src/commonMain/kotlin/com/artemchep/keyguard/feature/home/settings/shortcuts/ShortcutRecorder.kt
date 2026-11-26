@@ -71,6 +71,7 @@ internal val shortcutKeys: Map<GlobalShortcutKey, Key> =
         GlobalShortcutKey.F10 to Key.F10,
         GlobalShortcutKey.F11 to Key.F11,
         GlobalShortcutKey.F12 to Key.F12,
+        GlobalShortcutKey.Backslash to Key.Backslash,
     )
 
 private val recordedKeys: Map<Key, GlobalShortcutKey> =

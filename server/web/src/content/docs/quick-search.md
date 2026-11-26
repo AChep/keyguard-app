@@ -19,8 +19,9 @@ on [Close to system tray](/docs/appearance/#close-to-system-tray).
 
 ## Open Quick search
 
-Press Ctrl+Shift+Space (Cmd+Shift+Space on macOS) in any app. If the vault is
-locked, Quick search asks you to unlock it.
+Press Ctrl+Shift+Space in any app. On macOS, press Cmd+Option+\\, or
+Cmd+Shift+Space on macOS 26 and earlier. If the vault is locked, Quick search
+asks you to unlock it.
 
 Quick search closes when it loses focus, or when you press Esc with an empty
 search field.
@@ -37,7 +38,7 @@ closes Quick search. See [Keyboard shortcuts](/docs/shortcuts/).
 ## Auto-type a login
 
 1. In the other app, place the cursor in the username field.
-2. Press Ctrl+Shift+Space (Cmd+Shift+Space on macOS).
+2. Press the Quick search shortcut.
 3. Find the login, then press Ctrl+T (Cmd+T on macOS).
 
 Keyguard types the username, Tab, then the password. It never presses Enter.
@@ -45,8 +46,8 @@ Keyguard types the username, Tab, then the password. It never presses Enter.
 To type one value, press Ctrl+Shift+T (Cmd+Shift+T on macOS), then 1 for the
 username, 2 for the password or 3 for the one-time password.
 
-Keyguard types into the app that was in front when you pressed
-Ctrl+Shift+Space. It does this once: for the next auto-type, press the shortcut
+Keyguard types into the app that was in front when you pressed the Quick
+search shortcut. It does this once: for the next auto-type, press the shortcut
 again. Typing stops if you press a key or a mouse button, or switch windows.
 
 ### macOS
@@ -56,7 +57,7 @@ prompt.
 
 1. In **System Settings > Privacy & Security > Accessibility**, turn on
    Keyguard.
-2. Switch to the other app and press Cmd+Shift+Space again.
+2. Switch to the other app and press the Quick search shortcut again.
 
 ## Results
 

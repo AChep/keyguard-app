@@ -11,8 +11,9 @@ related: [filters, items, attachments]
 Search finds items as you type, with the best match first. Plain words, quoted
 phrases, exclusions and field qualifiers combine in one query.
 
-On desktop, Ctrl+Shift+Space (Cmd+Shift+Space on macOS) opens
-[Quick search](/docs/quick-search/), which takes the same queries.
+On desktop, Ctrl+Shift+Space opens [Quick search](/docs/quick-search/), which
+takes the same queries. On macOS, press Cmd+Option+\\, or Cmd+Shift+Space on
+macOS 26 and earlier.
 
 ## How matching works
 

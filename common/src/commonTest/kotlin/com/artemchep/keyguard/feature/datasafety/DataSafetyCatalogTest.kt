@@ -15,8 +15,8 @@ class DataSafetyCatalogTest {
         val platforms = listOf(
             android,
             Platform.Mobile.Ios.Native,
-            Platform.Desktop.MacOS.Native,
-            Platform.Desktop.MacOS.Jvm,
+            Platform.Desktop.MacOS.Native(majorVersion = 26),
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26),
             Platform.Desktop.Linux.native,
             Platform.Desktop.Windows,
         )

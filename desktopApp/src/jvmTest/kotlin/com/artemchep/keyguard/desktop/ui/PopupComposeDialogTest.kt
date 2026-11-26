@@ -44,7 +44,7 @@ class PopupComposeDialogTest {
     fun `wayland session hints do not affect other platforms`() {
         listOf(
             Platform.Desktop.Windows,
-            Platform.Desktop.MacOS.Jvm,
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26),
             Platform.Desktop.Other,
         ).forEach { platform ->
             assertEquals(

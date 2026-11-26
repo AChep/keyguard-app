@@ -109,7 +109,7 @@ fun settingsCatalog(
             // The browser extension, plus the passkey provider on Windows.
             Platform.Desktop.Windows -> Res.string.browser_extension_autofill_windows_text
             is Platform.Desktop.Linux,
-            Platform.Desktop.MacOS.Jvm,
+            is Platform.Desktop.MacOS.Jvm,
             -> Res.string.browser_extension_title
 
             else -> Res.string.pref_item_autofill_text

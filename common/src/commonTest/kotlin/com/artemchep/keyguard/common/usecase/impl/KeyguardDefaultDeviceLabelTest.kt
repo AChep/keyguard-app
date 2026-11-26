@@ -23,11 +23,11 @@ class KeyguardDefaultDeviceLabelTest {
         assertEquals(Res.string.app_link_device_name_default_ios, Platform.Mobile.Ios.Native.defaultDeviceLabelRes())
         assertEquals(
             Res.string.app_link_device_name_default_macos,
-            Platform.Desktop.MacOS.Native.defaultDeviceLabelRes(),
+            Platform.Desktop.MacOS.Native(majorVersion = 26).defaultDeviceLabelRes(),
         )
         assertEquals(
             Res.string.app_link_device_name_default_macos,
-            Platform.Desktop.MacOS.Jvm.defaultDeviceLabelRes(),
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26).defaultDeviceLabelRes(),
         )
         assertEquals(Res.string.app_link_device_name_default_desktop, Platform.Desktop.Windows.defaultDeviceLabelRes())
         assertEquals(
@@ -41,7 +41,7 @@ class KeyguardDefaultDeviceLabelTest {
         assertEquals("android", phone.keyguardPlatformName())
         assertEquals("wear", watch.keyguardPlatformName())
         assertEquals("ios", Platform.Mobile.Ios.Native.keyguardPlatformName())
-        assertEquals("macos", Platform.Desktop.MacOS.Native.keyguardPlatformName())
+        assertEquals("macos", Platform.Desktop.MacOS.Native(majorVersion = 26).keyguardPlatformName())
         assertEquals("windows", Platform.Desktop.Windows.keyguardPlatformName())
         assertEquals("linux", Platform.Desktop.Linux(isFlatpak = true).keyguardPlatformName())
         assertEquals("desktop", Platform.Desktop.Other.keyguardPlatformName())

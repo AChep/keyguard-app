@@ -222,6 +222,25 @@ class GlobalHotKeyInteropTest {
         assertEquals(0x7A, macosKeyCode(GlobalHotKeyKey.F1))
     }
 
+    @Test
+    fun `map native global hotkey spec maps backslash on every platform`() {
+        fun keyCode(platform: GlobalHotKeyPlatform) = mapNativeGlobalHotKeySpec(
+            platform = platform,
+            spec = GlobalHotKeySpec(
+                key = GlobalHotKeyKey.Backslash,
+                isAltPressed = true,
+                isMetaPressed = true,
+            ),
+        )?.keyCode
+
+        // kVK_ANSI_Backslash, with the character for the layout lookup.
+        assertEquals(('\\'.code shl 16) or 0x2A, keyCode(GlobalHotKeyPlatform.MacOS))
+        // VK_OEM_5.
+        assertEquals(0xDC, keyCode(GlobalHotKeyPlatform.Windows))
+        // XK_backslash.
+        assertEquals(0x005C, keyCode(GlobalHotKeyPlatform.Linux))
+    }
+
     private class FakeDesktopLibJna : DesktopLibJna {
         var registerNativeGlobalHotKeyResult: Int = 1
         var globalHotKeyCallback: DesktopLibJna.GlobalHotKeyCallback? = null

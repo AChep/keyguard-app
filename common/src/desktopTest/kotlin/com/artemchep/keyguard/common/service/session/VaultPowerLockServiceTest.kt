@@ -31,7 +31,7 @@ import kotlin.test.assertTrue
 class VaultPowerLockServiceTest {
     @Test
     fun `macOS registration survives preference and session changes and is disposed`() =
-        verifyRegistrationLifecycle(Platform.Desktop.MacOS.Jvm)
+        verifyRegistrationLifecycle(Platform.Desktop.MacOS.Jvm(majorVersion = 26))
 
     @Test
     fun `Windows registration survives preference and session changes and is disposed`() =
@@ -75,7 +75,7 @@ class VaultPowerLockServiceTest {
 
     @Test
     fun `macOS registration failure shows one error and does not crash the service`() =
-        verifyRegistrationFailure(Platform.Desktop.MacOS.Jvm)
+        verifyRegistrationFailure(Platform.Desktop.MacOS.Jvm(majorVersion = 26))
 
     @Test
     fun `Windows registration failure shows one error and does not crash the service`() =
@@ -115,7 +115,7 @@ class VaultPowerLockServiceTest {
         var removed = false
         var failRegistration = false
 
-        fun service(platform: Platform = Platform.Desktop.MacOS.Jvm) = VaultPowerLockService(
+        fun service(platform: Platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26)) = VaultPowerLockService(
             getVaultLockAfterScreenOff = object : GetVaultLockAfterScreenOff {
                 override fun invoke() = enabled
             },

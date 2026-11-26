@@ -25,15 +25,26 @@ public final class QuickSearchController {
             AnyView(QuickSearchView(onDismiss: onDismiss).keyguardEnvironment(model: model))
         }
         do {
+            let binding = Self.defaultHotKey()
             hotKey = try GlobalHotkey(
-                keyCode: UInt32(kVK_Space),
-                modifiers: UInt32(cmdKey | shiftKey)
+                keyCode: binding.keyCode,
+                modifiers: binding.modifiers
             ) { [weak self] in
                 Task { @MainActor in self?.toggle() }
             }
         } catch {
             NSLog("Failed to register Quick Search global hotkey: \(error)")
         }
+    }
+
+    /// macOS 27 gives Shift+Cmd+Space to Visual Intelligence, so newer systems
+    /// default to Option+Cmd+\ (matched by its US key position).
+    private static func defaultHotKey() -> (keyCode: UInt32, modifiers: UInt32) {
+        let macos27 = OperatingSystemVersion(majorVersion: 27, minorVersion: 0, patchVersion: 0)
+        if ProcessInfo.processInfo.isOperatingSystemAtLeast(macos27) {
+            return (UInt32(kVK_ANSI_Backslash), UInt32(cmdKey | optionKey))
+        }
+        return (UInt32(kVK_Space), UInt32(cmdKey | shiftKey))
     }
 
     // Isolated so the teardown runs on the main actor, where the panel, the observer

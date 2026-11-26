@@ -18,11 +18,12 @@ class DesktopDeviceLabelTest {
             calls += it
             if (it.last() == "ComputerName") "Artem's MacBook Pro\n" else "artems-macbook"
         }
-        assertEquals("Artem's MacBook Pro", desktopDeviceLabel(Platform.Desktop.MacOS.Jvm, command = command))
+        val platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26)
+        assertEquals("Artem's MacBook Pro", desktopDeviceLabel(platform, command = command))
         assertEquals(listOf(listOf("/usr/sbin/scutil", "--get", "ComputerName")), calls)
         assertEquals(
             "artems-macbook",
-            desktopDeviceLabel(Platform.Desktop.MacOS.Jvm, command = {
+            desktopDeviceLabel(platform, command = {
                 if (it.last() == "ComputerName") throw SecurityException() else "artems-macbook"
             }),
         )

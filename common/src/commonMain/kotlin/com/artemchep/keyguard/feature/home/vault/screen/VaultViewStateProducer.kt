@@ -1589,7 +1589,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                                     environmentMounts.state.value.supported &&
                                     // The native macOS app creates local .env
                                     // files in its own environment editor.
-                                    CurrentPlatform != Platform.Desktop.MacOS.Native
+                                    CurrentPlatform !is Platform.Desktop.MacOS.Native
                             },
                         cipherChangeNameAction(
                             confirmationRouteFactory = confirmationRouteFactory,

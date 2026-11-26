@@ -31,8 +31,16 @@ sealed interface Platform {
 
         data object Windows : Desktop
         sealed interface MacOS : Desktop {
-            data object Jvm : MacOS
-            data object Native : MacOS, Apple
+            /** The major version of macOS, e.g. 27 for macOS 27, or 0 if unknown. */
+            val majorVersion: Int
+
+            data class Jvm(
+                override val majorVersion: Int,
+            ) : MacOS
+
+            data class Native(
+                override val majorVersion: Int,
+            ) : MacOS, Apple
         }
 
         data object Other : Desktop

@@ -22,7 +22,7 @@ class DragOutCapabilitiesTest {
             DragOutCapabilities.of(Platform.Mobile.Android(isChromebook = false, isWatch = true, sdk = 36)),
         )
         assertEquals(2L * 1024 * 1024, DragOutCapabilities.of(Platform.Mobile.Ios.Native).fileMaximumBytes)
-        listOf(Platform.Desktop.MacOS.Jvm, Platform.Desktop.Windows).forEach { platform ->
+        listOf(Platform.Desktop.MacOS.Jvm(majorVersion = 26), Platform.Desktop.Windows).forEach { platform ->
             val capabilities = DragOutCapabilities.of(platform)
             assertTrue(capabilities.files && capabilities.urls)
         }

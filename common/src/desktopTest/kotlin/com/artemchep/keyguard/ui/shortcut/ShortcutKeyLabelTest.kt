@@ -18,7 +18,7 @@ class ShortcutKeyLabelTest {
         val shortcut = KeyShortcut(Key.K, isCtrlPressed = true, isShiftPressed = true, isAltPressed = true)
         val keyLabel = Key.K.toText()
         listOf(
-            Platform.Desktop.MacOS.Jvm to listOf("⌘", "⇧", "⌥", keyLabel),
+            Platform.Desktop.MacOS.Jvm(majorVersion = 26) to listOf("⌘", "⇧", "⌥", keyLabel),
             Platform.Desktop.Windows to listOf("Ctrl", "Shift", "Alt", keyLabel),
             Platform.Desktop.Linux.native to listOf("Ctrl", "Shift", "Alt", keyLabel),
         ).forEach { (platform, labels) ->
@@ -33,7 +33,7 @@ class ShortcutKeyLabelTest {
     fun `global shortcuts distinguish physical control from command`() {
         val key = GlobalShortcutKey.K
         val keyLabel = Key.K.toText()
-        val platform = Platform.Desktop.MacOS.Jvm
+        val platform = Platform.Desktop.MacOS.Jvm(majorVersion = 26)
         assertEquals("⌃+$keyLabel", GlobalShortcutBinding(key, ctrl = true).displayText(platform))
         assertEquals("⌘+$keyLabel", GlobalShortcutBinding(key, meta = true).displayText(platform))
         assertEquals(
@@ -45,6 +45,20 @@ class ShortcutKeyLabelTest {
                 alt = true,
                 meta = true,
             ).displayText(platform),
+        )
+    }
+
+    @Test
+    fun `global shortcuts show backslash as its character`() {
+        assertEquals(
+            "⌘+⌥+\\",
+            GlobalShortcutBinding(GlobalShortcutKey.Backslash, alt = true, meta = true)
+                .displayText(Platform.Desktop.MacOS.Jvm(majorVersion = 26)),
+        )
+        assertEquals(
+            "Ctrl+Alt+\\",
+            GlobalShortcutBinding(GlobalShortcutKey.Backslash, ctrl = true, alt = true)
+                .displayText(Platform.Desktop.Windows),
         )
     }
 
@@ -63,7 +77,7 @@ class ShortcutKeyLabelTest {
             "Ctrl+${Key.F1.toText()}",
             GlobalShortcutBinding(GlobalShortcutKey.F1, ctrl = true).displayText(platform),
         )
-        assertEquals(Key.K.toText(), KeyShortcut(Key.K).toText(Platform.Desktop.MacOS.Jvm).text)
+        assertEquals(Key.K.toText(), KeyShortcut(Key.K).toText(Platform.Desktop.MacOS.Jvm(majorVersion = 26)).text)
         assertEquals(
             "${Key.MetaLeft.toText()}+K",
             shortcutText("K", meta = true, platform = platform).text,

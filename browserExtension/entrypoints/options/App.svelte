@@ -1,8 +1,10 @@
 <!--
-  The options page, in the look of the app's settings: the switches in one
-  segmented group, then a note on where "Never for this site" goes. Chromium
-  embeds it in the dialog of chrome://extensions, about 400px wide; Firefox, in
-  the add-on's page of about:addons. Opened in a tab, it's a centered column.
+  The options page, in the look of the app's settings: the switches in the
+  untitled segmented groups of the app's Autofill settings (general, save,
+  other), with a note on where "Never for this site" goes under the save group.
+  Chromium embeds it in the dialog of chrome://extensions, about 400px wide;
+  Firefox, in the add-on's page of about:addons. Opened in a tab, it's a
+  centered column.
 -->
 <script lang="ts">
   import { onMount } from "svelte";
@@ -43,7 +45,10 @@
     browserSaving === "loading" || browserSaving === "error" || browserSavingNoteKey !== undefined,
   );
 
-  const toggles: { key: keyof ExtensionOptions; icon: IconName; title: I18nKey; text: I18nKey }[] = [
+  type Toggle = { key: keyof ExtensionOptions; icon: IconName; title: I18nKey; text: I18nKey };
+
+  // Each switch sits in the group of its counterpart in the app's Autofill settings.
+  const generalToggles: Toggle[] = [
     {
       key: "inlineMenu",
       icon: "list",
@@ -62,12 +67,18 @@
       title: "browser_extension_options_submit_title",
       text: "browser_extension_options_submit_text",
     },
+  ];
+
+  const saveToggles: Toggle[] = [
     {
       key: "savePrompts",
       icon: "save",
       title: "pref_item_autofill_save_request_title",
       text: "browser_extension_options_save_text",
     },
+  ];
+
+  const otherToggles: Toggle[] = [
     {
       key: "passkeys",
       icon: "key",
@@ -110,6 +121,23 @@
   }
 </script>
 
+{#snippet toggleRow(toggle: Toggle)}
+  <label class="row setting">
+    <span class="leading"><Icon name={toggle.icon} /></span>
+    <span class="row-content">
+      <span class="body-large">{t(toggle.title)}</span>
+      <span class="body-medium medium">{t(toggle.text)}</span>
+    </span>
+    <input
+      class="switch"
+      type="checkbox"
+      role="switch"
+      checked={options[toggle.key]}
+      onchange={(event) => onToggleChange(event.currentTarget, toggle.key)}
+    />
+  </label>
+{/snippet}
+
 <main>
   <header>
     <div class="brand">
@@ -119,57 +147,60 @@
     <h1 class="headline-small">{t("settings_main_header_title")}</h1>
   </header>
 
-  <div class="group">
-    {#each toggles as toggle (toggle.key)}
-      <label class="row setting">
-        <span class="leading"><Icon name={toggle.icon} /></span>
-        <span class="row-content">
-          <span class="body-large">{t(toggle.title)}</span>
-          <span class="body-medium medium">{t(toggle.text)}</span>
-        </span>
-        <input
-          class="switch"
-          type="checkbox"
-          role="switch"
-          checked={options[toggle.key]}
-          onchange={(event) => onToggleChange(event.currentTarget, toggle.key)}
-        />
-      </label>
-    {/each}
-    <!-- A note explains when someone else controls the setting. -->
-    <label class={["row setting", { disabled: browserSavingUnavailable }]}>
-      <span class="leading"><Icon name="password" /></span>
-      <span class="row-content">
-        <span class="body-large">{t("browser_extension_options_browser_saving_title")}</span>
-        <span class="body-medium medium">{t("browser_extension_options_browser_saving_text")}</span>
-        {#if browserSavingNoteKey}
-          <span class="note body-small">{t(browserSavingNoteKey)}</span>
-        {/if}
-      </span>
-      <input
-        class="switch"
-        type="checkbox"
-        role="switch"
-        checked={browserSaving === "on"}
-        disabled={browserSavingBusy || browserSavingUnavailable}
-        aria-busy={browserSavingBusy || browserSaving === "loading"}
-        onchange={(event) => void onBrowserSavingChange(event.currentTarget)}
-      />
-    </label>
-  </div>
-
-  {#if browserSaving === "error"}
-    <div class="banner">
-      <Icon name="error_outline" />
-      <span role="alert">{t("error_failed_unknown")}</span>
-      <!-- Keep the button focusable during a retry so a failed read leaves focus in place. -->
-      <button class="btn btn-text" type="button" aria-disabled={browserSavingBusy} onclick={retryBrowserSaving}>
-        {t("retry")}
-      </button>
+  <div class="groups">
+    <div class="group">
+      {#each generalToggles as toggle (toggle.key)}
+        {@render toggleRow(toggle)}
+      {/each}
     </div>
-  {/if}
 
-  <p class="footnote body-medium medium">{t("browser_extension_options_never_save_text")}</p>
+    <div>
+      <div class="group">
+        {#each saveToggles as toggle (toggle.key)}
+          {@render toggleRow(toggle)}
+        {/each}
+        <!-- A note explains when someone else controls the setting. -->
+        <label class={["row setting", { disabled: browserSavingUnavailable }]}>
+          <span class="leading"><Icon name="password" /></span>
+          <span class="row-content">
+            <span class="body-large">{t("browser_extension_options_browser_saving_title")}</span>
+            <span class="body-medium medium">{t("browser_extension_options_browser_saving_text")}</span>
+            {#if browserSavingNoteKey}
+              <span class="note body-small">{t(browserSavingNoteKey)}</span>
+            {/if}
+          </span>
+          <input
+            class="switch"
+            type="checkbox"
+            role="switch"
+            checked={browserSaving === "on"}
+            disabled={browserSavingBusy || browserSavingUnavailable}
+            aria-busy={browserSavingBusy || browserSaving === "loading"}
+            onchange={(event) => void onBrowserSavingChange(event.currentTarget)}
+          />
+        </label>
+      </div>
+
+      {#if browserSaving === "error"}
+        <div class="banner">
+          <Icon name="error_outline" />
+          <span role="alert">{t("error_failed_unknown")}</span>
+          <!-- Keep the button focusable during a retry so a failed read leaves focus in place. -->
+          <button class="btn btn-text" type="button" aria-disabled={browserSavingBusy} onclick={retryBrowserSaving}>
+            {t("retry")}
+          </button>
+        </div>
+      {/if}
+
+      <p class="footnote body-medium medium">{t("browser_extension_options_never_save_text")}</p>
+    </div>
+
+    <div class="group">
+      {#each otherToggles as toggle (toggle.key)}
+        {@render toggleRow(toggle)}
+      {/each}
+    </div>
+  </div>
 
   <!-- The licenses of the bundled third-party code, see scripts/third-party-notices.ts. -->
   <a class="btn btn-text licenses" href="/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noreferrer">
@@ -208,6 +239,13 @@
 
   h1 {
     margin: 0;
+  }
+
+  /* Untitled groups 24px apart, as the app's settings separate theirs. */
+  .groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
   }
 
   /* The app's settings rows: 16px in, a leading 24px icon and a trailing switch 16px from the text. */

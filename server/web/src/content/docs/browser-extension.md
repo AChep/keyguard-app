@@ -138,8 +138,8 @@ Open these in the extension's options page.
 | **Fill the password step** | Fills the password on the page after a username fill, once, within 2 minutes | On |
 | **Sign in after filling** | Selects the sign-in or next button after a login fill | Off |
 | **Ask to save data** | Offers to save a login after you sign in or sign up | On |
-| **Passkeys support** | Lets Keyguard answer the passkey requests of websites | On |
 | **Turn off browser password saving** | Stops the browser from offering to save passwords, with the `privacy` permission | Off |
+| **Passkeys support** | Lets Keyguard answer the passkey requests of websites | On |
 
 ## Connector statuses
 

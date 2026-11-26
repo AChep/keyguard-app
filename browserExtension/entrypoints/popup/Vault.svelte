@@ -10,10 +10,13 @@
   import { browser } from "wxt/browser";
   import type { PageSuggestions } from "../../src/lib/background/api";
   import { t, tp } from "../../src/lib/i18n";
+  import { itemDetailsOf, itemIcon, itemViewOf } from "../../src/lib/page/messages";
   import { SEARCH_QUERY_MAX } from "../../src/lib/protocol/messages";
   import Icon from "../../src/lib/ui/components/Icon.svelte";
+  import ItemDetail from "../../src/lib/ui/components/ItemDetail.svelte";
   import Snackbar from "../../src/lib/ui/components/Snackbar.svelte";
   import Wordmark from "../../src/lib/ui/components/Wordmark.svelte";
+  import type { ItemCopy, UriCopy } from "../../src/lib/ui/itemDetails";
   import { callErrorCode, type PopupClient } from "../../src/lib/ui/popupClient";
   import { moveSelection, popupActions, popupKey, runsOnMac, type PopupAction } from "../../src/lib/ui/popupKeys";
   import { PopupSearch, type SearchView } from "../../src/lib/ui/popupSearch";
@@ -21,7 +24,6 @@
   import ActionStrip from "./ActionStrip.svelte";
   import { PASSWORD_GENERATOR } from "../../src/lib/ui/features";
   import Generator from "./Generator.svelte";
-  import ItemDetail from "./ItemDetail.svelte";
   import ItemList, { optionId, type Item, type ListView } from "./ItemList.svelte";
 
   interface Props {
@@ -42,7 +44,7 @@
   let search = $state.raw<SearchView>({ kind: "matches" });
   /** The error of the last action, and the item it was on. */
   let error = $state.raw<{ handle: string; text: string } | null>(null);
-  let busy = $state.raw<{ handle: string; action: PopupAction } | null>(null);
+  let busy = $state.raw<{ handle: string; action: PopupAction | UriCopy } | null>(null);
   /** The row picked in a list; another list selects its first row. */
   let picked = $state.raw<{ list: Item[]; handle: string } | null>(null);
   let generatorOpen = $state(false);
@@ -94,8 +96,6 @@
   const last = $derived(page?.kind === "items" ? page.last : null);
   const searchDisabled = $derived(page?.kind === "unsupported" || page?.kind === "blocked");
 
-  const count = (items: Item[]) => tp("browser_extension_logins_count_plural", items.length, items.length);
-
   const list = $derived.by((): ListView => {
     if (search.kind === "results") {
       if (search.error !== null) return { kind: "error", text: errorText(search.error) };
@@ -112,7 +112,7 @@
       const note = result.truncated
         ? tp("browser_extension_search_truncated_plural", result.items.length, result.items.length)
         : null;
-      return { kind: "items", items: result.items, header: { count: count(result.items) }, note };
+      return { kind: "items", items: result.items, note, suggested: null };
     }
     if (pageError !== null) return { kind: "error", text: pageError };
     if (page === null) return { kind: "loading" };
@@ -120,19 +120,15 @@
       case "unsupported":
         return { kind: "empty", icon: "block", text: t("browser_extension_page_unsupported_text") };
       case "blocked":
-        return {
-          kind: "empty",
-          icon: "block",
-          text: t("browser_extension_site_blocked_text"),
-          header: { host: page.host },
-        };
+        return { kind: "empty", icon: "block", text: t("browser_extension_site_blocked_text") };
       case "items": {
-        const header = { host: page.host, count: count(page.items) };
-        if (page.items.length === 0) return { kind: "empty", icon: "search_off", text: t("items_empty_label"), header };
+        if (page.items.length === 0) return { kind: "empty", icon: "search_off", text: t("items_empty_label") };
         const note = page.truncated
           ? tp("browser_extension_logins_truncated_plural", page.items.length, page.items.length)
           : null;
-        return { kind: "items", items: page.items, header, note };
+        // The background lists the matched logins first.
+        const suggested = page.items.findIndex((item) => !item.matched);
+        return { kind: "items", items: page.items, note, suggested: suggested >= 0 ? suggested : null };
       }
     }
   });
@@ -161,7 +157,7 @@
   const selectedError = $derived(error !== null && error.handle === selected?.handle ? error.text : null);
   const selectedBusy = $derived(busy !== null && busy.handle === selected?.handle ? busy.action : null);
 
-  const iconOf = (item: Item) => ("matched" in item && !item.matched ? null : pageIcon);
+  const iconOf = (item: Item) => itemIcon(item, pageIcon);
 
   function select(index: number) {
     const item = items[index];
@@ -231,7 +227,7 @@
 
   // The actions, as the popup always had them.
 
-  async function act(item: Item, action: PopupAction, body: () => Promise<void>) {
+  async function act(item: Item, action: PopupAction | UriCopy, body: () => Promise<void>) {
     busy = { handle: item.handle, action };
     error = null;
     try {
@@ -284,8 +280,18 @@
     }
   }
 
-  const onaction = (action: PopupAction) => {
-    if (selected !== null) void run(selected, action);
+  /** Copies linked URI [uri] of [item], as the username: no approval. */
+  function copyUri(item: Item, uri: UriCopy) {
+    // As the detail pane lists them: only a page's suggestions have URIs.
+    const value = "uris" in item ? itemDetailsOf(item).uris[uri.uri] : undefined;
+    if (busy !== null || value === undefined) return;
+    return act(item, uri, () => copy(value));
+  }
+
+  const onaction = (action: PopupAction | ItemCopy) => {
+    if (selected === null) return;
+    if (typeof action === "string") void run(selected, action);
+    else void copyUri(selected, action);
   };
 </script>
 
@@ -372,12 +378,10 @@
         {#key selected.handle}
           <div class="detail-content">
             <ItemDetail
-              item={selected}
-              icon={iconOf(selected)}
-              last={selected.handle === last}
-              {mac}
+              item={itemViewOf(selected, pageIcon, selected.handle === last)}
               busy={selectedBusy}
               {onaction}
+              shortcuts={{ mac }}
             />
           </div>
         {/key}

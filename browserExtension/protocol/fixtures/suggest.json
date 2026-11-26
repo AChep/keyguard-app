@@ -31,7 +31,18 @@
             "user_display_name": "Ann"
           }
         ],
-        "last_used": true
+        "last_used": true,
+        "matched": true,
+        "uris": [
+          "https://example.com",
+          "https://login.example.com",
+          "https://example.net",
+          "https://example.org",
+          "androidapp://com.example.app"
+        ],
+        "uri_count": 6,
+        "folder": "Personal/Web",
+        "revision_date": "2026-03-14T09:26:53Z"
       },
       {
         "handle": "pXWOxrrrdKeGwKFvs-KAMXBiRbWtzJQk",
@@ -41,7 +52,9 @@
         "has_totp": false,
         "reprompt": true,
         "passkeys": [],
-        "password_hidden": true
+        "password_hidden": true,
+        "matched": false,
+        "revision_date": "2025-11-02T18:04:00.250Z"
       }
     ]
   }

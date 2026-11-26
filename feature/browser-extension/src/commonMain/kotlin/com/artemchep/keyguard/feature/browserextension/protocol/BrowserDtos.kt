@@ -100,6 +100,21 @@ data class SuggestItem(
     /** `true` when the item's collections hide its password; absent otherwise. A fill still releases it. */
     @SerialName("password_hidden")
     val passwordHidden: Boolean? = null,
+    /**
+     * A URI of the item matches the page, as for [SearchItem.matched]; a name
+     * alike the page doesn't count. Absent from older apps.
+     */
+    val matched: Boolean? = null,
+    /** The item's URIs, in order, at most 5, without those over 1024 characters; absent when none is listed. */
+    val uris: List<String>? = null,
+    /** How many URIs the item has in all, when more than [uris] lists; absent otherwise. */
+    @SerialName("uri_count")
+    val uriCount: Int? = null,
+    /** The name of the item's folder; absent when it has none. */
+    val folder: String? = null,
+    /** When the item last changed, as an ISO-8601 instant. */
+    @SerialName("revision_date")
+    val revisionDate: String? = null,
 )
 
 @Serializable

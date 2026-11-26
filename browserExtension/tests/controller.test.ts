@@ -152,6 +152,9 @@ function setup(
     app: controller,
     options: new OptionsStore(fakeBrowser.storage.local),
     passkeys: { conditionalFor: () => null, pick: async () => undefined },
+    copyText: async (text) => {
+      copies.push(text);
+    },
     sendToFrame: async (tabId, message) => {
       if (message.kind === "fill")
         fills.push([tabId, message.origin, { username: message.username, password: message.password }]);
@@ -872,7 +875,8 @@ describe("BackgroundController", () => {
       origin: LOGIN_ORIGIN,
       host: "login.example.com",
       truncated: false,
-      items: [items[1], items[0]],
+      // An older app's items, without `matched`: they match.
+      items: [items[1], items[0]].map((item) => ({ ...item, matched: true })),
       last: "h2",
       icon: `${ORIGIN}_favicon/?pageUrl=https%3A%2F%2Flogin.example.com%2Fsign-in%3Fnext%3D1&size=32`,
     });

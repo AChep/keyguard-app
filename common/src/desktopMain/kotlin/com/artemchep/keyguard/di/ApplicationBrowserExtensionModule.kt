@@ -60,6 +60,7 @@ class ApplicationBrowserExtensionModule {
                         addUrlBlock = get(),
                         getCanWrite = get(),
                         getCollections = get(),
+                        getFolders = get(),
                         addCredentialCipher = get(),
                         addCipherUsedPasskeyHistory = get(),
                         vaultSettings = get(),

@@ -11,6 +11,13 @@ export type PopupAction = "fill" | "copy_username" | "copy_password" | "copy_tot
 /** The actions in the order the popup shows them, as quickSearchActionTypes. */
 export const POPUP_ACTIONS: readonly PopupAction[] = ["fill", "copy_username", "copy_password", "copy_totp"];
 
+/** The actions that copy a field, which the detail pane and the card beside the inline menu offer too. */
+export type CopyAction = Exclude<PopupAction, "fill">;
+
+export function isCopyAction(value: unknown): value is CopyAction {
+  return value !== "fill" && POPUP_ACTIONS.includes(value as PopupAction);
+}
+
 export interface Shortcut {
   /** A letter in upper case, or "Enter". */
   key: string;

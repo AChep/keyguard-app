@@ -15,43 +15,34 @@ import {
   SAVE_TTL_MS,
   TOKEN_TTL_MS,
   TOTP_WINDOW_MS,
-  type AppAccess,
-  type PageDeps,
-  type PagePort,
 } from "../src/lib/background/pages";
 import type { NativeCryptoNoise } from "../src/lib/crypto/noise";
 import { loadNoise } from "../src/lib/crypto/wasm";
 import { OptionsStore } from "../src/lib/options/store";
-import {
-  MENU_PORT,
-  parseContentRequest,
-  SAVE_BAR_PORT,
-  type ContentCommand,
-  type MenuView,
-} from "../src/lib/page/messages";
+import { MENU_PORT, parseContentRequest, SAVE_BAR_PORT, type MenuView } from "../src/lib/page/messages";
 import type { JsonObject } from "../src/lib/protocol/framing";
 import type { Capability, SuggestItem } from "../src/lib/protocol/messages";
 import { ProtocolError } from "../src/lib/protocol/session";
-import { abortable, FakeHost, FakeNativePort } from "./support/fakeApp";
-
-const ID = "abcdefghijklmnopabcdefghijklmnop";
-const LOGIN_URL = "https://login.example.com/sign-in";
-const LOGIN_ORIGIN = "https://login.example.com";
-
-/** The site icon the fake browser has for page [url] of tab [tabId], see PageDeps.siteIcon. */
-function iconOf(url: string, tabId = 7): string {
-  return `https://icons.example/${tabId}?page=${encodeURIComponent(url)}`;
-}
-
-/** How long a probe waits for the frames' answers, on the background's fake clock: see [timeUp]. */
-const PROBE_TIMEOUT_MS = 20;
-
-/**
- * The real `setTimeout`, for the fake browser's messages and [settle]. The
- * background's timers are fake: its probes and waits run out only where a
- * test lets their time pass, however slow the machine.
- */
-const realSetTimeout = globalThis.setTimeout;
+import { FakeHost, FakeNativePort } from "./support/fakeApp";
+import {
+  contentSender,
+  docOf,
+  FakePort,
+  finish,
+  form,
+  fromContent,
+  ID,
+  iconOf,
+  item,
+  LOGIN_ORIGIN,
+  LOGIN_URL,
+  pageSender,
+  settle,
+  setup,
+  timeUp,
+  topForm,
+  type Sent,
+} from "./support/pages";
 
 beforeEach(() => {
   fakeBrowser.reset();
@@ -61,332 +52,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
 });
-
-/** Lets the messages and promises in flight go through, while the background's clock stands still. */
-async function settle() {
-  for (let i = 0; i < 10; i++) await new Promise((resolve) => realSetTimeout(resolve, 0));
-}
-
-/** Lets [ms] pass on the background's clock once the frames had their chance to answer: a probe nobody answered runs out. */
-async function timeUp(ms = PROBE_TIMEOUT_MS) {
-  await settle();
-  await vi.advanceTimersByTimeAsync(ms);
-  await settle();
-}
-
-/** Awaits [action], letting the time of each probe it still waits on run out once the frames answered, see [timeUp]. */
-async function finish<T>(action: Promise<T>): Promise<T> {
-  let pending = true;
-  void action.then(
-    () => (pending = false),
-    () => (pending = false),
-  );
-  await settle();
-  for (let probes = 0; pending && probes < 3; probes++) await timeUp();
-  if (pending) throw new Error("Still waiting after the time of 3 probes");
-  return action;
-}
-
-function item(handle: string, fields: Partial<SuggestItem> = {}): SuggestItem {
-  return {
-    handle,
-    name: `Item ${handle}`,
-    username: "ann",
-    account: "Personal",
-    has_password: true,
-    has_totp: false,
-    reprompt: false,
-    ...fields,
-  };
-}
-
-/** A content script's sender: a frame of a tab, as the browser reports it. */
-function contentSender(fields: Partial<MessageSenderLike> = {}): MessageSenderLike {
-  return {
-    id: ID,
-    tab: { id: 7, url: LOGIN_URL },
-    frameId: 3,
-    documentId: "doc-3",
-    url: LOGIN_URL,
-    origin: "https://login.example.com",
-    ...fields,
-  };
-}
-
-/** The token of the content script in the document of [sender]: 32 hex characters, by its `documentId`. */
-function docOf(sender: MessageSenderLike): string {
-  const id = sender.documentId ?? `frame-${sender.frameId}`;
-  return Array.from(id, (char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
-    .join("")
-    .padEnd(32, "0")
-    .slice(0, 32);
-}
-
-/** Sends [request] from the content script in the document of [sender], with its token. */
-function fromContent(
-  pages: PageController,
-  request: object,
-  sender: MessageSenderLike = contentSender(),
-): Promise<unknown> {
-  return pages.onContentMessage({ ...request, doc: docOf(sender) }, sender);
-}
-
-/**
- * A frame with a login form, as its content script answers a `form_probe`.
- * [writable]: false for a form of read-only fields only.
- */
-function form(fields: Partial<MessageSenderLike>, focusedAt: number | null = null, writable = true) {
-  return { sender: contentSender(fields), focusedAt, writable };
-}
-
-/** The top frame, on LOGIN_URL, with a login form. */
-function topForm(writable = true) {
-  return form({ frameId: 0, documentId: "doc-0" }, null, writable);
-}
-
-/** An embedded page's sender: our page, in a tab. */
-function pageSender(page: string, tabId = 7): MessageSenderLike {
-  return { id: ID, tab: { id: tabId }, frameId: 9, url: `chrome-extension://dynamic-id${page}` };
-}
-
-class FakePort implements PagePort {
-  readonly posted: JsonObject[] = [];
-  disconnected = false;
-  private readonly messageListeners: ((message: unknown) => void)[] = [];
-  private readonly disconnectListeners: (() => void)[] = [];
-  readonly onMessage = {
-    addListener: (listener: (message: unknown) => void) => void this.messageListeners.push(listener),
-  };
-  readonly onDisconnect = { addListener: (listener: () => void) => void this.disconnectListeners.push(listener) };
-
-  constructor(
-    readonly name: string,
-    readonly sender: MessageSenderLike,
-  ) {}
-
-  postMessage(message: unknown): void {
-    if (this.disconnected) throw new Error("disconnected");
-    this.posted.push(message as JsonObject);
-  }
-
-  disconnect(): void {
-    this.disconnected = true;
-  }
-
-  /** A message from the page. */
-  emit(message: unknown): void {
-    for (const listener of this.messageListeners) listener(message);
-  }
-
-  close(): void {
-    this.disconnected = true;
-    for (const listener of this.disconnectListeners) listener();
-  }
-
-  views(): MenuView[] {
-    return this.posted.filter((it) => it.kind === "view").map((it) => it.view as unknown as MenuView);
-  }
-
-  /** The offer of the save bar's last view, which its actions name. */
-  offer(): number {
-    return this.posted.findLast((it) => it.kind === "view")!.offer as number;
-  }
-
-  lastView(): MenuView | undefined {
-    return this.views().at(-1);
-  }
-}
-
-interface Sent {
-  tabId: number;
-  message: ContentCommand;
-  target?: { frameId: number; documentId?: string };
-}
-
-/** The app and the browser around a PageController. */
-function setup(options: { documentIds?: boolean; status?: ExtensionStatus; capabilities?: Capability[] } = {}) {
-  let clock = 1_000_000;
-  let tokens = 0;
-  const sent: Sent[] = [];
-  const requests: JsonObject[] = [];
-  const state = {
-    status: options.status ?? ({ kind: "unlocked" } as ExtensionStatus),
-    sessionId: 1 as number | null,
-    capabilities: new Set<string>(options.capabilities ?? ["save"]),
-    suggest: [item("h1", { has_totp: true }), item("h2", { username: undefined })] as SuggestItem[],
-    unlocks: 0,
-    popups: 0,
-    /** Whether the tab is in a private window, as `tabs.get` tells the popup's calls and the shortcut. */
-    incognito: false,
-    /** Whether the tab is the selected one of its window, as `tabs.get` tells. */
-    active: true,
-    injected: [] as number[],
-    /** Answers of the content scripts, by command kind. */
-    contentScript: (message: ContentCommand, _target?: { frameId: number }): unknown => {
-      switch (message.kind) {
-        case "guard":
-        case "fill":
-        case "fill_totp":
-        case "fill_password":
-          return { ok: true };
-        default:
-          return undefined;
-      }
-    },
-    /** Answers of the app; `undefined` falls through to the defaults. */
-    app: (_request: JsonObject): unknown => undefined,
-    /** The frame's pending conditional passkey request, see ConditionalPasskeys. */
-    conditional: null as { rpId: string } | null,
-    picks: [] as { frame: FrameRef; handle: string }[],
-    pickError: null as Error | null,
-    /**
-     * The frames with a login form, which answer a `form_probe`; `null` when
-     * the tab has no content script. By default, the top frame.
-     */
-    forms: [topForm()] as { sender: MessageSenderLike; focusedAt: number | null; writable: boolean }[] | null,
-    /** The content script of the tab's top frame, which answers a `top_probe`; `null` when none answers. */
-    top: null as MessageSenderLike | null,
-    /** What `unlock` waits for before it unlocks. */
-    unlocking: null as Promise<void> | null,
-    /** The signals of `unlock` and of requests, by type: an abort sends `cancel`. */
-    signals: [] as { type: string; signal: AbortSignal | undefined }[],
-    /** The site icon of a page of a tab; throws as `tabs.get` does for a closed tab. */
-    siteIcon: (tabId: number, url: string): string | null => iconOf(url, tabId),
-    /** What happens while `tabs.get` looks the tab up, the next time only. */
-    tabLookup: null as (() => Promise<void>) | null,
-  };
-
-  const app: AppAccess = {
-    get snapshot() {
-      return state.status;
-    },
-    get sessionId() {
-      return state.sessionId;
-    },
-    supports: (capability) => state.capabilities.has(capability),
-    unlock: async (signal) => {
-      state.unlocks++;
-      state.signals.push({ type: "unlock", signal });
-      if (state.unlocking !== null) await abortable(state.unlocking, signal);
-      state.status = { kind: "unlocked" };
-      return null;
-    },
-    request: (async (type: string, fields: JsonObject, signal?: AbortSignal) => {
-      const request = { type, ...fields };
-      requests.push(request);
-      state.signals.push({ type, signal });
-      const custom = await abortable(state.app(request), signal);
-      if (custom instanceof Error) throw custom;
-      if (custom !== undefined) return custom;
-      switch (type) {
-        case "suggest":
-          return { blocked: false, save_blocked: false, truncated: false, items: state.suggest };
-        case "fill":
-          return { username: "ann", password: `secret-${fields.handle as string}` };
-        case "totp":
-          return { code: "123456" };
-        case "generate":
-          return { password: "Gen3rated!" };
-        case "save":
-        case "never_save":
-          return {};
-        default:
-          throw new ProtocolError("not_supported");
-      }
-    }) as AppAccess["request"],
-  };
-
-  const deps: PageDeps = {
-    extensionId: ID,
-    app,
-    options: new OptionsStore(fakeBrowser.storage.local),
-    passkeys: {
-      conditionalFor: () => state.conditional,
-      pick: async (frame, handle) => {
-        state.picks.push({ frame, handle });
-        if (state.pickError !== null) throw state.pickError;
-      },
-    },
-    sendToFrame: async (tabId, message, target) => {
-      sent.push({ tabId, message, target });
-      const top = state.top;
-      if (message.kind === "top_probe" && top !== null) {
-        realSetTimeout(() => void fromContent(pages, { kind: "top_report", probe: message.probe }, top), 0);
-      }
-      const answer = state.contentScript(message, target);
-      if (answer instanceof Error) throw answer;
-      return answer;
-    },
-    sendToTab: async (tabId, message) => {
-      sent.push({ tabId, message });
-      if (message.kind === "frame_guard") {
-        // The parent that holds the frame reports, as a message of its own.
-        const answer = state.contentScript(message);
-        if (answer instanceof Error) throw answer;
-        if (answer instanceof Object && !(answer instanceof Promise)) {
-          const report = { kind: "frame_report", probe: message.probe, ...answer };
-          realSetTimeout(() => void fromContent(pages, report, contentSender({ frameId: 1, documentId: "doc-1" })), 0);
-        }
-        return undefined;
-      }
-      if (message.kind !== "form_probe") return undefined;
-      if (state.forms === null) throw new Error("Could not establish connection. Receiving end does not exist.");
-      for (const { sender, focusedAt, writable } of state.forms) {
-        const report = { kind: "form_report", probe: message.probe, focused_at: focusedAt, writable };
-        realSetTimeout(() => void fromContent(pages, report, sender), 0);
-      }
-      return null;
-    },
-    injectContentScript: async (tabId) => {
-      state.injected.push(tabId);
-      // Into the top frame, which has the page's form.
-      state.forms ??= [topForm()];
-    },
-    tab: async () => {
-      const meanwhile = state.tabLookup;
-      state.tabLookup = null;
-      await meanwhile?.();
-      return { url: LOGIN_URL, incognito: state.incognito, active: state.active };
-    },
-    siteIcon: async (tabId, url) => state.siteIcon(tabId, url),
-    tabs: new TabWatch(),
-    openPopup: async () => void state.popups++,
-    documentIds: options.documentIds ?? true,
-    now: () => clock,
-    randomToken: () => (++tokens).toString(16).padStart(32, "0"),
-    probeTimeoutMs: PROBE_TIMEOUT_MS,
-  };
-  const pages = new PageController(deps);
-  /** The signal of the last request or unlock of [type]. */
-  const signalOf = (type: string) => state.signals.findLast((it) => it.type === type)?.signal;
-
-  /** Opens a menu for a field, as the content script of [sender] would, and binds its page. */
-  async function openMenu(role: string, sender = contentSender(), webauthn = false) {
-    const result = (await fromContent(pages, { kind: "menu_open", role, webauthn }, sender)) as { token: string };
-    const port = new FakePort(MENU_PORT, pageSender("/inline-menu.html", sender.tab?.id));
-    pages.connect(port);
-    port.emit({ kind: "bind", token: result.token });
-    await settle();
-    return { port, token: result.token };
-  }
-
-  /** The popup's fill of [handle] on the tab's page, past the time of its probes. */
-  const fillFromPopup = (handle: string) => finish(pages.fillTab(7, LOGIN_URL, handle));
-
-  return {
-    pages,
-    state,
-    sent,
-    requests,
-    openMenu,
-    fillFromPopup,
-    signalOf,
-    tabs: deps.tabs,
-    options: deps.options,
-    advance: (ms: number) => (clock += ms),
-    fills: () => sent.filter((it) => it.message.kind.startsWith("fill")),
-  };
-}
 
 describe("content script requests", () => {
   it("ignores malformed requests and senders that aren't our content scripts", async () => {
@@ -420,6 +85,45 @@ describe("content script requests", () => {
     }
     expect(parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: -1, doc })).toBeNull();
     expect(parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: "now", doc })).toBeNull();
+    // The frame of the menu or the card beside it: no other popup.
+    const card = { kind: "popup_shown", popup: "menu_details" };
+    for (const popup of [undefined, "save_bar", "menu_detail", 7]) {
+      expect(parseContentRequest({ kind: "popup_shown", popup, shown: true, doc }), String(popup)).toBeNull();
+    }
+    // The menu's only shows, on no side: it has no room to lack.
+    expect(parseContentRequest({ kind: "popup_shown", popup: "menu", doc })).toBeNull();
+    for (const shown of [false, "yes", 1]) {
+      expect(parseContentRequest({ kind: "popup_shown", popup: "menu", shown, doc }), String(shown)).toBeNull();
+    }
+    expect(parseContentRequest({ kind: "popup_shown", popup: "menu", shown: true, side: "left", doc })).toBeNull();
+    expect(parseContentRequest({ kind: "popup_shown", popup: "menu", shown: true, room: false, doc })).toBeNull();
+    expect(parseContentRequest({ ...card, doc })).toBeNull();
+    expect(parseContentRequest({ ...card, shown: "yes", doc })).toBeNull();
+    expect(parseContentRequest({ ...card, shown: true, side: "up", doc })).toBeNull();
+    expect(parseContentRequest({ ...card, shown: true, side: "left", doc })).toEqual({
+      ...card,
+      shown: true,
+      side: "left",
+      doc,
+    });
+    // A hidden card is on no side.
+    expect(parseContentRequest({ ...card, shown: false, side: "left", doc })).toEqual({ ...card, shown: false, doc });
+    // Only a hidden card lacks room.
+    expect(parseContentRequest({ ...card, shown: false, room: false, doc })).toEqual({
+      ...card,
+      shown: false,
+      room: false,
+      doc,
+    });
+    expect(parseContentRequest({ ...card, shown: true, side: "left", room: false, doc })).toEqual({
+      ...card,
+      shown: true,
+      side: "left",
+      doc,
+    });
+    for (const room of [true, "no", 0, null]) {
+      expect(parseContentRequest({ ...card, shown: false, room, doc }), String(room)).toBeNull();
+    }
     expect(parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: null, doc })).toBeNull();
     expect(
       parseContentRequest({ kind: "form_report", probe: "f".repeat(32), focused_at: null, writable: "yes", doc }),
@@ -444,7 +148,8 @@ describe("content script requests", () => {
       { kind: "password_step", step: "f".repeat(32) },
       { kind: "password_step", step: "f".repeat(32), account: "ann", url: LOGIN_URL },
       { kind: "save_bar_open" },
-      { kind: "menu_shown" },
+      { kind: "popup_shown", popup: "menu", shown: true },
+      { kind: "popup_shown", popup: "menu_details", shown: false, room: false },
       { kind: "focus_report", probe: "f".repeat(32), role: null },
       { kind: "form_report", probe: "f".repeat(32), focused_at: null, writable: false },
       { kind: "top_report", probe: "f".repeat(32) },
@@ -644,15 +349,23 @@ describe("inline menu", () => {
     const shown = (port: FakePort) => port.posted.filter((it) => it.kind === "shown").length;
     const { port } = await openMenu("username");
     expect(shown(port)).toBe(0);
-    await fromContent(pages, { kind: "menu_shown" });
+    await fromContent(pages, { kind: "popup_shown", popup: "menu", shown: true });
     // Another document's word counts for nothing.
-    await fromContent(pages, { kind: "menu_shown" }, contentSender({ documentId: "doc-next" }));
-    await fromContent(pages, { kind: "menu_shown" }, contentSender({ frameId: 5, documentId: "doc-5" }));
+    await fromContent(
+      pages,
+      { kind: "popup_shown", popup: "menu", shown: true },
+      contentSender({ documentId: "doc-next" }),
+    );
+    await fromContent(
+      pages,
+      { kind: "popup_shown", popup: "menu", shown: true },
+      contentSender({ frameId: 5, documentId: "doc-5" }),
+    );
     expect(shown(port)).toBe(1);
 
     // The frame shows after a while without the page's height, which may be before it binds.
     const token = await menuToken(pages);
-    await fromContent(pages, { kind: "menu_shown" });
+    await fromContent(pages, { kind: "popup_shown", popup: "menu", shown: true });
     const next = await bindMenu(pages, token);
     expect(next.posted.slice(0, 2)).toEqual([{ kind: "bound" }, { kind: "shown" }]);
   });
@@ -678,12 +391,35 @@ describe("inline menu", () => {
     });
   });
 
-  it("shows names and usernames only: the menu page never gets secrets", async () => {
-    const { openMenu } = setup();
-    const { port } = await openMenu("username");
+  it("shows names, usernames and details only: the pages of the menu and its card never get secrets", async () => {
+    const { openMenu, bindDetails } = setup();
+    const { port, details } = await openMenu("username");
+    const card = await bindDetails(details);
+    port.emit({ kind: "select", handle: "h1", top: 8, height: 48 });
+    await settle();
     port.emit({ kind: "fill", handle: "h1" });
     await settle();
     expect(JSON.stringify(port.posted)).not.toContain("secret");
+    // The fill hid the card, which shows again for the row still selected once it ended.
+    expect(card.posted.map((it) => it.kind)).toEqual(["bound", "view", "hidden", "view"]);
+    expect(JSON.stringify(card.posted)).not.toContain("secret");
+    // What the login has, not its values.
+    expect(card.posted[1]).toEqual({
+      kind: "view",
+      seq: 1,
+      handle: "h1",
+      item: {
+        name: "Item h1",
+        username: "ann",
+        account: "Personal",
+        copies: ["copy_username", "copy_password", "copy_totp"],
+        reprompt: false,
+        matched: true,
+        last: false,
+        icon: iconOf(LOGIN_URL),
+        passkeys: [],
+      },
+    });
     expect(port.lastView()).toMatchObject({
       kind: "items",
       items: [
@@ -864,9 +600,16 @@ describe("inline menu", () => {
               items: [item("p1", { passkeys: [{ handle: "pk1", user_name: "ann" }] })],
             }
           : undefined;
-      // The inline menu: fill, TOTP, generate, resize, a passkey and close.
+      // The inline menu: its card, fill, TOTP, generate, resize, a passkey and close.
       const menuSender = contentSender({ frameId: 5, documentId: "doc-5" });
       const login = await context.openMenu("new-password", menuSender, true);
+      const card = await context.bindDetails(login.details);
+      login.port.emit({ kind: "select", handle: "h1", top: 0, height: 48 });
+      await settle();
+      card.emit({ kind: "resize", height: 120, seq: 1 });
+      await settle();
+      login.port.emit({ kind: "deselect" });
+      await settle();
       for (const request of [
         { kind: "fill", handle: "h1" },
         { kind: "totp", handle: "h1" },
@@ -911,6 +654,8 @@ describe("inline menu", () => {
           "fill_password",
           "menu_resize",
           "menu_close",
+          "menu_details",
+          "menu_details_hide",
           "save_bar_show",
           "save_bar_resize",
           "save_bar_close",
@@ -2447,6 +2192,95 @@ describe("the next step of a sign-in", () => {
   });
 });
 
+describe("matched and suggested logins", () => {
+  /** Suggested by their names, around matched ones; m2 comes from an older app, without `matched`. */
+  const MIXED = () => [
+    item("s1", { matched: false }),
+    item("m1", { matched: true }),
+    item("s2", { matched: false }),
+    item("m2"),
+  ];
+
+  it("lists the matched logins first, then the suggested ones, each in the app's order", async () => {
+    const context = setup();
+    context.state.suggest = MIXED();
+    const { port } = await context.openMenu("username");
+    expect(port.lastView()).toMatchObject({
+      kind: "items",
+      items: [
+        { handle: "m1", matched: true },
+        { handle: "m2", matched: true },
+        { handle: "s1", matched: false },
+        { handle: "s2", matched: false },
+      ],
+      last: null,
+    });
+    const popup = await context.pages.calls.suggest({ tabId: 7 });
+    expect(popup).toMatchObject({ kind: "items", last: null });
+    expect(popup.kind === "items" && popup.items.map((it) => it.handle)).toEqual(["m1", "m2", "s1", "s2"]);
+    // So does a one-time-code field, with the logins that have a TOTP.
+    context.state.suggest = MIXED().map((it) => ({ ...it, has_totp: it.handle !== "m1" }));
+    expect((await context.openMenu("otp")).port.lastView()).toMatchObject({
+      items: [{ handle: "m2" }, { handle: "s1" }, { handle: "s2" }],
+    });
+  });
+
+  it("lists the login used last first of its own section", async () => {
+    const suggested = setup();
+    suggested.state.suggest = MIXED();
+    await afterUsernameStep("s2", suggested);
+    const order = { items: [{ handle: "m1" }, { handle: "m2" }, { handle: "s2" }, { handle: "s1" }], last: "s2" };
+    expect((await suggested.openMenu("current-password", NEXT)).port.lastView()).toMatchObject(order);
+    await expect(suggested.pages.calls.suggest({ tabId: 7 })).resolves.toMatchObject(order);
+
+    const matched = setup();
+    matched.state.suggest = [...MIXED().slice(0, 3), item("m2", { last_used: true })];
+    const lifted = { items: [{ handle: "m2" }, { handle: "m1" }, { handle: "s1" }, { handle: "s2" }], last: "m2" };
+    expect((await matched.openMenu("current-password", NEXT)).port.lastView()).toMatchObject(lifted);
+    await expect(matched.pages.calls.suggest({ tabId: 7 })).resolves.toMatchObject(lifted);
+  });
+
+  it("fills a suggested login from the menu, which the app prompts for", async () => {
+    const context = setup();
+    context.state.suggest = MIXED();
+    const { port } = await context.openMenu("username");
+    port.emit({ kind: "fill", handle: "s1" });
+    await settle();
+    expect(context.requests.at(-1)).toEqual({ type: "fill", handle: "s1", url: LOGIN_URL });
+  });
+
+  /** The login the shortcut fills on a sign-in step, in a tab that filled none, from [suggest]. */
+  async function best(suggest: SuggestItem[]) {
+    const context = setup();
+    context.state.suggest = suggest;
+    return shortcut(context, "current-password", NEXT);
+  }
+
+  it("fills a matched login with the shortcut: the one used last, then one with a password, then the first", async () => {
+    // The suggested login used last, and the first, without a password.
+    expect(
+      await best([item("s1", { matched: false, last_used: true }), item("m1", { has_password: false }), item("m2")]),
+    ).toBe("m2");
+    expect(
+      await best([item("m1", { last_used: true, has_password: false }), item("s1", { matched: false }), item("m2")]),
+    ).toBe("m1");
+    expect(await best([item("s1", { matched: false }), item("m1", { has_password: false })])).toBe("m1");
+    // The suggested login filled on the username step doesn't win over a matched one either.
+    const context = setup();
+    context.state.suggest = MIXED();
+    await afterUsernameStep("s1", context);
+    expect(await shortcut(context, "current-password", NEXT)).toBe("m1");
+  });
+
+  it("fills a suggested login with the shortcut only when none matches, as before", async () => {
+    const suggested = (handle: string, fields: Partial<SuggestItem> = {}) =>
+      item(handle, { matched: false, ...fields });
+    expect(await best([suggested("s1", { has_password: false }), suggested("s2")])).toBe("s2");
+    expect(await best([suggested("s1", { has_password: false, last_used: true }), suggested("s2")])).toBe("s1");
+    expect(await best([suggested("s1", { has_password: false }), suggested("s2", { has_password: false })])).toBe("s1");
+  });
+});
+
 describe("the password step", () => {
   /** The username step: a field of the tab's top frame. */
   const USERNAME_STEP = contentSender({ frameId: 0, documentId: "doc-0" });
@@ -3276,6 +3110,30 @@ describe("passkeys in the inline menu", () => {
     expect(port.disconnected).toBe(false);
   });
 
+  it("picks nothing when a single-page app changed the URL since the menu opened: it shows the matches for the new one", async () => {
+    const context = passkeySetup();
+    const ROUTE = "https://login.example.com/admin";
+    const { port } = await context.openMenu("username", contentSender(), true);
+    context.state.contentScript = (message) => (message.kind === "guard" ? { ok: true, url: ROUTE } : { ok: true });
+    port.emit({ kind: "passkey", handle: "pk1" });
+    await settle();
+    expect(context.state.picks).toEqual([]);
+    expect(context.sent.map((it) => it.message.kind)).toEqual(["guard"]);
+    expect(context.requests.slice(2)).toEqual([
+      { type: "suggest", url: ROUTE, kinds: ["passkey"], rp_id: "example.com" },
+      { type: "suggest", url: ROUTE },
+    ]);
+    expect(port.lastView()).toMatchObject({ kind: "items", passkeys: [{ handle: "pk1" }, { handle: "pk2" }] });
+    expect(port.posted.filter((it) => it.kind === "error")).toEqual([]);
+    expect(port.disconnected).toBe(false);
+
+    // The next pick is for the new URL, in the same document.
+    port.emit({ kind: "passkey", handle: "pk1" });
+    await settle();
+    expect(context.state.picks).toEqual([{ frame: { ...FRAME, url: ROUTE }, handle: "pk1" }]);
+    expect(port.disconnected).toBe(true);
+  });
+
   it("keeps the newer view when an older refresh's passkeys come late", async () => {
     const context = passkeySetup();
     const answers = context.state.app;
@@ -3390,6 +3248,7 @@ describe("with the app session", () => {
       siteIcon: async () => null,
       tabs: new TabWatch(),
       openPopup: async () => undefined,
+      copyText: async () => undefined,
       documentIds: true,
     });
     controller.start();

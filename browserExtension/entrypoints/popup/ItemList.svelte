@@ -1,8 +1,9 @@
 <!--
-  The list pane, as the app's Quick search: a section header, then the logins
-  as options of a listbox that the search field controls (Vault.svelte), or
-  skeleton rows, or an empty state. The rows take no focus: a press selects
-  one and leaves focus in the field.
+  The list pane, as the app's Quick search: the logins as options of a listbox
+  that the search field controls (Vault.svelte), or skeleton rows, or an empty
+  state. The page's suggested logins follow the
+  matched ones in a group of the same listbox, under their own header. The
+  rows take no focus: a press selects one and leaves focus in the field.
 -->
 <script module lang="ts">
   import type { IconName } from "../../src/lib/ui/icons";
@@ -10,16 +11,17 @@
 
   export type Item = SuggestItem | SearchItem;
 
-  export interface ListHeader {
-    host?: string;
-    count?: string;
-  }
-
   export type ListView =
     | { kind: "loading" }
     | { kind: "error"; text: string }
-    | { kind: "empty"; icon: IconName; text: string; header?: ListHeader }
-    | { kind: "items"; items: Item[]; header: ListHeader; note: string | null };
+    | { kind: "empty"; icon: IconName; text: string }
+    | {
+        kind: "items";
+        items: Item[];
+        note: string | null;
+        /** The index of the first suggested login, which the "Suggested" header precedes; `null` for none. */
+        suggested: number | null;
+      };
 
   /** The id of the option at [index] of the listbox [listboxId]. */
   export const optionId = (listboxId: string, index: number) => `${listboxId}-${index}`;
@@ -29,6 +31,7 @@
   import { t } from "../../src/lib/i18n";
   import Avatar from "../../src/lib/ui/components/Avatar.svelte";
   import Icon from "../../src/lib/ui/components/Icon.svelte";
+  import { itemMarkers } from "../../src/lib/ui/itemDetails";
 
   const SKELETON_ROWS = 5;
 
@@ -45,45 +48,52 @@
 
   let { view, listboxId, selected, last, iconOf, onpick }: Props = $props();
 
-  interface Marker {
-    icon: IconName;
-    label: string;
-  }
-
-  /** The small icons after a row's title: what else the login has. */
-  function markersOf(item: Item): Marker[] {
-    const markers: Marker[] = [];
-    if ("matched" in item && !item.matched)
-      markers.push({ icon: "warning_amber", label: t("browser_extension_search_unmatched") });
-    if (item.has_totp) markers.push({ icon: "two_fa", label: t("one_time_password") });
-    if (item.reprompt) markers.push({ icon: "lock", label: t("additem_auth_reprompt_title") });
-    if ("passkeys" in item && item.passkeys?.length) markers.push({ icon: "key", label: t("passkeys") });
-    return markers;
-  }
-
-  const header = $derived(view.kind === "items" || view.kind === "empty" ? view.header : undefined);
-  const headerId = $derived(`${listboxId}-header`);
+  const suggestedId = $derived(`${listboxId}-suggested`);
 </script>
 
-{#if header !== undefined}
-  <h2 class="section-header header" id={headerId}>
-    {#if header.host !== undefined}
-      <span class="host">{header.host}</span>
-    {/if}
-    {#if header.host !== undefined && header.count !== undefined}
-      <span aria-hidden="true">·</span>
-    {/if}
-    {#if header.count !== undefined}
-      <span class="count">{header.count}</span>
-    {/if}
-  </h2>
-{/if}
+{#snippet row(item: Item, index: number)}
+  {@const markers = itemMarkers(item)}
+  <!-- A press selects without taking focus from the search field. -->
+  <div
+    class="row"
+    role="option"
+    id={optionId(listboxId, index)}
+    aria-selected={item.handle === selected}
+    tabindex="-1"
+    onmousedown={(event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      onpick(item);
+    }}
+  >
+    <Avatar name={item.name} icon={iconOf(item)} />
+    <div class="row-content">
+      <div class="line">
+        <span class="row-title">{item.name}</span>
+        {#if markers.length > 0}
+          <span class="markers">
+            {#each markers as marker (marker.icon)}
+              <span title={marker.label}
+                ><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span
+              >
+            {/each}
+          </span>
+        {/if}
+      </div>
+      {#if item.username}
+        <span class="row-text">{item.username}</span>
+      {/if}
+      {#if item.handle === last}
+        <span class="chip last">{t("browser_extension_last_used")}</span>
+      {/if}
+    </div>
+  </div>
+{/snippet}
 
 {#if view.kind === "error"}
   <p class="banner" role="alert"><Icon name="error_outline" />{view.text}</p>
 {:else if view.kind === "loading"}
   <div class="skeletons" role="progressbar" aria-label={t("loading")}>
-    <div class="skeleton skeleton-header"></div>
     {#each { length: SKELETON_ROWS } as _, index (index)}
       <div class="skeleton skeleton-row"></div>
     {/each}
@@ -100,48 +110,29 @@
   class={["options", { populated: view.kind === "items" }]}
   role="listbox"
   id={listboxId}
-  aria-labelledby={header !== undefined ? headerId : undefined}
-  aria-label={header === undefined ? t("vault_main_search_placeholder") : undefined}
+  aria-label={t("vault_main_search_placeholder")}
 >
   {#if view.kind === "items"}
-    {#each view.items as item, index (item.handle)}
-      {@const markers = markersOf(item)}
-      <!-- A press selects without taking focus from the search field. -->
-      <div
-        class="row"
-        role="option"
-        id={optionId(listboxId, index)}
-        aria-selected={item.handle === selected}
-        tabindex="-1"
-        onmousedown={(event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          onpick(item);
-        }}
-      >
-        <Avatar name={item.name} icon={iconOf(item)} />
-        <div class="row-content">
-          <div class="line">
-            <span class="row-title">{item.name}</span>
-            {#if markers.length > 0}
-              <span class="markers">
-                {#each markers as marker (marker.icon)}
-                  <span title={marker.label}
-                    ><Icon name={marker.icon} size={16} /><span class="sr-only">{marker.label}</span></span
-                  >
-                {/each}
-              </span>
-            {/if}
-          </div>
-          {#if item.username}
-            <span class="row-text">{item.username}</span>
-          {/if}
-          {#if item.handle === last}
-            <span class="chip last">{t("browser_extension_last_used")}</span>
-          {/if}
+    {@const split = view.suggested ?? view.items.length}
+    {#if split > 0}
+      <!-- The rows on the container, as segmented groups: theme.css's .group. -->
+      <div class="group" role="presentation">
+        {#each view.items.slice(0, split) as item, index (item.handle)}
+          {@render row(item, index)}
+        {/each}
+      </div>
+    {/if}
+    {#if split < view.items.length}
+      <!-- Not an option: the arrow keys and the options' ids skip it. -->
+      <div class="section" role="group" aria-labelledby={suggestedId}>
+        <div class="section-header in-list" id={suggestedId} aria-hidden="true">{t("autofill_suggested")}</div>
+        <div class="group" role="presentation">
+          {#each view.items.slice(split) as item, offset (item.handle)}
+            {@render row(item, split + offset)}
+          {/each}
         </div>
       </div>
-    {/each}
+    {/if}
   {/if}
 </div>
 
@@ -150,39 +141,16 @@
 {/if}
 
 <style>
-  .header {
-    display: flex;
-    gap: 4px;
-  }
-
-  .host {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .count {
-    flex-shrink: 0;
-  }
-
   .banner {
     margin: 8px;
   }
 
-  /* Quick search's placeholder: blocks 6px apart, inset as the rows, under a header's. */
+  /* Quick search's placeholder: blocks 6px apart, inset as the rows. */
   .skeletons {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 0 8px 8px;
-  }
-
-  /* On the header's line: 16px down, a 16px line, 8px to the rows. */
-  .skeleton-header {
-    width: 128px;
-    height: 12px;
-    margin: 18px 12px 4px;
-    border-radius: var(--shape-xs);
+    padding: 8px;
   }
 
   .skeleton-row {
@@ -213,7 +181,14 @@
   }
 
   .options.populated {
-    padding: 0 8px 8px;
+    padding: 8px;
+  }
+
+  /* The "Suggested" label and its .group: the label sits on the list's surface. */
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .row {

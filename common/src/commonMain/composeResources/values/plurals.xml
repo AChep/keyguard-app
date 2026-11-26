@@ -445,10 +445,6 @@
         <item quantity="one">This device can no longer add, remove or unlink linked devices.</item>
         <item quantity="other">This device can no longer add, remove or unlink linked devices in <xliff:g id="count" example="2">%1$d</xliff:g> groups.</item>
     </plurals>
-    <plurals name="browser_extension_logins_count_plural">
-        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> login</item>
-        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> logins</item>
-    </plurals>
     <plurals name="browser_extension_logins_truncated_plural">
         <item quantity="one">Showing the first <xliff:g id="count" example="1">%1$d</xliff:g> login. Open Keyguard to see the rest.</item>
         <item quantity="other">Showing the first <xliff:g id="count" example="50">%1$d</xliff:g> logins. Open Keyguard to see the rest.</item>

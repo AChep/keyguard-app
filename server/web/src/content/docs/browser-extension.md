@@ -59,7 +59,7 @@ The sandbox hides the connector's process from Keyguard. Prompts show
 ## Fill a login
 
 1. On a sign-in page, select the Keyguard icon in the username or password
-   field. The inline menu lists the matching logins.
+   field.
 2. Select a login.
 3. If Keyguard asks, select **Approve**. The extension fills the username and
    password.
@@ -68,9 +68,10 @@ You can also select a login in the popup, then **Fill**. Or press
 Ctrl+Shift+L (Cmd+Shift+L on macOS). The browser's shortcut settings change
 the key.
 
-The first login, marked **Last used**, is the one filled in this tab and
-origin in the last 5 minutes, or else the one used last on this device. The
-shortcut fills it.
+Matching logins come first, then **Suggested** ones, whose name or username
+looks like the site. **Last used** marks the login filled in this tab and
+origin within 5 minutes, or else on this device. The shortcut fills it,
+preferring matches.
 
 Logins match as in [URL matching](/docs/url-matching/); on an `http` page,
 only `http://` URLs match. Sites in [Blocked URIs](/docs/blocked-uris/) get

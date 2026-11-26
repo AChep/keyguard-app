@@ -7,11 +7,14 @@
 // read what they show; the content script only hands them a one-time token
 // (by `postMessage` to the frame once it loads, for the extension's origins
 // only, not in its URL). The pages post nothing to the page.
+// Beside the menu, a card shows the details of its selected login: a third
+// extension page, whose fields copy on a click, with the checks of the menu's.
+// ./detailsCard.ts places it, shows and hides it.
 // They and the icon sit in popovers, in the top layer, so page elements can't
 // stack over them, and ancestors' opacity and transforms don't apply. For a
 // field in a modal dialog, the host goes into the dialog: the page outside it
 // is inert.
-import { BIND_MESSAGE } from "../page/messages";
+import { BIND_MESSAGE, type GuardedPopup, type PopupShown } from "../page/messages";
 import {
   LOGO_BACKGROUND,
   LOGO_BODY,
@@ -23,6 +26,7 @@ import {
   LOGO_VIEW_BOX,
 } from "../ui/logo";
 import type { FrameColors } from "../ui/storedTheme";
+import { boxShadow, DetailsCard, ELEVATION_2_LAYERS, ELEVATION_3_LAYERS } from "./detailsCard";
 import { flatParentOf } from "./guards";
 
 const ICON_SIZE = 20;
@@ -49,13 +53,17 @@ const MIN_WIDTH_FOR_INNER_ICON = 96;
 // The pages' look (../ui/theme.css), which the shadow root can't read: the
 // surface container under a frame until its page draws (unless the browser's
 // theme gives another, see [ContentUi.setFrameColors]), and Material 3
-// elevation levels: 1 for the hovered icon, 2 for the menu and 3 for the save
-// bar. Each page draws its own border, inside the frame.
+// elevation levels: 1 for the hovered icon, 2 for the menu and 3 for the card
+// beside it and the save bar (./detailsCard.ts: the card's gap derives from
+// them). Each page draws its own border, inside the frame.
 const SURFACE_CONTAINER_LIGHT = "#f5f5f5";
 const SURFACE_CONTAINER_DARK = "#202121";
-const ELEVATION_1 = "0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15)";
-const ELEVATION_2 = "0 1px 2px rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15)";
-const ELEVATION_3 = "0 1px 3px rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15)";
+const ELEVATION_1 = boxShadow([
+  [0, 1, 2, 0, 0.3],
+  [0, 1, 3, 1, 0.15],
+]);
+const ELEVATION_2 = boxShadow(ELEVATION_2_LAYERS);
+const ELEVATION_3 = boxShadow(ELEVATION_3_LAYERS);
 const EASE_STANDARD = "cubic-bezier(0.2, 0, 0, 1)";
 /** The icon scales in from this as it appears. */
 const ICON_APPEAR_SCALE = 0.6;
@@ -133,6 +141,15 @@ const SHADOW_CSS = `
   color-scheme: light dark;
 }
 .popup.save-bar { border-radius: 28px; box-shadow: ${ELEVATION_3}; }
+/* Beside the menu, DETAILS_GAP away; above it in the top layer, shown after it. */
+.popup.menu-details { box-shadow: ${ELEVATION_3}; }
+/*
+ * Chromium's IntersectionObserver v2 counts the transparent backdrop of a
+ * popover in the top layer as covering every one below it: the card's would
+ * cover the menu beside it, the menu's the save bar, and the icon's the menu,
+ * which would turn off their pages' click gates (../ui/clickGate.ts).
+ */
+.popup::backdrop, .icon::backdrop { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .icon, .icon::after { transition: none; }
 }
@@ -177,8 +194,14 @@ export interface UiCallbacks {
   menuFocused(): void;
   /** The user dismissed the menu: Escape, or a click elsewhere. */
   menuDismissed(): void;
-  /** The menu's frame shows now, see [ContentUi.openMenu]: its page's click gate starts. */
-  menuShown(): void;
+  /**
+   * The frame of a popup shows now, or hides: its page's click gate starts,
+   * or waits again. The menu's shows once, see [ContentUi.openMenu]. The
+   * card beside it reports again when it moves to the other side of the
+   * menu; one that fits on neither side, `room: false`, the UI then
+   * forgets, see [DetailsCard].
+   */
+  popupShown(report: PopupShown): void;
 }
 
 interface Popup {
@@ -191,6 +214,8 @@ interface Popup {
 interface Menu extends Popup {
   field: HTMLInputElement;
   height: number;
+  /** The card beside it, when its page came with the menu. */
+  details: DetailsCard | null;
   /** Whether its page loaded and got the token. */
   ready: boolean;
   /** Whether focus goes into it once it's ready and shows. */
@@ -205,7 +230,7 @@ interface SaveBar extends Popup {
 }
 
 /** The kinds of popups, as their classes in SHADOW_CSS. */
-type PopupKind = "menu" | "save-bar";
+type PopupKind = "menu" | "menu-details" | "save-bar";
 
 /** `element.matches`, false for a selector the browser doesn't know. */
 function matches(element: Element, selector: string): boolean {
@@ -274,6 +299,8 @@ export class ContentUi {
   /** The [layout] the UI was last placed for. */
   private placed: Placement | null = null;
   private readonly abort = new AbortController();
+  /** The `focusout` events that left the UI's frames, see [leftUi]. */
+  private readonly focusouts = new WeakSet<Event>();
   /**
    * The host's container and the dialogs around it. The page moving the host,
    * or closing and reopening one of them, could put its own top layer over the
@@ -298,6 +325,8 @@ export class ContentUi {
     /** The origins the extension's pages may run as: only they get a token. */
     private readonly extensionOrigins: readonly string[],
     label: string,
+    /** The direction of the UI's language: the card beside the menu goes to its left first in "rtl". */
+    private readonly direction: "ltr" | "rtl" = "ltr",
   ) {
     this.host = doc.createElement("div");
     this.host.setAttribute("style", HOST_STYLE);
@@ -328,6 +357,9 @@ export class ContentUi {
     );
     // Keep the field's focus when the icon is pressed.
     this.icon.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
+    // Wherever the host is: the document hears a focusout from a page's
+    // shadow root, closed too, as from the page's element. See [leftUi].
+    this.host.addEventListener("focusout", (event) => this.focusouts.add(event), { capture: true, signal });
     const win = doc.defaultView!;
     doc.addEventListener("visibilitychange", () => this.follow(), { signal });
     win.addEventListener(
@@ -367,13 +399,24 @@ export class ContentUi {
   }
 
   /**
-   * The color under the frames of the menu and the save bar until their
-   * pages draw, for a light and a dark page: the browser theme's, which the
-   * pages take too (../ui/storedTheme.ts), or null for Keyguard's. In the
+   * The color under the frames of the menu, its card and the save bar until
+   * their pages draw, for a light and a dark page: the browser theme's, which
+   * the pages take too (../ui/storedTheme.ts), or null for Keyguard's. In the
    * closed shadow root, where the page can't change it.
    */
   setFrameColors(colors: FrameColors): void {
     this.frameStyle.textContent = frameCss(colors);
+  }
+
+  /**
+   * Whether focus left the UI with [event], a `focusout`, as from the menu's
+   * frame or the card's: the host may be in a page's shadow root, see
+   * [containerFor], where the document hears the event as from the page's
+   * element. Known once the event reached the host, after the capturing
+   * listeners of the document.
+   */
+  leftUi(event: Event): boolean {
+    return this.focusouts.has(event);
   }
 
   /** The field whose icon shows, if any. */
@@ -391,9 +434,38 @@ export class ContentUi {
     return this.menu?.element ?? null;
   }
 
+  /** The popover of the card beside the menu while it shows, for the clickjacking checks. */
+  get menuDetailsElement(): HTMLElement | null {
+    return this.menu?.details?.element ?? null;
+  }
+
   /** The popover of the save bar, for the clickjacking checks. */
   get saveBarElement(): HTMLElement | null {
     return this.saveBar?.element ?? null;
+  }
+
+  /**
+   * What the clickjacking checks of [popup] look at: its popover while it
+   * shows, and the menu's field for the menu and the card beside it. `null`
+   * when it doesn't show, or for an unknown popup.
+   */
+  guardTarget(popup: GuardedPopup): { element: HTMLElement; field: HTMLInputElement | null } | null {
+    let element: HTMLElement | null;
+    switch (popup) {
+      case "save_bar":
+        element = this.saveBarElement;
+        return element === null ? null : { element, field: null };
+      case "menu":
+        element = this.menuElement;
+        break;
+      case "menu_details":
+        element = this.menuDetailsElement;
+        break;
+      default:
+        return null;
+    }
+    const field = this.menuField;
+    return element === null || field === null ? null : { element, field };
   }
 
   /**
@@ -483,17 +555,34 @@ export class ContentUi {
    * menu is in the top layer at once, but hidden until its page tells its
    * height, or MENU_REVEAL_TIMEOUT_MS passed: it shows at the size of its
    * rows, not of a placeholder.
+   *
+   * [details]: the page of the card beside it and its token. It loads with
+   * the menu, in the top layer but hidden: Firefox lays out no frame that
+   * isn't displayed. It shows on [showMenuDetails]. Focus moves into it on
+   * the background's word only, see [focusMenuDetails].
    */
-  openMenu(field: HTMLInputElement, token: string, page: string): void {
+  openMenu(field: HTMLInputElement, token: string, page: string, details?: { token: string; page: string }): void {
     this.closeMenu();
     if (!this.place(this.containerFor(field))) return;
+    const popup = this.createPopup("menu", page, token, () => {
+      menu.ready = true;
+      this.passFocus(menu);
+    });
     const menu: Menu = {
-      ...this.createPopup("menu", page, token, () => {
-        menu.ready = true;
-        this.passFocus(menu);
-      }),
+      ...popup,
       field,
       height: MENU_MIN_HEIGHT * 2,
+      details:
+        details === undefined
+          ? null
+          : new DetailsCard(
+              this.createPopup("menu-details", details.page, details.token),
+              popup.frame,
+              this.root,
+              // As wide as the menu.
+              { width: MENU_WIDTH, margin: MENU_GAP, rtl: this.direction === "rtl" },
+              (report) => this.callbacks.popupShown(report),
+            ),
       ready: false,
       focus: false,
       shown: false,
@@ -504,6 +593,8 @@ export class ContentUi {
     this.menu = menu;
     this.position();
     this.show(menu.element);
+    // After the menu, above it in the top layer: the only place either is shown.
+    if (menu.details !== null) this.show(menu.details.popover);
     this.follow();
   }
 
@@ -512,7 +603,9 @@ export class ContentUi {
     if (menu.shown || this.menu !== menu) return;
     menu.shown = true;
     menu.element.classList.remove("pending");
-    this.callbacks.menuShown();
+    // The card of a row selected meanwhile.
+    menu.details?.menuRevealed();
+    this.callbacks.popupShown({ popup: "menu", shown: true });
     this.passFocus(menu);
   }
 
@@ -548,13 +641,54 @@ export class ContentUi {
     this.revealMenu(menu);
   }
 
+  /**
+   * Shows the card beside the menu, level with its selected row: [top] and
+   * [row], the row's top and height in the menu's frame; [height], the height
+   * of the card's content. See [DetailsCard.show].
+   */
+  showMenuDetails(top: number, row: number, height: number): void {
+    this.menu?.details?.show(top, row, height);
+  }
+
+  hideMenuDetails(): void {
+    this.menu?.details?.hide();
+  }
+
+  /** Moves focus into the frame of [popup], see [focusMenuDetails] and [focusMenuFrame]; false for an unknown one. */
+  focusPopup(popup: "menu" | "menu_details"): boolean {
+    switch (popup) {
+      case "menu":
+        return this.focusMenuFrame();
+      case "menu_details":
+        return this.focusMenuDetails();
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Moves focus from the menu's frame into the card's, which shows: on the
+   * background's word, after a trusted key in the menu. The card's page then
+   * focuses a field when the background tells it to: the page can focus the
+   * frame too. False when focus isn't in the menu, or the card doesn't show.
+   */
+  focusMenuDetails(): boolean {
+    return this.menu?.details?.focus() ?? false;
+  }
+
+  /** Moves focus from the card's frame back into the menu's, as [focusMenuDetails]. False when focus isn't in the card. */
+  focusMenuFrame(): boolean {
+    return this.menu?.details?.focusMenu() ?? false;
+  }
+
   closeMenu(): void {
     const menu = this.menu;
     if (menu === null) return;
-    // Focus in the menu goes back to its field: Escape, Tab or an action closed it.
-    const focused = this.root.activeElement === menu.frame;
+    // Focus in the menu or its card goes back to its field: Escape, Tab or an action closed it.
+    const focused = this.root.activeElement === menu.frame || menu.details?.focused === true;
     menu.abort.abort();
     menu.element.remove();
+    menu.details?.remove();
     this.menu = null;
     this.watchLayout();
     if (focused) menu.field.focus({ preventScroll: true });
@@ -814,11 +948,19 @@ export class ContentUi {
       const height = Math.round(Math.max(Math.min(menu.height, downwards ? below : above), MENU_MIN_HEIGHT));
       const top = downwards ? rect.bottom + MENU_GAP : rect.top - MENU_GAP - height;
       const left = Math.min(Math.max(rect.left, MENU_GAP), layout.width - width - MENU_GAP);
+      const box = {
+        left: Math.round(left),
+        top: Math.round(Math.max(top, MENU_GAP)),
+        width: Math.round(width),
+        height,
+      };
       const style = menu.element.style;
-      style.left = `${Math.round(left)}px`;
-      style.top = `${Math.round(Math.max(top, MENU_GAP))}px`;
-      style.width = `${Math.round(width)}px`;
-      style.height = `${height}px`;
+      style.left = `${box.left}px`;
+      style.top = `${box.top}px`;
+      style.width = `${box.width}px`;
+      style.height = `${box.height}px`;
+      // After the menu: the card follows it, as when it flips above the field.
+      menu.details?.menuPlaced(box, { width: layout.width, height: layout.height });
     }
   }
 }

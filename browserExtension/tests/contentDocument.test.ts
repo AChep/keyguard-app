@@ -103,6 +103,7 @@ beforeEach(() => {
     siteIcon: async () => null,
     tabs: new TabWatch(),
     openPopup: async () => undefined,
+    copyText: async () => undefined,
     documentIds: false,
     probeTimeoutMs: 200,
   });
@@ -213,7 +214,11 @@ describe("the document token", () => {
       { kind: "fill_totp", target: "focused", code: "123456" },
       { kind: "fill_password", target: "menu", password: "pw" },
       { kind: "guard", popup: "menu" },
+      { kind: "guard", popup: "menu_details" },
       { kind: "guard", popup: "save_bar" },
+      { kind: "focus_popup", popup: "menu_details" },
+      { kind: "focus_popup", popup: "menu" },
+      { kind: "has_focus" },
     ];
     for (const stamp of [
       { doc: STALE, origin },
@@ -240,19 +245,66 @@ describe("the document token", () => {
       ok: false,
       reason: "obscured",
     });
+    // Nor the card beside a menu, nor focus to move between them.
+    expect(await deliver({ kind: "guard", popup: "menu_details", doc: own!, origin })).toEqual({
+      ok: false,
+      reason: "obscured",
+    });
+    for (const popup of ["menu_details", "menu"] as const) {
+      expect(await deliver({ kind: "focus_popup", popup, doc: own!, origin })).toEqual({
+        ok: false,
+        reason: "obscured",
+      });
+    }
+    // An unknown popup is refused, not checked as the menu.
+    expect(await deliver({ kind: "guard", popup: "other", doc: own!, origin } as unknown as ContentCommand)).toEqual({
+      ok: false,
+      reason: "obscured",
+    });
     expect(byId("password").value).toBe("");
     expect(await deliver({ ...answered[0], doc: own!, origin } as ContentCommand)).toEqual({ ok: true });
     expect(byId("password").value).toBe("pw");
   });
 
   it("checks every command for one document, and answers those that expect it", () => {
-    for (const kind of ["fill", "fill_totp", "fill_password", "guard"])
+    for (const kind of ["fill", "fill_totp", "fill_password", "guard", "focus_popup", "has_focus"])
       expect(documentCommandOf(kind), kind).toBe("answer");
-    for (const kind of ["menu_resize", "menu_close", "save_bar_resize", "save_bar_close"]) {
+    for (const kind of [
+      "menu_resize",
+      "menu_close",
+      "menu_details",
+      "menu_details_hide",
+      "save_bar_resize",
+      "save_bar_close",
+    ]) {
       expect(documentCommandOf(kind), kind).toBe("notify");
     }
     for (const kind of ["save_bar_show", "focus_probe", "form_probe", "top_probe", "toString", undefined]) {
       expect(documentCommandOf(kind), String(kind)).toBeNull();
+    }
+  });
+});
+
+describe("the document's focus", () => {
+  it("answers whether the document has focus once focus settled, as the menu's frame or its card's lost it", async () => {
+    startDocument();
+    await deliver({ kind: "save_bar_show" });
+    const [own] = tokens;
+    let focused = true;
+    const hasFocus = vi.spyOn(document, "hasFocus").mockImplementation(() => focused);
+    try {
+      // The window lost focus just after the frame told: the answer reads it after a tick.
+      const answer = deliver({ kind: "has_focus", doc: own!, origin: ORIGIN });
+      focused = false;
+      expect(await answer).toEqual({ ok: false, reason: "obscured" });
+      // Focus moved from the menu's frame into the card's: the document still has it.
+      focused = true;
+      expect(await deliver({ kind: "has_focus", doc: own!, origin: ORIGIN })).toEqual({ ok: true });
+      // Another document gets no answer about this one's focus.
+      expect(await deliver({ kind: "has_focus", doc: STALE, origin: ORIGIN })).toEqual({ ok: false, reason: "origin" });
+      expect(hasFocus).toHaveBeenCalled();
+    } finally {
+      vi.restoreAllMocks();
     }
   });
 });

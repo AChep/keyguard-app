@@ -202,6 +202,8 @@ export default defineBackground(() => {
     // Called before anything awaits: Firefox before 149 opens the popup only
     // while it handles the user's input.
     openPopup: () => browser.action.openPopup(),
+    // The card beside the inline menu copies as the popup does: through the background.
+    copyText: (text) => clipboard.write(text),
     // Firefox has no `documentId` in `tabs.sendMessage`, and rejects it.
     documentIds: !import.meta.env.FIREFOX,
   });

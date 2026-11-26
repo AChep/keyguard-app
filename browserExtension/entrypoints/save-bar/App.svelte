@@ -5,7 +5,7 @@
   import Avatar from "../../src/lib/ui/components/Avatar.svelte";
   import Icon from "../../src/lib/ui/components/Icon.svelte";
   import Logo from "../../src/lib/ui/components/Logo.svelte";
-  import type { EmbeddedPort } from "../../src/lib/ui/embedded";
+  import { contentHeight, reportHeight, type EmbeddedPort } from "../../src/lib/ui/embedded";
   import { errorText } from "../../src/lib/ui/statusText";
 
   interface Props {
@@ -22,15 +22,15 @@
   let root = $state<HTMLElement | undefined>();
 
   /** The content script sizes the frame to the content; the background drops what comes before the page binds. */
-  function reportHeight(element: HTMLElement) {
-    port.send({ kind: "resize", height: Math.ceil(element.scrollHeight) });
+  function sendHeight(height: number) {
+    port.send({ kind: "resize", height });
   }
 
   $effect(() =>
     port.onEvent((event) => {
       switch (event.kind) {
         case "bound":
-          if (root !== undefined) reportHeight(root);
+          if (root !== undefined) sendHeight(contentHeight(root));
           return;
         case "view":
           // Another offer: a click aimed at what showed before doesn't take it.
@@ -49,12 +49,6 @@
     }),
   );
 
-  function observeHeight(element: HTMLElement) {
-    const observer = new ResizeObserver(() => reportHeight(element));
-    observer.observe(element);
-    return () => observer.disconnect();
-  }
-
   type Action = "save" | "dismiss" | "never";
 
   /** An action on the offer shown, on a trusted click once the bar was visible for a while; none before it shows one. */
@@ -72,7 +66,14 @@
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="bar" bind:this={root} {@attach observeHeight} role="dialog" aria-labelledby="title" aria-busy={busy}>
+<div
+  class="bar"
+  bind:this={root}
+  {@attach (element) => reportHeight(element, sendHeight)}
+  role="dialog"
+  aria-labelledby="title"
+  aria-busy={busy}
+>
   {#if busy}
     <!-- Over the frame's top edge: the content doesn't move. -->
     <div class="linear-progress busy" role="progressbar" aria-label={t("loading")}></div>

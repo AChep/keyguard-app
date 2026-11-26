@@ -12,7 +12,8 @@
 //
 // A page its content script keeps hidden while it loads, as the inline menu
 // until it has its height, can't see that on other browsers: its gate waits
-// for the background's word that the frame shows, see [ClickGate.shown].
+// for the background's word that the frame shows, see [ClickGate.shown]. The
+// card beside the menu hides and shows again: its gate waits each time.
 
 /** How long the page must be visible before a click counts. */
 export const MIN_VISIBLE_MS = 400;
@@ -40,6 +41,15 @@ export class ClickGate {
   /** The content script shows the frame now, which it hid while the page loaded. */
   shown(): void {
     this.embedderShows = true;
+    this.update();
+  }
+
+  /**
+   * The content script hid the frame again, as the card beside the inline
+   * menu: once it shows again, see [shown], the wait starts over.
+   */
+  hidden(): void {
+    this.embedderShows = false;
     this.update();
   }
 

@@ -16,8 +16,11 @@
 //   IntersectionObserver v2 those of the frame's parents of another origin), a click in the
 //   popup, or the keyboard shortcut. Nothing fills on page load, but the
 //   password step of a sign-in one of those started, see
-//   [PageController.passwordStep]. Save and Never of the save bar take the
-//   same checks.
+//   [PageController.passwordStep]. Save and Never of the save bar, and the
+//   copies of the card beside the menu, take the same checks.
+// - The card's copies go to the clipboard from here ([PageDeps.copyText]):
+//   neither the card's page nor the content script gets the value. A linked
+//   URI, which the card shows, goes the same way, after the same checks.
 // - What the background remembers of a page, as the login filled last on a
 //   tab, is kept by the page's exact origin.
 // - A request for a page in a private window says so (`private_window`): the
@@ -30,6 +33,7 @@
 import {
   copiesPassword,
   fillValues,
+  matchedFirst,
   privateWindow,
   searchQuery,
   type Capability,
@@ -42,12 +46,15 @@ import {
 import { isCancelled, ProtocolError } from "../protocol/session";
 import type { OptionsStore } from "../options/store";
 import {
+  MENU_DETAILS_PAGE,
+  MENU_DETAILS_PORT,
   MENU_PAGE,
   MENU_PORT,
   SAVE_BAR_PAGE,
   SAVE_BAR_PORT,
   parseContentRequest,
   parseDocumentResult,
+  parseMenuDetailsRequest,
   parseMenuRequest,
   parseSaveBarRequest,
   randomToken,
@@ -58,6 +65,8 @@ import {
   type FillTarget,
   type FrameCheck,
   type GuardedPopup,
+  type MenuDetailsEvent,
+  type MenuDetailsRequest,
   type MenuEvent,
   type MenuItem,
   type MenuPasskey,
@@ -83,6 +92,7 @@ import {
   type TabInfo,
   type TabWatch,
 } from "./frames";
+import { MenuDetailsController, type MenuDetailsLink, type MenuDetailsSession } from "./menuDetails";
 
 /** A token binds an embedded page for this long after the content script asked. */
 export const TOKEN_TTL_MS = 10_000;
@@ -167,6 +177,8 @@ export interface PageDeps {
    * the user's input: call it before anything awaits.
    */
   openPopup(): Promise<void>;
+  /** Writes [text] to the clipboard, for a copy of the card beside the menu, see ./clipboard.ts. */
+  copyText(text: string): Promise<void>;
   /** Whether `tabs.sendMessage` takes a `documentId`: Chromium does, Firefox doesn't. */
   documentIds: boolean;
   now?(): number;
@@ -196,22 +208,45 @@ interface Probe {
   report(frame: FrameRef, report: ProbeReport): boolean;
 }
 
-interface IssuedToken {
-  kind: "menu" | "save_bar";
+/** What an issued token binds, by its kind: a menu and its card share their [MenuDetailsLink]. */
+type TokenKind =
+  { kind: "save_bar" } | { kind: "menu"; link: MenuDetailsLink } | { kind: "menu_details"; link: MenuDetailsLink };
+
+/**
+ * The child pages of an embedded page, as the card of the inline menu: their
+ * tokens are issued with the parent's, and they close with it, see
+ * [PageController.end]. The parent's token and session share it with the
+ * children's.
+ */
+export interface ChildPages {
+  /** The children's tokens, until their pages bind: they can't once the parent's token or session goes. */
+  readonly tokens: Set<string>;
+  /** The children's sessions, once bound. */
+  readonly sessions: Set<PageSession>;
+}
+
+type IssuedToken = TokenKind & TokenFields & { issuedAt: number };
+
+/** An [IssuedToken] of [kind]. */
+type TokenOf<K extends IssuedToken["kind"]> = Extract<IssuedToken, { kind: K }>;
+
+interface TokenFields {
   frame: FrameRef;
   role: FieldRole | null;
   /** The field has the `webauthn` autocomplete token. */
   webauthn?: boolean;
   /** A `menu_focus` came before the menu's page bound. */
   focus?: boolean;
-  /** A `menu_shown` came before the menu's page bound. */
+  /** The menu's `popup_shown` came before its page bound. */
   shown?: boolean;
   /** The menu's first matches, asked for as the token was issued; see [PageController.prefetchMenu]. */
   prefetch?: MenuPrefetch;
-  issuedAt: number;
+  /** The pages that the page of this token owns. */
+  children?: ChildPages;
+  /** For the token of a child page: the [ChildPages] of its parent. */
+  parent?: ChildPages;
 }
 
-/** A promise that never rejects, and its value once it resolved. */
 /**
  * How long the inline menu waits for the passkeys of a page's conditional
  * request, from when it asks. The app answers at once unless it fetches a
@@ -238,43 +273,67 @@ interface MenuPrefetch {
   sessionId: number | null;
 }
 
-interface MenuSession {
-  kind: "menu";
+/** What every embedded page's session has, see [PageController.end]. */
+export interface EmbeddedSession {
   port: PagePort;
+  /** An action of the page runs, see [PageController.act]. */
+  busy: boolean;
+  /** Aborts when the page closes: its requests in flight get a `cancel`. */
+  abort: AbortController;
+  /** The pages it owns, from its token: they close with it. */
+  children?: ChildPages;
+  /** For a child page: the [ChildPages] of its parent, from its token. */
+  parent?: ChildPages;
+}
+
+/** An inline menu, from its bind until it closes. */
+export interface MenuSession extends EmbeddedSession {
+  kind: "menu";
   frame: FrameRef;
   role: FieldRole;
   webauthn: boolean;
   /** The items the menu shows, by handle. */
   items: Map<string, SuggestItem>;
+  /** The view the menu shows. */
+  shown: MenuView;
+  /** The card beside it, see ./menuDetails.ts. */
+  details: MenuDetailsLink;
   /** The passkeys the menu shows, by handle. */
   passkeys: Map<string, MenuPasskey>;
-  busy: boolean;
   /** Counts the refreshes of the menu: only the latest one shows its result. */
   refreshes: number;
-  /** Aborts when the menu closes: its requests in flight get a `cancel`. */
-  abort: AbortController;
 }
 
-interface SaveBarSession {
+interface SaveBarSession extends EmbeddedSession {
   kind: "save_bar";
-  port: PagePort;
   frame: FrameRef;
-  busy: boolean;
-  /** Aborts when the bar closes, as for [MenuSession.abort]. */
-  abort: AbortController;
 }
 
 /** The session of an embedded page, from its bind until it closes. */
-type PageSession = MenuSession | SaveBarSession;
+export type PageSession = MenuSession | SaveBarSession | MenuDetailsSession;
+
+type PageRequest = MenuRequest | MenuDetailsRequest | SaveBarRequest;
 
 /** What [PageController.connect] does for one kind of embedded page. */
-interface EmbeddedPage<S extends PageSession, R extends MenuRequest | SaveBarRequest> {
+interface EmbeddedPage<S extends PageSession, R extends PageRequest> extends PageHooks<S> {
   /** The page's path, see isOwnPage. */
   path: string;
   parse(message: unknown): R | null;
   /** The session of a page bound by [issued], or `null` when it has nothing to show. */
-  bind(port: PagePort, issued: IssuedToken): S | null;
+  bind(port: PagePort, issued: TokenOf<S["kind"]>): S | null;
   handle(session: S, request: R): Promise<void>;
+}
+
+/** What one kind of embedded page does as a page of the kind closes or acts. */
+interface PageHooks<S extends PageSession> {
+  /** Forgets [session], which ends, see [PageController.end]. */
+  ended(session: S): void;
+  /** Has the content script close the page's frame, for an end that notifies. */
+  close?(session: S): void;
+  /** Runs before each action of the page, see [PageController.act]. */
+  beforeAction?(session: S): void;
+  /** Runs after each action of the page that it stays open for. */
+  afterAction?(session: S): void;
 }
 
 interface PendingSave {
@@ -317,6 +376,11 @@ interface Listed {
   search: ReadonlyMap<string, ListedItem>;
 }
 
+function newChildPages(): ChildPages {
+  return { tokens: new Set(), sessions: new Set() };
+}
+
+/** Of a login that a fill remembers, what the menu shows. */
 function toMenuItem(item: MenuItem): MenuItem {
   return {
     handle: item.handle,
@@ -325,6 +389,7 @@ function toMenuItem(item: MenuItem): MenuItem {
     account: item.account,
     has_totp: item.has_totp,
     reprompt: item.reprompt,
+    matched: item.matched,
   };
 }
 
@@ -380,6 +445,8 @@ export class PageController {
   private offers = 0;
   private readonly now: () => number;
   private readonly randomToken: () => string;
+  /** The cards beside the menus. */
+  private readonly details: MenuDetailsController;
 
   /** The popup's calls about a tab's page, see ./api.ts. */
   readonly calls: Pick<CallHandlers, PageCallMethod> = {
@@ -393,6 +460,23 @@ export class PageController {
     parse: parseMenuRequest,
     bind: (port, issued) => this.bindMenu(port, issued),
     handle: (menu, request) => this.onMenuRequest(menu, request),
+    ended: (menu) => {
+      this.menus.delete(menu);
+      this.details.menuEnded(menu);
+    },
+    close: (menu) => void this.notify(menu.frame, { kind: "menu_close" }),
+    // The card would hide what the action brings up, as the app's prompt.
+    beforeAction: (menu) => this.details.hideDetails(menu),
+    // The card of the row the menu still selects shows again.
+    afterAction: (menu) => this.details.actionEnded(menu),
+  };
+
+  private readonly detailsPage: EmbeddedPage<MenuDetailsSession, MenuDetailsRequest> = {
+    path: MENU_DETAILS_PAGE,
+    parse: parseMenuDetailsRequest,
+    bind: (port, issued) => this.details.bindDetails(port, issued.link),
+    handle: (card, request) => this.details.onDetailsRequest(card, request),
+    ended: (card) => this.details.detailsEnded(card),
   };
 
   private readonly saveBarPage: EmbeddedPage<SaveBarSession, SaveBarRequest> = {
@@ -400,11 +484,25 @@ export class PageController {
     parse: parseSaveBarRequest,
     bind: (port, issued) => this.bindSaveBar(port, issued),
     handle: (bar, request) => this.onSaveBarRequest(bar, request),
+    ended: (bar) => this.saveBars.delete(bar),
+    close: (bar) => void this.notify(bar.frame, { kind: "save_bar_close" }),
   };
 
   constructor(private readonly deps: PageDeps) {
     this.now = deps.now ?? Date.now;
     this.randomToken = deps.randomToken ?? randomToken;
+    this.details = new MenuDetailsController({
+      post: (port, event) => this.post(port, event),
+      notify: (frame, command) => this.notify(frame, command),
+      hasFocus: (frame) => this.hasFocus(frame),
+      focusPopup: (frame, popup) => this.focusPopup(frame, popup),
+      guardMenu: (menu, popup) => this.guardMenu(menu, popup),
+      act: (card, action) => this.act(card, action),
+      closeMenu: (menu) => this.end(menu, { notify: true }),
+      pageOf: (frame) => this.pageOf(frame),
+      app: deps.app,
+      copyText: (text) => deps.copyText(text),
+    });
   }
 
   /**
@@ -462,15 +560,20 @@ export class PageController {
     switch (request.kind) {
       case "menu_open": {
         if (!(await this.deps.options.options()).inlineMenu) return { error: "not_allowed" };
-        // One menu per frame: a new one replaces the old.
+        // One menu per frame: a new one replaces the old, with its child pages.
         for (const menu of this.menus) if (sameFrame(menu.frame, frame)) this.end(menu, { notify: false });
-        for (const [token, issued] of this.tokens)
-          if (issued.kind === "menu" && sameFrame(issued.frame, frame)) this.drop(token);
+        for (const [key, issued] of this.tokens)
+          if (issued.kind === "menu" && sameFrame(issued.frame, frame)) this.drop(key);
         // For the page the user is on, see [currentUrl].
         const page = { ...frame, url: currentUrl(frame, request.url) ?? frame.url };
         const prefetch = this.prefetchMenu(page, request.webauthn);
+        // The card beside the menu is its child page.
+        const link = this.details.newLink();
+        const children = newChildPages();
+        const { role, webauthn } = request;
         return {
-          token: this.issue({ kind: "menu", frame: page, role: request.role, webauthn: request.webauthn, prefetch }),
+          token: this.issue({ kind: "menu", frame: page, role, webauthn, prefetch, link, children }),
+          details: this.issue({ kind: "menu_details", frame: page, role: null, link, parent: children }),
         };
       }
       case "save_candidate":
@@ -496,11 +599,19 @@ export class PageController {
         for (const issued of this.tokens.values())
           if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.focus = true;
         return null;
-      case "menu_shown":
-        // As for menu_focus. The menu's click gate starts now: the frame was hidden till then.
+      case "popup_shown":
+        // As for menu_focus: the popup of the sender's document.
+        if (request.popup === "menu_details") {
+          for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.details.detailsShown(menu, request);
+          return null;
+        }
+        // The menu's click gate starts now: the frame was hidden till then.
         for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.post(menu.port, { kind: "shown" });
         for (const issued of this.tokens.values())
           if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.shown = true;
+        return null;
+      case "menu_blur":
+        for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.details.dropSelection(menu);
         return null;
       case "focus_report":
       case "top_report":
@@ -513,12 +624,13 @@ export class PageController {
     }
   }
 
-  private issue(token: Omit<IssuedToken, "issuedAt">): string {
+  private issue(token: TokenKind & TokenFields): string {
     const now = this.now();
     for (const [key, issued] of this.tokens) if (!this.live(issued, now)) this.drop(key);
     const key = this.randomToken();
     const issued: IssuedToken = { ...token, issuedAt: now };
     this.tokens.set(key, issued);
+    issued.parent?.tokens.add(key);
     if (issued.prefetch !== undefined) {
       // A token nobody takes keeps neither requests nor matches past its time.
       setTimeout(() => {
@@ -529,13 +641,16 @@ export class PageController {
   }
 
   /** Takes a token once: for its kind and tab, and before it expires. */
-  private take(key: string, kind: IssuedToken["kind"], tabId: number | undefined): IssuedToken | null {
+  private take<K extends IssuedToken["kind"]>(key: string, kind: K, tabId: number | undefined): TokenOf<K> | null {
     const issued = this.tokens.get(key);
     if (issued === undefined || issued.kind !== kind || issued.frame.tabId !== tabId) return null;
+    if (!this.live(issued)) {
+      this.drop(key);
+      return null;
+    }
     this.tokens.delete(key);
-    if (this.live(issued)) return issued;
-    this.dropPrefetch(issued);
-    return null;
+    issued.parent?.tokens.delete(key);
+    return issued as TokenOf<K>;
   }
 
   /** Whether [issued] has not expired yet. */
@@ -543,11 +658,17 @@ export class PageController {
     return now - issued.issuedAt <= TOKEN_TTL_MS;
   }
 
-  /** Forgets a token: its menu's early requests stop. */
+  /**
+   * Forgets a token: its menu's early requests stop, and its child pages
+   * close, see [closeChildren]: its page never binds now.
+   */
   private drop(key: string) {
     const issued = this.tokens.get(key);
+    if (issued === undefined) return;
     this.tokens.delete(key);
-    if (issued !== undefined) this.dropPrefetch(issued);
+    issued.parent?.tokens.delete(key);
+    this.dropPrefetch(issued);
+    if (issued.children !== undefined) this.closeChildren(issued.children);
   }
 
   /** Cancels the early requests of a token's menu, which then asks again once bound. */
@@ -563,12 +684,13 @@ export class PageController {
   /** A `runtime.onConnect` port of an embedded page. */
   connect(port: PagePort): void {
     if (port.name === MENU_PORT) this.serve(port, "menu", this.menuPage);
+    else if (port.name === MENU_DETAILS_PORT) this.serve(port, "menu_details", this.detailsPage);
     else if (port.name === SAVE_BAR_PORT) this.serve(port, "save_bar", this.saveBarPage);
     else port.disconnect();
   }
 
   /** Binds [port] with a token of [kind], then hands the page's requests to its session. */
-  private serve<S extends PageSession, R extends MenuRequest | SaveBarRequest>(
+  private serve<S extends PageSession, R extends PageRequest>(
     port: PagePort,
     kind: S["kind"],
     page: EmbeddedPage<S, R>,
@@ -587,7 +709,7 @@ export class PageController {
         void page.handle(session, request);
         return;
       }
-      const bind: MenuRequest | SaveBarRequest = request;
+      const bind: PageRequest = request;
       if (bind.kind !== "bind") return;
       const issued = this.take(bind.token, kind, port.sender?.tab?.id);
       if (issued === null) {
@@ -596,6 +718,11 @@ export class PageController {
         return;
       }
       session = page.bind(port, issued);
+      if (session === null) return;
+      // It owns the child pages of its token, or joins those of its parent.
+      session.children = issued.children;
+      session.parent = issued.parent;
+      issued.parent?.sessions.add(session);
     });
     port.onDisconnect.addListener(() => {
       if (session !== null) this.end(session, { notify: false });
@@ -631,7 +758,7 @@ export class PageController {
     for (const bar of this.saveBars) if (bar.frame.tabId === tabId) this.end(bar, { notify: false });
   }
 
-  private post(port: PagePort, event: MenuEvent | SaveBarEvent) {
+  private post(port: PagePort, event: MenuEvent | MenuDetailsEvent | SaveBarEvent) {
     try {
       port.postMessage(event);
     } catch {
@@ -639,18 +766,43 @@ export class PageController {
     }
   }
 
+  /** The [PageHooks] of [kind]. */
+  private hooks(kind: PageSession["kind"]): PageHooks<PageSession> {
+    switch (kind) {
+      case "menu":
+        return this.menuPage;
+      case "menu_details":
+        return this.detailsPage;
+      case "save_bar":
+        return this.saveBarPage;
+    }
+  }
+
   /**
-   * Ends a page's session: nothing waits for its answers any more, and its
-   * requests in flight get a `cancel`. With [notify], its content script
-   * closes the page's frame.
+   * Ends a page's session, and those of its child pages first: nothing waits
+   * for their answers any more, and their requests in flight get a `cancel`.
+   * With [notify], the content script closes the page's frame, and its
+   * children's with it.
    */
   private end(session: PageSession, { notify }: { notify: boolean }) {
-    if (session.kind === "menu") this.menus.delete(session);
-    else this.saveBars.delete(session);
+    const page = this.hooks(session.kind);
+    page.ended(session);
+    if (session.children !== undefined) this.closeChildren(session.children);
+    session.parent?.sessions.delete(session);
     session.abort.abort();
-    if (notify) void this.notify(session.frame, { kind: session.kind === "menu" ? "menu_close" : "save_bar_close" });
+    if (notify) page.close?.(session);
+    this.disconnect(session.port);
+  }
+
+  /** The parent of [children] closed or was replaced: their tokens can't bind any more, and their pages close. */
+  private closeChildren(children: ChildPages) {
+    for (const key of children.tokens) this.drop(key);
+    for (const child of children.sessions) this.end(child, { notify: false });
+  }
+
+  private disconnect(port: PagePort) {
     try {
-      session.port.disconnect();
+      port.disconnect();
     } catch {
       // Already closed.
     }
@@ -660,7 +812,7 @@ export class PageController {
 
   // region Inline menu
 
-  private bindMenu(port: PagePort, issued: IssuedToken): MenuSession {
+  private bindMenu(port: PagePort, issued: TokenOf<"menu">): MenuSession {
     const menu: MenuSession = {
       kind: "menu",
       port,
@@ -668,11 +820,14 @@ export class PageController {
       role: issued.role ?? "username",
       webauthn: issued.webauthn === true,
       items: new Map(),
+      shown: { kind: "loading" },
+      details: issued.link,
       passkeys: new Map(),
       busy: false,
       refreshes: 0,
       abort: new AbortController(),
     };
+    this.details.menuBound(menu);
     this.menus.add(menu);
     this.post(port, { kind: "bound" });
     if (issued.focus === true) this.post(port, { kind: "focus" });
@@ -686,8 +841,12 @@ export class PageController {
     return menu;
   }
 
+  /** Shows [view] in the menu, then in the card beside it, see [MenuDetailsController.viewShown]. */
   private showMenu(menu: MenuSession, view: MenuView) {
-    if (!menu.abort.signal.aborted) this.post(menu.port, { kind: "view", view });
+    if (menu.abort.signal.aborted) return;
+    menu.shown = view;
+    this.post(menu.port, { kind: "view", view });
+    this.details.viewShown(menu, view);
   }
 
   /**
@@ -747,14 +906,15 @@ export class PageController {
     const { items, last } = isSignInRole(menu.role)
       ? this.lastFirst(menu.frame.tabId, menu.frame.url, matches)
       : { items: matches, last: null };
-    menu.items = new Map(items.map((item) => [item.handle, item]));
+    const ordered = matchedFirst(items);
+    menu.items = new Map(ordered.map((item) => [item.handle, item]));
     menu.passkeys = new Map(keys.map((passkey) => [passkey.handle, passkey]));
     const remembered = menu.role === "otp" ? this.rememberedTotp(menu.frame) : null;
     this.showMenu(menu, {
       kind: "items",
       role: menu.role,
       host,
-      items: items.map(toMenuItem),
+      items: ordered.map(toMenuItem),
       last,
       truncated: response.truncated,
       totp: remembered === null ? null : toMenuItem(remembered),
@@ -842,7 +1002,8 @@ export class PageController {
         const passkey = menu.passkeys.get(request.handle);
         if (passkey === undefined) return this.post(menu.port, { kind: "error", error: "invalid_request" });
         return this.act(menu, async (signal) => {
-          await this.guard(frame);
+          // As for a fill: a single-page app that moved to another URL gets its matches anew instead.
+          if (!(await this.guardMenu(menu))) return;
           // The credential goes to the page through its passkey port, not this
           // menu: the page's request, not the menu, waits for it. Closing the
           // menu cancels the pick.
@@ -872,6 +1033,18 @@ export class PageController {
         // The content script keeps the menu's frame within its bounds.
         await this.notify(frame, { kind: "menu_resize", height: request.height });
         return;
+      case "select":
+        this.details.selectDetails(menu, request);
+        return;
+      case "deselect":
+        this.details.deselectDetails(menu);
+        return;
+      case "details_focus":
+        await this.details.focusDetails(menu, request.handle);
+        return;
+      case "blurred":
+        await this.details.blurred(menu);
+        return;
     }
   }
 
@@ -882,6 +1055,8 @@ export class PageController {
   private async act(session: PageSession, action: (signal: AbortSignal) => Promise<void>) {
     if (session.busy) return;
     session.busy = true;
+    const page = this.hooks(session.kind);
+    page.beforeAction?.(session);
     this.post(session.port, { kind: "busy", busy: true });
     const signal = session.abort.signal;
     try {
@@ -891,7 +1066,10 @@ export class PageController {
       if (!signal.aborted && !isCancelled(error)) this.post(session.port, { kind: "error", error: callErrorOf(error) });
     } finally {
       session.busy = false;
-      if (!signal.aborted) this.post(session.port, { kind: "busy", busy: false });
+      if (!signal.aborted) {
+        this.post(session.port, { kind: "busy", busy: false });
+        page.afterAction?.(session);
+      }
     }
   }
 
@@ -946,16 +1124,41 @@ export class PageController {
   }
 
   /**
-   * The checks before a fill from the menu. A single-page app may have moved
-   * to another URL since the menu opened, as one a blocked URI covers: the
-   * menu then shows the matches for it, and nothing fills. False then.
+   * The checks before a fill from the menu, or a copy from the card beside
+   * it, [popup]. A single-page app may have moved to another URL since the
+   * menu opened, as one a blocked URI covers: the menu forgets the matches of
+   * the old URL at once, and its selection, so the card hides; then it shows
+   * the matches for the new one, and Space shows a card again. Nothing fills
+   * or copies till they come, nor after a refresh that fails. False then.
    */
-  private async guardMenu(menu: MenuSession): Promise<boolean> {
-    const url = await this.guard(menu.frame);
+  private async guardMenu(menu: MenuSession, popup: GuardedPopup = "menu"): Promise<boolean> {
+    const url = await this.guard(menu.frame, popup);
     if (url === menu.frame.url) return true;
     menu.frame = { ...menu.frame, url };
+    // The passkeys too: the old URL's `suggest` listed them, past its blocked URIs.
+    menu.items.clear();
+    menu.passkeys.clear();
+    this.details.dropSelection(menu);
     void this.refreshMenu(menu);
     return false;
+  }
+
+  /** Has the content script of [frame] move focus into the frame of [popup], the menu or its card; whether it did. */
+  private async focusPopup(frame: FrameRef, popup: "menu" | "menu_details"): Promise<boolean> {
+    try {
+      return parseDocumentResult(await this.send(frame, { kind: "focus_popup", popup }), "obscured").ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /** Whether the document of [frame] still has focus, as its content script tells; false when it's gone. */
+  private async hasFocus(frame: FrameRef): Promise<boolean> {
+    try {
+      return parseDocumentResult(await this.send(frame, { kind: "has_focus" }), "obscured").ok;
+    } catch {
+      return false;
+    }
   }
 
   // endregion
@@ -1165,7 +1368,9 @@ export class PageController {
 
   /**
    * The match for [url], a page in a private window or not, to fill: on a
-   * sign-in step of tab [tabId], the login used last, see [lastFirst].
+   * sign-in step of tab [tabId], the login used last, see [lastFirst], then
+   * one with a password, then the first. Matched logins first: a suggested
+   * one only when none matches, and the app prompts for it.
    */
   private async bestItem(
     url: string,
@@ -1176,12 +1381,9 @@ export class PageController {
     const response = await this.deps.app.request("suggest", { url, ...privateWindow(isPrivate) }, signal);
     if (response.blocked) return null;
     const last = tabId === undefined ? null : this.lastFirst(tabId, url, response.items).last;
-    return (
-      response.items.find((item) => item.handle === last) ??
-      response.items.find((item) => item.has_password) ??
-      response.items[0] ??
-      null
-    );
+    const matched = response.items.filter((item) => item.matched);
+    const items = matched.length > 0 ? matched : response.items;
+    return items.find((item) => item.handle === last) ?? items.find((item) => item.has_password) ?? items[0] ?? null;
   }
 
   /** Asks every frame of a tab which one has focus. */
@@ -1410,7 +1612,10 @@ export class PageController {
 
   // region The popup
 
-  /** The popup's matches for a tab's page, the login used last first; see [lastFirst]. */
+  /**
+   * The popup's matches for a tab's page: the matched logins, then the
+   * suggested ones, each with its login used last first; see [lastFirst].
+   */
   private async suggest(tabId: number): Promise<PageSuggestions> {
     const info = await this.deps.tab(tabId);
     const url = webUrl(info.url);
@@ -1427,7 +1632,7 @@ export class PageController {
         origin: url.origin,
         host: url.hostname,
         truncated: response.truncated,
-        items,
+        items: matchedFirst(items),
         last,
         icon: await iconRequest,
       };

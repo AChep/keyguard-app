@@ -46,9 +46,11 @@ export type PageSuggestions =
   | { kind: "blocked"; host: string }
   /**
    * `origin`: of the page the matches are for, which the popup's fill and
-   * copies name. `last`: the handle of the login filled last on the tab,
-   * listed first, for the next step of a sign-in. `icon`: the URL of the icon
-   * of the page's site, for these logins, see ./siteIcon.ts; `null` for none.
+   * copies name. `items`: the matched logins, then the suggested ones, see
+   * [matchedFirst]. `last`: the handle of the login filled last on the tab,
+   * listed first of its section, for the next step of a sign-in. `icon`: the
+   * URL of the icon of the page's site, for these logins, see ./siteIcon.ts;
+   * `null` for none.
    */
   | {
       kind: "items";

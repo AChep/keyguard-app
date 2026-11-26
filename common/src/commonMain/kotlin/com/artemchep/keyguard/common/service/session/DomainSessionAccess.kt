@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
 import com.artemchep.keyguard.common.usecase.GetCollections
+import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
@@ -169,6 +170,8 @@ class BrowserExtensionSessionDependencies(
     // Passkeys.
     val getCanWrite: GetCanWrite,
     val getCollections: GetCollections,
+    /** Names the folder of each item that `suggest` lists. */
+    val getFolders: GetFolders,
     val addCredentialCipher: AddCredentialCipher,
     val addCipherUsedPasskeyHistory: AddCipherUsedPasskeyHistory,
     /** Holds the vault's record of the pairings, which confirms the one outside of it. */

@@ -235,6 +235,48 @@ describe("ProtocolSession", () => {
     await expect(protocol.request("suggest", { url: "https://example.com/" })).rejects.toBeInstanceOf(InvalidResponse);
   });
 
+  it("reads matched and the details of an item as optional fields", async () => {
+    const item = {
+      handle: "h",
+      name: "Example",
+      account: "Work",
+      has_password: true,
+      has_totp: false,
+      reprompt: false,
+    };
+    const DETAILS = {
+      matched: false,
+      uris: ["https://example.com/login", "androidapp://com.example"],
+      uri_count: 7,
+      folder: "Work",
+      revision_date: "2026-11-25T10:00:00Z",
+    };
+    let fields: Record<string, unknown> = DETAILS;
+    const { protocol } = connect({
+      handler: (request) =>
+        request.type === "suggest"
+          ? { blocked: false, save_blocked: false, truncated: false, items: [{ ...item, ...fields }] }
+          : undefined,
+    });
+    const suggest = () => protocol.request("suggest", { url: "https://example.com/" });
+    await expect(suggest()).resolves.toMatchObject({ items: [{ ...item, ...DETAILS }] });
+    // An older app sends none of them: its items match.
+    fields = {};
+    await expect(suggest()).resolves.toMatchObject({ items: [{ ...item, matched: true }] });
+    for (const invalid of [
+      { matched: "no" },
+      { uris: "https://example.com/" },
+      { uris: ["https://example.com/", 1] },
+      { uri_count: 7.5 },
+      { uri_count: "7" },
+      { folder: 1 },
+      { revision_date: 0 },
+    ]) {
+      fields = invalid;
+      await expect(suggest(), JSON.stringify(invalid)).rejects.toBeInstanceOf(InvalidResponse);
+    }
+  });
+
   it("reassembles fragmented responses and delivers events", async () => {
     const big = "x".repeat(5000);
     const { app, protocol, events } = connect({
@@ -264,7 +306,12 @@ describe("ProtocolSession", () => {
       const answer = await protocol.request(type as RequestType, fields as never);
       const id = app.requests.at(-1)!.id;
       expect(app.requests.at(-1)).toEqual({ ...request, id });
-      expect(answer).toEqual({ ...response, id });
+      // An item of `suggest` without `matched`, from an older app, matches.
+      const items =
+        type === "suggest"
+          ? { items: (response.items as JsonObject[]).map((item) => ({ ...item, matched: item.matched ?? true })) }
+          : {};
+      expect(answer).toEqual({ ...response, id, ...items });
     }
     for (const { error } of corpus.errors) {
       reply = { error };

@@ -20,6 +20,19 @@ function message(key: string, args: readonly Arg[]): string {
   return (browser.i18n as unknown as UntypedI18n).getMessage(key, args.map(format));
 }
 
+/**
+ * The direction of the extension's messages in the browser's language, as
+ * [getMessage] tells: Arabic and Hebrew read right to left.
+ */
+export function messageDirection(getMessage: (name: string) => string): "ltr" | "rtl" {
+  return getMessage("@@bidi_dir") === "rtl" ? "rtl" : "ltr";
+}
+
+/** The direction of the UI's language, see [messageDirection]. */
+export function uiDirection(): "ltr" | "rtl" {
+  return messageDirection((name) => message(name, []));
+}
+
 /** The message `key`, with `args` for its `%1$s`-style placeholders. */
 export function t(key: I18nKey, ...args: Arg[]): string {
   return message(key, args) || key;

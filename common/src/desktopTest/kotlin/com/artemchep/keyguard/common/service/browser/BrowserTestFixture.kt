@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.model.AddUriCipherRequest
 import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DEquivalentDomains
+import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
@@ -63,6 +64,7 @@ import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
+import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetScreenState
@@ -212,6 +214,9 @@ internal class BrowserFixture(
     /** The collections of the accounts. */
     val collections = MutableStateFlow<List<DCollection>>(emptyList())
 
+    /** The folders of the accounts. */
+    val folders = MutableStateFlow<List<DFolder>>(emptyList())
+
     /** Runs whenever the app reads the prompt timeout, as it does right before it shows a prompt. */
     @Volatile
     var beforePrompt: suspend () -> Unit = {}
@@ -354,6 +359,9 @@ internal class BrowserFixture(
         },
         getCollections = object : GetCollections {
             override fun invoke(): Flow<List<DCollection>> = collections
+        },
+        getFolders = object : GetFolders {
+            override fun invoke(): Flow<List<DFolder>> = folders
         },
         addCredentialCipher = object : AddCredentialCipher {
             override fun invoke(request: AddCredentialCipherRequest): IO<AddCredentialCipher.Result> = ioEffect {

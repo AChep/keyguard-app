@@ -4,8 +4,8 @@
 // follows its field, and the keyboard path into the menu.
 // happy-dom has no layout, top layer or `:modal`: the tests give the boxes and
 // say which dialogs are modal. Animation frames run when a test says so.
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { ContentUi } from "../src/lib/content/ui";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ContentUi } from "../src/lib/content/ui";
 import { BIND_MESSAGE } from "../src/lib/page/messages";
 import {
   frameColors,
@@ -14,88 +14,10 @@ import {
   type StoredTheme,
   type ThemeTokens,
 } from "../src/lib/ui/storedTheme";
+import { EXTENSION_ORIGINS, frames, runFrame, setup, useContentUiHooks, viewport } from "./support/contentUi";
 import { byId, render } from "./support/dom";
 
-// The menu and the save bar are iframes; at about:blank here.
-beforeAll(() => {
-  (
-    window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }
-  ).happyDOM.settings.enableIframePageLoading = true;
-});
-
-const frames = new Map<number, FrameRequestCallback>();
-let frameIds = 0;
-
-/** Runs the animation frames requested so far. */
-function runFrame() {
-  const callbacks = Array.from(frames.values());
-  frames.clear();
-  for (const callback of callbacks) callback(performance.now());
-}
-
-beforeEach(() => {
-  // Fields are shown, unless a test gives them other boxes.
-  vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(() => new DOMRect(10, 10, 200, 32));
-  vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
-    frames.set(++frameIds, callback);
-    return frameIds;
-  });
-  vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => void frames.delete(id));
-});
-
-const uis: ContentUi[] = [];
-afterEach(() => {
-  for (const ui of uis.splice(0)) ui.destroy();
-  vi.restoreAllMocks();
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-  frames.clear();
-  document.body.innerHTML = "";
-  delete (window as { innerWidth?: number }).innerWidth;
-  delete (window as { innerHeight?: number }).innerHeight;
-});
-
-/** The origins the extension's pages may run as: Chromium's dynamic one, and the extension's own. */
-const EXTENSION_ORIGINS = [
-  "chrome-extension://3f1c9e0a-dynamic",
-  "chrome-extension://abcdefghijklmnopabcdefghijklmnop",
-];
-
-function setup(options: { arrowDownPressed?: (ui: ContentUi, field: HTMLInputElement) => boolean } = {}) {
-  let dismissed = 0;
-  let focused = 0;
-  let shown = 0;
-  // The closed shadow root, which only the content script holds.
-  const attach = vi.spyOn(Element.prototype, "attachShadow");
-  const ui: ContentUi = new ContentUi(
-    document,
-    {
-      iconClicked: () => undefined,
-      arrowDownPressed: (field) => options.arrowDownPressed?.(ui, field) ?? false,
-      menuFocused: () => focused++,
-      menuDismissed: () => {
-        dismissed++;
-        ui.closeMenu();
-      },
-      menuShown: () => shown++,
-    },
-    () => "about:blank",
-    // The about:blank frames stand in for the extension's pages.
-    EXTENSION_ORIGINS,
-    "Keyguard",
-  );
-  const shadow = attach.mock.results[0]!.value as ShadowRoot;
-  attach.mockRestore();
-  uis.push(ui);
-  return {
-    ui,
-    shadow,
-    icon: shadow.querySelector<HTMLElement>(".icon")!,
-    dismissed: () => dismissed,
-    focused: () => focused,
-    shown: () => shown,
-  };
-}
+useContentUiHooks();
 
 /** Opens [dialog] with `showModal()`; it then matches `:modal`, as in a browser. */
 function showModal(dialog: HTMLDialogElement) {
@@ -167,6 +89,33 @@ describe("placement", () => {
     expect(ui.host.parentNode).toBe(byId("shadowed", shadow));
   });
 
+  it("tells focus leaving its frames in a page's shadow root, open or closed, which the document hears from the page's element", () => {
+    for (const mode of ["open", "closed"] as const) {
+      render(`<x-login id="login"></x-login>`);
+      const page = byId<HTMLElement>("login").attachShadow({ mode });
+      page.innerHTML = `<dialog id="dialog"><input id="field"></dialog>`;
+      const field = byId("field", page);
+      const { ui, shadow } = setup();
+      showModal(byId<HTMLDialogElement>("dialog", page));
+      ui.openMenu(field, "token", "inline-menu.html", { token: "d".repeat(32), page: "menu-details.html" });
+      expect(ui.host.parentNode).toBe(byId("dialog", page));
+      const heard: FocusEvent[] = [];
+      const listening = new AbortController();
+      document.addEventListener("focusout", (event) => heard.push(event), { capture: true, signal: listening.signal });
+      // From the menu's frame and the card's, then from the field.
+      const frames = Array.from(shadow.querySelectorAll("iframe"));
+      expect(frames).toHaveLength(2);
+      for (const target of [...frames, field]) {
+        target.dispatchEvent(new FocusEvent("focusout", { bubbles: true, composed: true }));
+      }
+      listening.abort();
+      // A browser retargets each to the page's element, which happy-dom doesn't.
+      expect(heard).toHaveLength(3);
+      expect(heard.map((event) => ui.leftUi(event))).toEqual([true, true, false]);
+      ui.destroy();
+    }
+  });
+
   it("keeps the host at the root for a dialog that isn't modal", () => {
     render(`<dialog id="dialog"><input id="field"></dialog>`);
     const { ui } = setup();
@@ -233,11 +182,6 @@ describe("placement", () => {
     expect(ui.host.parentNode).toBe(byId("dialog"));
   });
 });
-
-function viewport(width: number, height: number) {
-  Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
-  Object.defineProperty(window, "innerHeight", { configurable: true, value: height });
-}
 
 describe("menu size", () => {
   it("fits the menu in a small frame, on the side of the field with more room", () => {

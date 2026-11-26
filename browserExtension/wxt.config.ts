@@ -217,11 +217,12 @@ export default defineConfig({
         description: "__MSG_browser_extension_command_fill_login__",
       },
     },
-    // The inline menu and the save bar, which content scripts embed. Chromium
-    // serves them under a per-session ID, so pages can't probe for them.
+    // The inline menu, the card beside it and the save bar, which content
+    // scripts embed. Chromium serves them under a per-session ID, so pages
+    // can't probe for them.
     web_accessible_resources: [
       {
-        resources: ["inline-menu.html", "save-bar.html"],
+        resources: ["inline-menu.html", "menu-details.html", "save-bar.html"],
         matches: WEB_PAGES,
         ...(browser === "firefox" ? {} : { use_dynamic_url: true }),
       },

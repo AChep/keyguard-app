@@ -566,6 +566,15 @@ a {
   white-space: nowrap;
 }
 
+/*
+ * A header inside a list, over its rows: 12px sides line it up with the rows'
+ * avatars, as the list's own padding is outside it. Half the vertical padding:
+ * the list's padding, gaps and dividers add the rest.
+ */
+.section-header.in-list {
+  padding: 8px 12px 4px;
+}
+
 /* Linear progress: indeterminate, two segments over the track. Still under reduced motion. */
 
 .linear-progress {

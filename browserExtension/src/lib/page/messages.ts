@@ -11,10 +11,14 @@
 //   commands for that document: a document refuses another's. On Firefox,
 //   which has no `documentId`, this keeps a command from the next document of
 //   a frame that navigated within its origin.
-// - Inline menu / save bar ⇄ background: a `runtime.Port` per embedded page,
-//   bound to the frame that embedded it by a one-time token. These pages never
-//   get secrets, only names and usernames.
+// - Inline menu / its details card / save bar ⇄ background: a `runtime.Port`
+//   per embedded page, bound to the frame that embedded it by a one-time token.
+//   These pages never get secrets, only names, usernames and the details the
+//   card shows. The content script gets no details: only the card's place and size.
+//   The card copies a login's fields and URIs: the background writes the clipboard.
 import type { CallError, ExtensionStatus } from "../background/api";
+import type { SearchItem, SuggestItem } from "../protocol/messages";
+import { isCopyAction, popupActions, type CopyAction } from "../ui/popupKeys";
 import { randomBytes, toHex } from "../util/bytes";
 import { isObject } from "../util/json";
 
@@ -68,11 +72,13 @@ export type ContentRequest =
    * the menu's page focuses its first row. Answers `null`.
    */
   | { kind: "menu_focus" }
+  /** The frame of an embedded popup shows now, or hides, see [PopupShown]. Answers `null`. */
+  | ({ kind: "popup_shown" } & PopupShown)
   /**
-   * The menu's frame shows now: it stays hidden until its page tells its
-   * height. The menu's click gate starts. Answers `null`.
+   * Focus left the menu and the card beside it for the page, which keeps the
+   * menu, as for its field: the card hides. Answers `null`.
    */
-  | { kind: "menu_shown" }
+  | { kind: "menu_blur" }
   /** The answer of a frame with focus to a `focus_probe`. Answers `null`. */
   | { kind: "focus_report"; probe: string; role: FieldRole | null }
   /**
@@ -93,13 +99,34 @@ export type ContentRequest =
 /** A [ContentRequest] as sent, with the token of the sender's document. */
 export type ContentMessage = ContentRequest & { doc: string };
 
-export type MenuOpenResult = { token: string } | { error: CallError };
+/**
+ * The side of the menu that the card beside it shows on, on the screen: the
+ * arrow keys toward it move focus into it, and those away from it back.
+ */
+export type DetailsSide = "left" | "right";
+
+/**
+ * What a content script reports of the frame of an embedded popup, with
+ * `popup_shown`: its page's click gate starts, or waits again.
+ * - `menu`: the menu's frame shows now; it stays hidden until its page tells
+ *   its height. It shows once, and never hides while the menu is open.
+ * - `menu_details`: the card beside the menu shows now, or hides. [side]:
+ *   where it shows, while it does, and sent again when it moves to the other
+ *   side. [room]: `false` for a card that fits on neither side of the menu,
+ *   which drops the menu's selection; not for one hidden for a while, as with
+ *   its row scrolled out of the menu.
+ */
+export type PopupShown =
+  { popup: "menu"; shown: true } | { popup: "menu_details"; shown: boolean; side?: DetailsSide; room?: false };
+
+/** `token` binds the menu's page; `details`, the page of the card beside it, see [MenuDetailsRequest]. */
+export type MenuOpenResult = { token: string; details: string } | { error: CallError };
 export interface UiToken {
   token: string;
 }
 
 /** The popups whose actions the content script checks first, see [DocumentCommand] `guard`. */
-export type GuardedPopup = "menu" | "save_bar";
+export type GuardedPopup = "menu" | "menu_details" | "save_bar";
 
 /** Why a frame didn't fill. */
 export type FillRefusal =
@@ -128,12 +155,33 @@ export type DocumentCommand =
   | { kind: "fill_password"; target: FillTarget; password: string }
   /**
    * Checks, before acting on a click in a popup, that the page shows it: the
-   * menu and its field, or the save bar. Answers a [DocumentResult] with the
-   * frame's URL now.
+   * menu and its field, the card beside the menu and the menu's field, or the
+   * save bar. Answers a [DocumentResult] with the frame's URL now.
    */
   | { kind: "guard"; popup: GuardedPopup }
   | { kind: "menu_resize"; height: number }
   | { kind: "menu_close" }
+  /**
+   * Shows the card of the menu's selected login beside it: [top] and [row],
+   * the row's top and height in the menu's frame; [height], the height of the
+   * card's content.
+   */
+  | { kind: "menu_details"; top: number; row: number; height: number }
+  | { kind: "menu_details_hide" }
+  /**
+   * Moves focus between the frames of the menu and of the card beside it,
+   * into [popup]'s: a trusted key in the other asked for it. Into the card
+   * only while it shows. Answers a [DocumentResult]: `ok` once [popup]'s
+   * frame has focus. Its page then focuses a button on the background's
+   * word only.
+   */
+  | { kind: "focus_popup"; popup: "menu" | "menu_details" }
+  /**
+   * Whether the document has focus, once focus settled: also while it's in
+   * the frame of the menu or of the card. Answers a [DocumentResult]: `ok`
+   * when it has; else `obscured`. See [MenuRequest] `blurred`.
+   */
+  | { kind: "has_focus" }
   | { kind: "save_bar_resize"; height: number }
   | { kind: "save_bar_close" };
 
@@ -169,6 +217,10 @@ const DOCUMENT_COMMANDS: { readonly [K in DocumentCommand["kind"]]: "answer" | "
   guard: "answer",
   menu_resize: "notify",
   menu_close: "notify",
+  menu_details: "notify",
+  menu_details_hide: "notify",
+  focus_popup: "answer",
+  has_focus: "answer",
   save_bar_resize: "notify",
   save_bar_close: "notify",
 };
@@ -214,6 +266,7 @@ export type ContentCommand =
 // region Embedded pages
 
 export const MENU_PORT = "inline-menu";
+export const MENU_DETAILS_PORT = "menu-details";
 export const SAVE_BAR_PORT = "save-bar";
 /**
  * Once an embedded page's frame loads, the content script posts BIND_MESSAGE
@@ -226,6 +279,7 @@ export const SAVE_BAR_PORT = "save-bar";
 export const BIND_MESSAGE = "keyguard:bind";
 /** The paths of the embedded pages, as web-accessible resources. */
 export const MENU_PAGE = "/inline-menu.html";
+export const MENU_DETAILS_PAGE = "/menu-details.html";
 export const SAVE_BAR_PAGE = "/save-bar.html";
 
 export interface MenuItem {
@@ -235,6 +289,83 @@ export interface MenuItem {
   account: string;
   has_totp: boolean;
   reprompt: boolean;
+  /** A URI of the item matches the page: else it's suggested, by its name, and fills with a prompt. */
+  matched: boolean;
+}
+
+/** The details of a login that its row doesn't show. */
+export interface ItemDetails {
+  /** Its URIs, in order, at most [MAX_DETAIL_URIS]. */
+  uris: string[];
+  /** How many URIs it has besides [uris]. */
+  more: number;
+  /** The name of its folder. */
+  folder?: string;
+  /** When it was last modified, as an ISO-8601 instant. */
+  revision_date?: string;
+}
+
+/** The URIs of a login that its details list; they count the rest. */
+export const MAX_DETAIL_URIS = 5;
+
+/** The [ItemDetails] of [item], from the app's `suggest`. */
+export function itemDetailsOf(item: Pick<SuggestItem, "uris" | "uri_count" | "folder" | "revision_date">): ItemDetails {
+  const all = item.uris ?? [];
+  const uris = all.slice(0, MAX_DETAIL_URIS);
+  return {
+    uris,
+    more: Math.max(item.uri_count ?? 0, all.length) - uris.length,
+    ...(item.folder !== undefined ? { folder: item.folder } : {}),
+    ...(item.revision_date !== undefined ? { revision_date: item.revision_date } : {}),
+  };
+}
+
+/**
+ * A login as the popup's detail pane and the card beside the inline menu show
+ * it (../ui/components/ItemDetail.svelte): metadata only, never a secret. The
+ * background sends the card this, see [MenuDetailsEvent] `view`.
+ */
+export interface ItemView {
+  name: string;
+  username?: string;
+  account: string;
+  /** The fields it copies, see [popupActions]: not a password that its collections hide. */
+  copies: CopyAction[];
+  reprompt: boolean;
+  /** A URI of it matches the page: else it's suggested. */
+  matched: boolean;
+  /** Filled last on the tab. */
+  last: boolean;
+  /** The URL of its avatar's icon, see [itemIcon]; `null` for the name's letter. */
+  icon: string | null;
+  passkeys: { user_name: string; user_display_name?: string }[];
+  /** Its URIs, folder and date: for a page's suggestions, not for search results. */
+  details?: ItemDetails;
+}
+
+/** The icon of [item]'s avatar: [pageIcon], of the page's site, unless the login is suggested, maybe for another site. */
+export function itemIcon(item: { matched: boolean }, pageIcon: string | null): string | null {
+  return item.matched ? pageIcon : null;
+}
+
+/** The [ItemView] of [item], with [pageIcon] for its avatar (see [itemIcon]) and [last] for its chip. */
+export function itemViewOf(item: SuggestItem | SearchItem, pageIcon: string | null, last: boolean): ItemView {
+  return {
+    name: item.name,
+    ...(item.username !== undefined ? { username: item.username } : {}),
+    account: item.account,
+    copies: popupActions(item).filter(isCopyAction),
+    reprompt: item.reprompt,
+    matched: item.matched,
+    last,
+    icon: itemIcon(item, pageIcon),
+    passkeys: ("passkeys" in item ? (item.passkeys ?? []) : []).map((passkey) => ({
+      user_name: passkey.user_name,
+      ...(passkey.user_display_name !== undefined ? { user_display_name: passkey.user_display_name } : {}),
+    })),
+    // Only `suggest` has them: a search result has none of these fields.
+    ...("uris" in item || "folder" in item || "revision_date" in item ? { details: itemDetailsOf(item) } : {}),
+  };
 }
 
 /** A passkey for a conditional request, from `suggest`. */
@@ -258,8 +389,9 @@ export type MenuView =
       /** The field's role: a `new-password` field offers "Generate password". */
       role: FieldRole;
       host: string;
+      /** The matched logins, then the suggested ones. */
       items: MenuItem[];
-      /** On a sign-in step, the handle of the login filled last on this tab, listed first. */
+      /** On a sign-in step, the handle of the login filled last on this tab, listed first of its section. */
       last: string | null;
       truncated: boolean;
       /** The item of a login fill on this tab within 2 minutes, for "Fill TOTP". */
@@ -281,7 +413,70 @@ export type MenuRequest =
   | { kind: "generate" }
   | { kind: "unlock" }
   | { kind: "close" }
-  | { kind: "resize"; height: number };
+  | { kind: "resize"; height: number }
+  /**
+   * A trusted Space on a login's row selected it: the card beside the menu
+   * shows its details. Sent again as the row moves. [top] and [height]: the
+   * row's box in the menu's frame.
+   */
+  | { kind: "select"; handle: string; top: number; height: number }
+  /** No login's row is selected: the card hides. */
+  | { kind: "deselect" }
+  /**
+   * A trusted ArrowRight (ArrowLeft right to left) on the row of login
+   * [handle]: focus moves into the card, if it shows that login.
+   */
+  | { kind: "details_focus"; handle: string }
+  /**
+   * The menu's frame lost focus. Once the page lost it too, as the window did
+   * to the app's prompt, the card hides and the menu selects no login, as for
+   * [ContentRequest] `menu_blur`. Focus that moved into the card keeps them.
+   * The menu stays.
+   */
+  | { kind: "blurred" };
+
+/**
+ * The page of the card beside the menu. [seq]: of the view whose content has
+ * [height]: the card shows only at the height of what it shows.
+ */
+export type MenuDetailsRequest =
+  | { kind: "bind"; token: string }
+  | { kind: "resize"; height: number; seq: number }
+  /**
+   * Copies a field of the login [handle] that the card shows in view [seq]: a
+   * trusted click, past its click gate. A newer view refuses it.
+   */
+  | { kind: "copy"; action: CopyAction; handle: string; seq: number }
+  /**
+   * Copies linked URI [index] of the login [handle] that the card shows in
+   * view [seq]: of its [ItemDetails.uris]. As `copy`; a URI is no secret, so
+   * the app isn't asked.
+   */
+  | { kind: "copy_uri"; handle: string; index: number; seq: number }
+  /** ArrowLeft (ArrowRight right to left) or Escape: focus goes back to the login's row in the menu. */
+  | { kind: "back" }
+  /** Tab: the menu closes, as on Tab in the menu. */
+  | { kind: "close" }
+  /** The card's frame lost focus: as the menu's [MenuRequest] `blurred`. */
+  | { kind: "blurred" };
+
+export type MenuDetailsEvent =
+  | { kind: "bound" }
+  /** The details of login [handle] to show; [seq] tells this view from those that replace it. */
+  | { kind: "view"; seq: number; handle: string; item: ItemView }
+  /**
+   * The content script shows the card's frame, or hid it: the click gate's
+   * wait starts, or stops. See [MenuEvent] `shown`. [side]: the menu's side
+   * that the card shows on; sent again when it moves.
+   */
+  | { kind: "shown"; side?: DetailsSide }
+  | { kind: "hidden" }
+  /** Focus the first field: the content script moved focus into the frame on a trusted key. See [MenuEvent] `focus`. */
+  | { kind: "focus" }
+  | { kind: "busy"; busy: boolean }
+  /** The background copied the field the card asked for. */
+  | { kind: "copied" }
+  | { kind: "error"; error: PageError };
 
 /** Why an action of an embedded page failed: a [CallError] or a [FillRefusal]. */
 export type PageError = CallError | FillRefusal;
@@ -299,6 +494,15 @@ export type MenuEvent =
    */
   | { kind: "shown" }
   | { kind: "view"; view: MenuView }
+  /** Focus went back from the card beside the menu: focus the row of login [handle], on the background's word as `focus`. */
+  | { kind: "focus_row"; handle: string }
+  /** The card beside the menu shows on [side], see [DetailsSide]. */
+  | { kind: "details_side"; side: DetailsSide }
+  /**
+   * Focus left the menu and the card for the page, or the window: the page
+   * selects no login, see [ContentRequest] `menu_blur` and [MenuRequest] `blurred`.
+   */
+  | { kind: "deselect" }
   | { kind: "busy"; busy: boolean }
   | { kind: "error"; error: PageError };
 
@@ -341,6 +545,9 @@ const isOptionalValue = (value: unknown): value is string | undefined =>
   value === undefined || (isValue(value) && value.length > 0);
 const isOptionalString = (value: unknown): value is string | undefined =>
   value === undefined || typeof value === "string";
+const isOptionalBoolean = (value: unknown): value is boolean | undefined =>
+  value === undefined || typeof value === "boolean";
+const isFiniteNumber = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
 export function isToken(value: unknown): value is string {
   return typeof value === "string" && TOKEN.test(value);
@@ -354,8 +561,8 @@ export function randomToken(): string {
 /** The [FrameCheck] in [value], or `null` when it isn't one. */
 export function parseFrameCheck(value: unknown): FrameCheck | null {
   if (!isObject(value) || !Number.isSafeInteger(value.frame) || (value.frame as number) <= 0) return null;
-  return Number.isFinite(value.x) && Number.isFinite(value.y)
-    ? { frame: value.frame as number, x: value.x as number, y: value.y as number }
+  return isFiniteNumber(value.x) && isFiniteNumber(value.y)
+    ? { frame: value.frame as number, x: value.x, y: value.y }
     : null;
 }
 
@@ -387,6 +594,10 @@ function isOffer(value: unknown): value is number {
   return Number.isSafeInteger(value) && (value as number) > 0;
 }
 
+function isDetailsSide(value: unknown): value is DetailsSide {
+  return value === "left" || value === "right";
+}
+
 function isHandle(value: unknown): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= MAX_HANDLE_LENGTH;
 }
@@ -400,9 +611,7 @@ export function parseContentRequest(message: unknown): ContentMessage | null {
 function parseRequest(message: Record<string, unknown>): ContentRequest | null {
   switch (message.kind) {
     case "menu_open":
-      return isRole(message.role) &&
-        (message.webauthn === undefined || typeof message.webauthn === "boolean") &&
-        isOptionalString(message.url)
+      return isRole(message.role) && isOptionalBoolean(message.webauthn) && isOptionalString(message.url)
         ? {
             kind: "menu_open",
             role: message.role,
@@ -438,8 +647,27 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
         : null;
     case "save_bar_open":
     case "menu_focus":
-    case "menu_shown":
+    case "menu_blur":
       return { kind: message.kind };
+    case "popup_shown": {
+      const { popup, shown, side, room } = message;
+      // The menu only shows, and is on no side of anything.
+      if (popup === "menu")
+        return shown === true && side === undefined && room === undefined
+          ? { kind: "popup_shown", popup, shown }
+          : null;
+      if (popup !== "menu_details") return null;
+      if (typeof shown !== "boolean" || (side !== undefined && !isDetailsSide(side))) return null;
+      if (room !== undefined && room !== false) return null;
+      // Only a card that shows is on a side; only a hidden one lacks room.
+      return {
+        kind: "popup_shown",
+        popup,
+        shown,
+        ...(shown && side !== undefined ? { side } : {}),
+        ...(!shown && room === false ? { room } : {}),
+      };
+    }
     case "focus_report":
       return isToken(message.probe) && (message.role === null || isRole(message.role))
         ? { kind: "focus_report", probe: message.probe, role: message.role }
@@ -447,7 +675,7 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
     case "form_report": {
       const at = message.focused_at;
       return isToken(message.probe) &&
-        (at === null || (typeof at === "number" && Number.isFinite(at) && at >= 0)) &&
+        (at === null || (isFiniteNumber(at) && at >= 0)) &&
         typeof message.writable === "boolean"
         ? { kind: "form_report", probe: message.probe, focused_at: at, writable: message.writable }
         : null;
@@ -481,19 +709,58 @@ export function parseMenuRequest(message: unknown): MenuRequest | null {
     case "generate":
     case "unlock":
     case "close":
+    case "deselect":
+    case "blurred":
       return { kind: message.kind };
+    case "details_focus":
+      return isHandle(message.handle) ? { kind: "details_focus", handle: message.handle } : null;
     case "resize":
       return parseResize(message);
+    case "select":
+      return isHandle(message.handle) && isFiniteNumber(message.top) && isFiniteNumber(message.height)
+        ? { kind: "select", handle: message.handle, top: message.top, height: message.height }
+        : null;
     default:
       return null;
   }
 }
 
+export function parseMenuDetailsRequest(message: unknown): MenuDetailsRequest | null {
+  if (!isObject(message)) return null;
+  switch (message.kind) {
+    case "bind":
+      return isToken(message.token) ? { kind: "bind", token: message.token } : null;
+    case "resize": {
+      const resize = parseResize(message);
+      return resize !== null && isSeq(message.seq) ? { ...resize, seq: message.seq } : null;
+    }
+    case "copy":
+      return isCopyAction(message.action) && isHandle(message.handle) && isSeq(message.seq)
+        ? { kind: "copy", action: message.action, handle: message.handle, seq: message.seq }
+        : null;
+    case "copy_uri":
+      return isHandle(message.handle) && isUriIndex(message.index) && isSeq(message.seq)
+        ? { kind: "copy_uri", handle: message.handle, index: message.index, seq: message.seq }
+        : null;
+    case "back":
+    case "close":
+    case "blurred":
+      return { kind: message.kind };
+    default:
+      return null;
+  }
+}
+
+/** The [MenuDetailsEvent] `view` a request of the card is for. */
+const isSeq = (value: unknown): value is number => Number.isSafeInteger(value);
+
+/** An index of [ItemDetails.uris], which holds at most MAX_DETAIL_URIS. */
+const isUriIndex = (value: unknown): value is number =>
+  Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) < MAX_DETAIL_URIS;
+
 /** The content height an embedded page reports; the content script clamps it. */
 function parseResize(message: Record<string, unknown>): { kind: "resize"; height: number } | null {
-  return typeof message.height === "number" && Number.isFinite(message.height)
-    ? { kind: "resize", height: message.height }
-    : null;
+  return isFiniteNumber(message.height) ? { kind: "resize", height: message.height } : null;
 }
 
 export function parseSaveBarRequest(message: unknown): SaveBarRequest | null {

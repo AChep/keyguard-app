@@ -7,6 +7,7 @@
   import { on } from "svelte/events";
   import { t, type I18nKey } from "../../src/lib/i18n";
   import LoadingIndicator from "../../src/lib/ui/components/LoadingIndicator.svelte";
+  import type { UriCopy } from "../../src/lib/ui/itemDetails";
   import { ariaKeyShortcuts, SHORTCUTS, shortcutKeys, type PopupAction } from "../../src/lib/ui/popupKeys";
 
   const LABELS: Record<PopupAction, I18nKey> = {
@@ -19,8 +20,8 @@
   interface Props {
     actions: PopupAction[];
     mac: boolean;
-    /** The action in progress. */
-    busy: PopupAction | null;
+    /** The action in progress, or the detail pane's copy of a URI: the strip waits for either. */
+    busy: PopupAction | UriCopy | null;
     onaction: (action: PopupAction) => void;
   }
 

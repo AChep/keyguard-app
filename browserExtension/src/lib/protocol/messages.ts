@@ -126,6 +126,29 @@ export interface SuggestItem {
   last_used?: boolean;
   /** The item's collections hide its password: the popup doesn't copy it. A fill still releases it. */
   password_hidden?: boolean;
+  /**
+   * A URI of the item matches the page; `false` for a login suggested as its
+   * name or username looks like the page's site, which fills with a prompt.
+   * Optional on the wire: older apps don't send it, and [parseResponse] reads
+   * that as `true`.
+   */
+  matched: boolean;
+  /** The item's URIs, in order, at most 5. The app leaves out URIs over 1024 characters. */
+  uris?: string[];
+  /** How many URIs the item has, when more than [uris] lists. */
+  uri_count?: number;
+  /** The name of the item's folder. */
+  folder?: string;
+  /** When the item was last modified, as an ISO-8601 instant. */
+  revision_date?: string;
+}
+
+/** [items], the matched ones first, then the suggested ones, each in their order. */
+export function matchedFirst<T extends { matched: boolean }>(items: readonly T[]): T[] {
+  const matched: T[] = [];
+  const suggested: T[] = [];
+  for (const item of items) (item.matched ? matched : suggested).push(item);
+  return matched.concat(suggested);
 }
 
 /** Whether the popup may copy the password of [item]: it has one, and its collections don't hide it. */
@@ -158,9 +181,10 @@ export interface SearchRequest extends PagePrivacy {
 }
 
 /** A login of `search`: `matched` is false when it isn't saved for the page's site. */
-export interface SearchItem extends Omit<SuggestItem, "passkeys" | "last_used"> {
-  matched: boolean;
-}
+export type SearchItem = Omit<
+  SuggestItem,
+  "passkeys" | "last_used" | "uris" | "uri_count" | "folder" | "revision_date"
+>;
 
 export interface SearchResponse {
   blocked: boolean;
@@ -302,7 +326,16 @@ const ITEM_FIELDS = {
   reprompt: isBoolean,
   password_hidden: optional(isBoolean),
 };
-const isItem = shape({ ...ITEM_FIELDS, passkeys: optional(arrayOf(isPasskey)), last_used: optional(isBoolean) });
+const isItem = shape({
+  ...ITEM_FIELDS,
+  passkeys: optional(arrayOf(isPasskey)),
+  last_used: optional(isBoolean),
+  matched: optional(isBoolean),
+  uris: optional(arrayOf(isString)),
+  uri_count: optional(isInteger),
+  folder: optional(isString),
+  revision_date: optional(isString),
+});
 const isSearchItem = shape({ ...ITEM_FIELDS, matched: isBoolean });
 
 const RESPONSE_SHAPES: { [T in RequestType]: Check } = {
@@ -329,7 +362,13 @@ function vaultState(value: string): VaultState {
 /** Checks the fields of a successful response and returns it typed. */
 export function parseResponse<T extends RequestType>(type: T, message: JsonObject): ResponseOf<T> {
   if (!RESPONSE_SHAPES[type](message)) throw new InvalidResponse(type);
-  const response = typeof message.vault === "string" ? { ...message, vault: vaultState(message.vault) } : message;
+  let response = typeof message.vault === "string" ? { ...message, vault: vaultState(message.vault) } : message;
+  // An older app's `suggest` item has no `matched`: it matches.
+  if (type === "suggest")
+    response = {
+      ...response,
+      items: (response.items as JsonObject[]).map((item) => ({ ...item, matched: item.matched ?? true })),
+    };
   return response as unknown as ResponseOf<T>;
 }
 

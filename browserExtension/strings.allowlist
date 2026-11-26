@@ -48,7 +48,6 @@ browser_extension_locked_text
 browser_extension_unlock_pending_text
 browser_extension_page_unsupported_text
 browser_extension_site_blocked_text
-browser_extension_logins_count_plural
 browser_extension_logins_truncated_plural
 items_empty_label
 browser_extension_fill_button
@@ -60,10 +59,12 @@ browser_extension_last_used
 vault_main_search_placeholder
 browser_extension_search_empty
 browser_extension_search_unmatched
+autofill_suggested
 browser_extension_search_truncated_plural
 copy_username
 copy_password
 copy_otp_code
+copy_uri
 copied_value
 autofill_open_keyguard
 autofill_no_matching_logins
@@ -76,6 +77,11 @@ browser_extension_menu_generate_password
 browser_extension_menu_fill_totp
 passkey
 passkey_unknown_username
+linked_uri
+linked_uris
+skipped_and_more_note
+folder
+vault_view_revision_label
 
 # Save bar
 save

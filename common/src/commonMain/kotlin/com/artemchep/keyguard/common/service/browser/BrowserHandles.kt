@@ -15,9 +15,9 @@ internal data class BrowserItemHandle(
     /** The site of the page, see [BrowserPage.site]. */
     val site: String,
     /**
-     * Whether the item matched the page: from `suggest`, unless listed only
-     * for a passkey; by its URIs from `search`. A release of an unmatched
-     * item always prompts.
+     * Whether a URI of the item matched the page, for `suggest` and
+     * `search` alike; a name alike the page or a passkey of the relying
+     * party doesn't count. A release of an unmatched item always prompts.
      */
     val matched: Boolean,
 ) : BrowserHandle

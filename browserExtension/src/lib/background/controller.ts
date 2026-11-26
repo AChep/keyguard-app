@@ -11,6 +11,7 @@ import {
   privateWindow,
   PROTOCOL_VERSIONS,
   type Capability,
+  type HandleRequest,
   type HelloResponse,
   type PagePrivacy,
   type ProtocolEvent,
@@ -87,6 +88,29 @@ interface ActiveSession {
   capabilities: ReadonlySet<string>;
 }
 
+/** What [releaseCopy] needs of the app session. */
+interface Releaser {
+  request<T extends RequestType>(type: T, fields: RequestOf<T>, signal?: AbortSignal): Promise<ResponseOf<T>>;
+}
+
+/**
+ * The secret a copy of [action] writes to the clipboard, which the app
+ * releases for [request]'s handle and page: the password, through a `fill`,
+ * or the one-time password. The popup's copies and those of the card beside
+ * the inline menu take it.
+ */
+export async function releaseCopy(
+  app: Releaser,
+  action: "copy_password" | "copy_totp",
+  request: HandleRequest,
+  signal?: AbortSignal,
+): Promise<string> {
+  if (action === "copy_totp") return (await app.request("totp", request, signal)).code;
+  const { password } = await app.request("fill", request, signal);
+  if (password === undefined) throw new CallFailure("invalid_response");
+  return password;
+}
+
 export function callErrorOf(error: unknown): CallError {
   if (error instanceof CallFailure) return error.code;
   if (error instanceof ProtocolError) return error.code || "unknown";
@@ -145,14 +169,13 @@ export class BackgroundController implements ConnectionListener {
     copy_password: async ({ tabId, handle, origin }) => {
       // Unlisted, or its collections hide the password.
       if (!this.deps.mayCopyPassword(tabId, handle)) throw new CallFailure("not_allowed");
-      const { password } = await this.request("fill", { handle, ...(await this.page(tabId, origin)) });
-      if (password === undefined) throw new CallFailure("invalid_response");
-      await this.deps.copyText(password);
+      await this.deps.copyText(
+        await releaseCopy(this, "copy_password", { handle, ...(await this.page(tabId, origin)) }),
+      );
       return null;
     },
     copy_totp: async ({ tabId, handle, origin }) => {
-      const { code } = await this.request("totp", { handle, ...(await this.page(tabId, origin)) });
-      await this.deps.copyText(code);
+      await this.deps.copyText(await releaseCopy(this, "copy_totp", { handle, ...(await this.page(tabId, origin)) }));
       return null;
     },
     generate: async ({ tabId }) => {

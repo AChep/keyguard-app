@@ -82,10 +82,11 @@ internal class BrowserVaultOperations(
     private val handles: BrowserHandles = BrowserHandles(cryptoGenerator),
 ) {
     /**
-     * The logins that match the page of the request, and with `"passkey"`,
-     * the logins with a passkey of the relying party; with their handles.
-     * Only the logins of the page get a matched item handle, see [matchedOn].
-     * The one used last on this device comes first, marked.
+     * The logins that match the page of the request, by a URI or by a name
+     * alike its site, and with `"passkey"`, the logins with a passkey of the
+     * relying party; with their handles. Only the logins that match the page
+     * by a URI are matched, see [uriMatcher]. The one used last on this device
+     * comes first, marked.
      */
     @Suppress("ReturnCount") // Each refusal has its own error code.
     suspend fun suggest(request: SuggestRequest): BrowserReply {
@@ -121,17 +122,27 @@ internal class BrowserVaultOperations(
         // Most recently used first, before the list is cut. The sort is
         // stable: the logins never used follow in the order of the match.
         val matches = found.sortedByDescending { lastUsed[it.id] }
+        val listed = matches.take(MAX_SUGGESTIONS)
         val site = page.site(tldService)
         val accountNames = dependencies.accountNames()
         val collections = dependencies.getCollections().first()
-        val isMatched = dependencies.matchedOn(page)
-        val items = matches
-            .take(MAX_SUGGESTIONS)
+        val folderNames = dependencies.folderNames(listed)
+        val isMatched = dependencies.uriMatcher(page, strictHttp = true)
+        val items = listed
             .mapIndexed { index, cipher ->
                 val used = index == 0 && cipher.id in lastUsed
-                // A login listed only for a passkey of the relying party doesn't match the page.
-                val matched = (cipher.accountId to cipher.id) in pageLogins && isMatched(cipher) { true }
-                suggestion(cipher, site, rpId, accountNames, collections, matched = matched, lastUsed = used)
+                // By a URI only: a name alike the page, or a passkey of the relying party, doesn't match it.
+                val matched = (cipher.accountId to cipher.id) in pageLogins && isMatched(cipher)
+                suggestion(
+                    cipher = cipher,
+                    site = site,
+                    rpId = rpId,
+                    accountNames = accountNames,
+                    collections = collections,
+                    folderNames = folderNames,
+                    matched = matched,
+                    lastUsed = used,
+                )
             }
         val response = SuggestResponse(
             blocked = false,
@@ -148,10 +159,11 @@ internal class BrowserVaultOperations(
         rpId: String?,
         accountNames: Map<String, String>,
         collections: List<DCollection>,
+        folderNames: Map<Pair<String, String>, String>,
         matched: Boolean,
         lastUsed: Boolean,
     ): SuggestItem {
-        // Unmatched for a login listed only for its passkeys: a release of it always prompts.
+        // Unmatched for a login listed by its name or for its passkeys: a release of it always prompts.
         val handle = BrowserItemHandle(
             accountId = cipher.accountId,
             cipherId = cipher.id,
@@ -173,6 +185,14 @@ internal class BrowserVaultOperations(
                 )
             }
         }
+        // Not a URI past the length cap, as a `data:` URL: one could take the
+        // reply past its size limit. Left out, never cut: a copy would be wrong.
+        val uris = cipher.uris
+            .asSequence()
+            .map { it.uri }
+            .filter { it.length <= MAX_SUGGESTION_URI_LENGTH }
+            .take(MAX_SUGGESTION_URIS)
+            .toList()
         return SuggestItem(
             handle = handles.issue(handle),
             name = cipher.name,
@@ -184,13 +204,18 @@ internal class BrowserVaultOperations(
             passkeys = passkeys,
             lastUsed = true.takeIf { lastUsed },
             passwordHidden = true.takeIf { cipher.isPasswordHidden(collections) },
+            matched = matched,
+            uris = uris.takeIf { it.isNotEmpty() },
+            uriCount = cipher.uris.size.takeIf { it > uris.size },
+            folder = cipher.folderId?.let { folderNames[cipher.accountId to it] },
+            revisionDate = cipher.revisionDate.toString(),
         )
     }
 
     /**
      * The logins whose name, username or URI host holds the query, with
      * their handles: those that match the page by a URI first, see
-     * [matchedOn], then those whose name starts with it. Metadata only; a
+     * [uriMatcher], then those whose name starts with it. Metadata only; a
      * release of an unmatched one prompts.
      */
     @Suppress("ReturnCount") // Each refusal has its own error code.
@@ -207,11 +232,11 @@ internal class BrowserVaultOperations(
             return browserOk(SearchResponse(blocked = true, truncated = false, items = emptyList()))
         }
         val needle = query.lowercase()
-        val isMatched = dependencies.matchedOn(page)
+        val isMatched = dependencies.uriMatcher(page, strictHttp = true)
         val found = dependencies.logins()
             .filter { it.holds(needle) }
             // By a URI only: search doesn't list by a name alike the page.
-            .map { cipher -> cipher to isMatched(cipher) { false } }
+            .map { cipher -> cipher to isMatched(cipher) }
             .sortedWith(
                 compareBy<Pair<DSecret, Boolean>> { (cipher, matched) ->
                     when {
@@ -403,7 +428,7 @@ internal class BrowserVaultOperations(
             return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
         }
         // A matched handle doesn't outlive an edit of the item's URIs.
-        val matched = handle.matched && dependencies.stillMatches(page, cipher)
+        val matched = handle.matched && dependencies.uriMatcher(page, strictHttp = true)(cipher)
         val approval = approve(vault, handle, matched, page, topPage, cipher, operation)
             .getOrElse { return@recorded BrowserReply.Error(it) }
         val item = approvedItem(vault, handle, page, approved = cipher, matched = matched)
@@ -441,7 +466,7 @@ internal class BrowserVaultOperations(
         val dependencies = vault.dependencies
         val item = dependencies.login(handle)
         val blocked = dependencies.isBlocked(page)
-        val unmatched = matched && item != null && !dependencies.stillMatches(page, item)
+        val unmatched = matched && item != null && !dependencies.uriMatcher(page, strictHttp = true)(item)
         // After the reads: a lock during them ends the release too.
         currentCoroutineContext().ensureActive()
         return when {
@@ -549,49 +574,38 @@ internal class BrowserVaultOperations(
         logins().filter { it.discoverablePasskeys(rpId).isNotEmpty() }
 
     /**
-     * Whether the [cipher] still matches the [page], as `search` matched it
-     * by a URI or `suggest` listed it; see [matchedOn].
+     * The name of each folder of the [items], by its account and ID; none of
+     * a hidden account. Reads no folders if none of the items is in one.
      */
-    private suspend fun BrowserExtensionSessionDependencies.stillMatches(page: BrowserPage, cipher: DSecret): Boolean =
-        matchedOn(page)(cipher) {
-            matches(page).any { it.accountId == cipher.accountId && it.id == cipher.id }
-        }
-
-    /**
-     * Tells whether a login counts as matched on the [page]: a URI of it
-     * matches the page, or `listed` tells that `suggest` lists it for the
-     * page. On an `http` page only a URI that matches it and names `http://`
-     * counts, so an `https` login never fills silently on the `http` page of
-     * its host.
-     */
-    private suspend fun BrowserExtensionSessionDependencies.matchedOn(
-        page: BrowserPage,
-    ): suspend (cipher: DSecret, listed: suspend () -> Boolean) -> Boolean {
-        if (page.scheme == SCHEME_HTTP) {
-            val matchesPage = pageMatcher(page) { uri ->
-                uri.uri.trim().startsWith("$SCHEME_HTTP://", ignoreCase = true)
-            }
-            return { cipher, _ -> matchesPage(cipher) }
-        }
-        val matchesPage = pageMatcher(page)
-        return { cipher, listed -> matchesPage(cipher) || listed() }
+    private suspend fun BrowserExtensionSessionDependencies.folderNames(
+        items: List<DSecret>,
+    ): Map<Pair<String, String>, String> {
+        val keys = items.mapNotNullTo(mutableSetOf()) { item -> item.folderId?.let { item.accountId to it } }
+        if (keys.isEmpty()) return emptyMap()
+        return filterHiddenProfiles(getFolders = getFolders, getProfiles = getProfiles)
+            .first()
+            .filter { (it.accountId to it.id) in keys }
+            .associate { (it.accountId to it.id) to it.name }
     }
 
     /**
-     * Tells whether a URI of a login that [counts] matches the [page], as
-     * the suggestions score it; a name alike doesn't count.
+     * Tells whether a URI of a login matches the [page], as the suggestions
+     * score it; a name alike doesn't count. With [strictHttp], on an `http`
+     * page only a URI that names `http://` counts, so an `https` login never
+     * fills silently on the `http` page of its host.
      */
-    private suspend fun BrowserExtensionSessionDependencies.pageMatcher(
+    private suspend fun BrowserExtensionSessionDependencies.uriMatcher(
         page: BrowserPage,
-        counts: (DSecret.Uri) -> Boolean = { true },
+        strictHttp: Boolean,
     ): suspend (DSecret) -> Boolean {
+        val httpOnly = strictHttp && page.scheme == SCHEME_HTTP
         val defaultMatchDetection = getAutofillDefaultMatchDetection().first()
         val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
         val url = page.link.url.toString()
         return { cipher ->
             val equivalentDomains = equivalentDomainsBuilder.getAndCache(cipher.accountId)
             cipher.uris.any { uri ->
-                counts(uri) &&
+                (!httpOnly || uri.uri.trim().startsWith("$SCHEME_HTTP://", ignoreCase = true)) &&
                     cipherUrlCheck(uri, url, defaultMatchDetection, equivalentDomains)
                         .attempt()
                         .bind()
@@ -640,8 +654,8 @@ internal class BrowserVaultOperations(
         val username = request.username
             ?.takeIf { it.isNotEmpty() }
             ?: return null
-        // A name alike the page doesn't count.
-        val matchesPage = pageMatcher(page)
+        // By a URI only; on an `http` page a URI need not name `http://`.
+        val matchesPage = uriMatcher(page, strictHttp = false)
         val candidates = matches(page)
             .filter { !it.reprompt && it.login?.username == username }
             .filter { matchesPage(it) && canEdit(it) }
@@ -656,6 +670,12 @@ internal class BrowserVaultOperations(
 
         /** The most items of a `suggest` response. */
         const val MAX_SUGGESTIONS = 50
+
+        /** The most URIs of an item of a `suggest` response. */
+        const val MAX_SUGGESTION_URIS = 5
+
+        /** The longest URI, in characters, of an item of a `suggest` response: longer ones are left out. */
+        const val MAX_SUGGESTION_URI_LENGTH = 1024
 
         /** The most items of a `search` response. */
         const val MAX_SEARCH_RESULTS = 20

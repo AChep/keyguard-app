@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 import { tp } from "../src/lib/i18n";
 
-const KEY = "browser_extension_logins_count_plural";
+const KEY = "browser_extension_logins_truncated_plural";
 
 /**
  * The messages of the logins plural, as the generator makes them: every

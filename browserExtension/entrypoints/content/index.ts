@@ -54,10 +54,11 @@ import { shadowRootReader, type ClosedRootApi } from "../../src/lib/content/shad
 import { submitAfterFill, watchSignIn, type SignInWatch, type SubmitOptions } from "../../src/lib/content/submit";
 import { ContentUi } from "../../src/lib/content/ui";
 import { PageWatcher } from "../../src/lib/content/watch";
-import { t } from "../../src/lib/i18n";
+import { t, uiDirection } from "../../src/lib/i18n";
 import { watchOptions, type ExtensionOptions, type ObservableStorageArea } from "../../src/lib/options/store";
 import {
   documentCommandOf,
+  MENU_DETAILS_PAGE,
   MENU_PAGE,
   parseFrameCheck,
   randomToken,
@@ -133,11 +134,13 @@ function startContentScript(ctx: ContentScriptContext) {
       arrowDownPressed: (field) => openMenu(field, true),
       menuFocused: () => void send({ kind: "menu_focus" }),
       menuDismissed: () => ui.closeMenu(),
-      menuShown: () => void send({ kind: "menu_shown" }),
+      popupShown: (report) => void send({ kind: "popup_shown", ...report }),
     },
     (path) => browser.runtime.getURL(path as never),
     extensionOrigins,
     t("browser_extension_name"),
+    // The UI's language, not the page's: the card beside the menu reads in it.
+    uiDirection(),
   );
   ctx.onInvalidated(() => ui.destroy());
 
@@ -299,15 +302,20 @@ function startContentScript(ctx: ContentScriptContext) {
   );
   doc.addEventListener(
     "focusout",
-    () => {
+    (event) => {
       // After focus settles. A window losing focus (to Keyguard's prompt) keeps
-      // the UI; focus moving into the menu lands on the host.
+      // the UI here: the card hides on its frames' word, see `has_focus`. Focus
+      // moving into the menu or between its frames lands on the host, which
+      // the deepest active element is, also in a page's shadow root.
       setTimeout(() => {
         if (signal.aborted || !doc.hasFocus()) return;
         const active = deepActiveElement();
         if (active === ui.host) return;
         if (active !== ui.iconTarget) ui.hideIcon();
         if (active !== ui.menuField) ui.closeMenu();
+        // Focus left the menu or the card beside it for the field: the menu
+        // stays, and the card hides. Their frames are in the host.
+        else if (ui.leftUi(event)) void send({ kind: "menu_blur" });
       }, 0);
     },
     { capture: true, signal },
@@ -338,7 +346,12 @@ function startContentScript(ctx: ContentScriptContext) {
       url: location.href,
     });
     if (result === undefined || !("token" in result) || signal.aborted || !field.isConnected) return;
-    ui.openMenu(field, result.token, MENU_PAGE);
+    ui.openMenu(
+      field,
+      result.token,
+      MENU_PAGE,
+      typeof result.details === "string" ? { token: result.details, page: MENU_DETAILS_PAGE } : undefined,
+    );
     topLayer.start();
     if (keyboard) ui.focusMenu();
   }
@@ -489,16 +502,17 @@ function startContentScript(ctx: ContentScriptContext) {
   }
 
   /**
-   * The clickjacking checks before the background acts on a click in the menu
-   * or the save bar, in this frame and in its same-origin ancestors. A page
-   * element in the top layer within the click gate's wait counts as one there
-   * now. With the frame's URL now, which a single-page app may have changed
-   * since the menu opened.
+   * The clickjacking checks before the background acts on a click in the
+   * menu, the card beside it or the save bar, in this frame and in its
+   * same-origin ancestors: the menu's field too, for the menu and the card. A
+   * page element in the top layer within the click gate's wait counts as one
+   * there now. With the frame's URL now, which a single-page app may have
+   * changed since the menu opened.
    */
   function guard(popup: GuardedPopup): DocumentResult {
-    const shown = popup === "save_bar" ? ui.saveBarElement : ui.menuElement;
-    const field = popup === "save_bar" ? null : ui.menuField;
-    if (shown === null || (popup === "menu" && field === null)) return { ok: false, reason: "obscured" };
+    const target = ui.guardTarget(popup);
+    if (target === null) return { ok: false, reason: "obscured" };
+    const { element: shown, field } = target;
     const refusal =
       (field === null ? null : fieldExposure(field, guardLayout)) ?? popupExposure(ui.host, shown, guardLayout, doc);
     if (refusal !== null) return { ok: false, reason: refusal };
@@ -629,13 +643,36 @@ function startContentScript(ctx: ContentScriptContext) {
           );
         return true;
       case "guard":
-        sendResponse(guard(command.popup === "save_bar" ? "save_bar" : "menu"));
+        // An unknown popup is refused: see [ContentUi.guardTarget].
+        sendResponse(guard(command.popup));
         return false;
+      case "focus_popup":
+        sendResponse(
+          (ui.focusPopup(command.popup) ? { ok: true } : { ok: false, reason: "obscured" }) satisfies DocumentResult,
+        );
+        return false;
+      case "has_focus":
+        // After focus settles, as for `focusout`: the frame of the menu or the
+        // card that lost focus may ask before this document hears where it went.
+        // `hasFocus()` holds too while focus is in a frame of the page, theirs included.
+        setTimeout(
+          () =>
+            sendResponse((doc.hasFocus() ? { ok: true } : { ok: false, reason: "obscured" }) satisfies DocumentResult),
+          0,
+        );
+        return true;
       case "menu_resize":
         if (typeof command.height === "number") ui.resizeMenu(command.height);
         return false;
       case "menu_close":
         ui.closeMenu();
+        return false;
+      case "menu_details":
+        if (typeof command.top === "number" && typeof command.row === "number" && typeof command.height === "number")
+          ui.showMenuDetails(command.top, command.row, command.height);
+        return false;
+      case "menu_details_hide":
+        ui.hideMenuDetails();
         return false;
       case "save_bar_show":
         void openSaveBar();

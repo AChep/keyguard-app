@@ -10,12 +10,14 @@ import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DEquivalentDomains
+import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserVaultState
 import com.artemchep.keyguard.test.createProfile
 import com.artemchep.keyguard.test.createSecret
@@ -35,6 +37,7 @@ import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /** The requests of a paired extension that reach the vault, README section 5. */
 @Suppress("LargeClass", "TooManyFunctions")
@@ -330,6 +333,103 @@ class BrowserVaultOperationsTest {
         val release = assertIs<BrowserOperation.Fill>(prompt.operation).release
         assertEquals(false, release.matched)
         assertEquals("https://example.com", release.addUri)
+        fixture.service.respondToApproval(prompt.id, approved = false)
+        assertEquals("user_denied", client.receive()?.string("error"))
+    }
+
+    @Test
+    fun `a login listed only for a name alike the page isn't matched, and its fill asks`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope, approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        fixture.login("alike", name = "Example")
+        fixture.ciphers.value = fixture.ciphers.value.map { it.copy(uris = emptyList()) }
+        val client = paired(fixture)
+        val item = client.call(suggest(10, PAGE)).items().single()
+        assertEquals("Example", item.string("name"))
+        assertEquals(false, item.bool("matched"))
+        assertNull(item["uris"])
+        assertNull(item["uri_count"])
+
+        // Always asks, even with never ask, and offers to add the page.
+        client.send(fill(11, checkNotNull(item.string("handle")), PAGE))
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        val release = assertIs<BrowserOperation.Fill>(prompt.operation).release
+        assertEquals(false, release.matched)
+        assertEquals("https://example.com", release.addUri)
+        fixture.service.respondToApproval(prompt.id, approved = false)
+        assertEquals("user_denied", client.receive()?.string("error"))
+    }
+
+    @Test
+    fun `suggest tells the URIs, the folder and the last change of an item`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.folders.value = listOf(
+            folder("folder", name = "Banking"),
+            // A folder of another account with the same ID isn't the item's.
+            folder("folder", name = "Other", accountId = "other"),
+        )
+        val login = fixture.login("a")
+        val revisionDate = Instant.parse("2026-01-02T03:04:05Z")
+        val uris = listOf("https://example.com") + (1..6).map { "https://site$it.org" }
+        fixture.ciphers.value = listOf(
+            login.copy(
+                folderId = "folder",
+                revisionDate = revisionDate,
+                uris = uris.map { DSecret.Uri(uri = it) },
+            ),
+        )
+        val client = paired(fixture)
+
+        val item = client.call(suggest(10, PAGE)).items().single()
+        assertEquals(true, item.bool("matched"))
+        assertEquals(uris.take(5), (item.getValue("uris") as JsonArray).map { it.jsonPrimitive.content })
+        assertEquals(7, item.int("uri_count"))
+        assertEquals("Banking", item.string("folder"))
+        assertEquals("2026-01-02T03:04:05Z", item.string("revision_date"))
+
+        // At most 5 URIs need no count; an unknown folder has no name.
+        fixture.ciphers.value = listOf(
+            login.copy(folderId = "gone", uris = uris.take(5).map { DSecret.Uri(uri = it) }),
+        )
+        val few = client.call(suggest(11, PAGE)).items().single()
+        assertEquals(5, (few.getValue("uris") as JsonArray).size)
+        assertNull(few["uri_count"])
+        assertNull(few["folder"])
+    }
+
+    @Test
+    fun `suggest leaves out a URI past the length cap, and counts it`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val login = fixture.login("a")
+        val long = "data:text/plain," + "a".repeat(BrowserVaultOperations.MAX_SUGGESTION_URI_LENGTH)
+        val uris = listOf("https://example.com", long, "https://site.org")
+        fixture.ciphers.value = listOf(login.copy(uris = uris.map { DSecret.Uri(uri = it) }))
+        val client = paired(fixture)
+
+        val item = client.call(suggest(10, PAGE)).items().single()
+        // Left out, not cut: the listed ones keep their order.
+        assertEquals(
+            listOf("https://example.com", "https://site.org"),
+            (item.getValue("uris") as JsonArray).map { it.jsonPrimitive.content },
+        )
+        assertEquals(3, item.int("uri_count"))
+    }
+
+    @Test
+    fun `a matched handle doesn't stay matched through a name alike the page`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope, approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        val login = fixture.login("a", name = "Example")
+        val client = paired(fixture)
+        val item = client.call(suggest(10, PAGE)).items().single()
+        assertEquals(true, item.bool("matched"))
+        val handle = checkNotNull(item.string("handle"))
+        assertEquals("secret-a", client.call(fill(11, handle, PAGE)).string("password"))
+
+        // Without its URIs, only its name lists it.
+        fixture.ciphers.value = listOf(login.copy(uris = emptyList()))
+        assertEquals(false, client.call(suggest(12, PAGE)).items().single().bool("matched"))
+        client.send(fill(13, handle, PAGE))
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        assertEquals(false, assertIs<BrowserOperation.Fill>(prompt.operation).release.matched)
         fixture.service.respondToApproval(prompt.id, approved = false)
         assertEquals("user_denied", client.receive()?.string("error"))
     }
@@ -1094,6 +1194,16 @@ private fun collection(id: String, hidePasswords: Boolean, accountId: String = A
     name = id,
     readOnly = false,
     hidePasswords = hidePasswords,
+)
+
+private fun folder(id: String, name: String, accountId: String = ACCOUNT_ID) = DFolder(
+    id = id,
+    accountId = accountId,
+    revisionDate = Instant.fromEpochSeconds(0),
+    service = BitwardenService(),
+    deleted = false,
+    synced = true,
+    name = name,
 )
 
 /** Records a use of the item [cipherId] at [seconds] after the epoch, as a fill does. */

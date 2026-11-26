@@ -4,7 +4,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { BIND_MESSAGE } from "../src/lib/page/messages";
 import { connectEmbedded, type RuntimePort } from "../src/lib/ui/embedded";
-import { messageDirection } from "../src/lib/ui/pageLocale";
+import { messageDirection } from "../src/lib/i18n";
 
 const TOKEN = "a".repeat(32);
 

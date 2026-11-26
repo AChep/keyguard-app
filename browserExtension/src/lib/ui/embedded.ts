@@ -73,6 +73,22 @@ export function connectEmbedded<Request, Event extends { kind: string }>(
   };
 }
 
+/** The height of [element]'s content in whole pixels: the content script sizes the page's frame to it. */
+export function contentHeight(element: HTMLElement): number {
+  return Math.ceil(element.scrollHeight);
+}
+
+/**
+ * Calls [report] with the [contentHeight] of [element] each time its size
+ * changes, for `{@attach}`: returns the function that stops it. A hidden frame
+ * may get no callbacks: its page reports each change of what it shows too.
+ */
+export function reportHeight(element: HTMLElement, report: (height: number) => void): () => void {
+  const observer = new ResizeObserver(() => report(contentHeight(element)));
+  observer.observe(element);
+  return () => observer.disconnect();
+}
+
 /**
  * Starts an embedded page: mounts [App] with a port connected as [name] and a
  * click gate. [hidden]: the content script shows the frame once the page has

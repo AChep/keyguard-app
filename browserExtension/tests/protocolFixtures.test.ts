@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import type { JsonObject } from "../src/lib/protocol/framing";
 import {
   checkVersion,
+  matchedFirst,
   parseEvent,
   parseResponse,
   PROTOCOL_VERSIONS,
@@ -193,5 +194,18 @@ describe("checkVersion", () => {
     expect(checkVersion(PROTOCOL_VERSIONS.max)).toEqual({ kind: "ok", version: PROTOCOL_VERSIONS.max });
     expect(checkVersion(PROTOCOL_VERSIONS.max + 1)).toEqual({ kind: "invalid" });
     expect(checkVersion(PROTOCOL_VERSIONS.min - 1)).toEqual({ kind: "app_outdated" });
+  });
+});
+
+describe("matched logins", () => {
+  it("go first, then the suggested ones, each in their order", () => {
+    const items = [
+      { handle: "s1", matched: false },
+      { handle: "m1", matched: true },
+      { handle: "s2", matched: false },
+      { handle: "m2", matched: true },
+    ];
+    expect(matchedFirst(items).map((item) => item.handle)).toEqual(["m1", "m2", "s1", "s2"]);
+    expect(matchedFirst([])).toEqual([]);
   });
 });

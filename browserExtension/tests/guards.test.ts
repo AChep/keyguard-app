@@ -780,6 +780,25 @@ describe("click gate", () => {
     expect(tracked.allows({ isTrusted: true })).toBe(true);
   });
 
+  it("waits again each time the content script shows a page it hid again, as the card beside the menu", () => {
+    let now = 1000;
+    const gate = new ClickGate(() => now, { hidden: true });
+    gate.setVisible(true);
+    gate.shown();
+    now += MIN_VISIBLE_MS;
+    expect(gate.allows({ isTrusted: true })).toBe(true);
+    gate.hidden();
+    expect(gate.allows({ isTrusted: true })).toBe(false);
+    // Hidden for a while: that time doesn't count.
+    now += MIN_VISIBLE_MS;
+    expect(gate.allows({ isTrusted: true })).toBe(false);
+    gate.shown();
+    now += MIN_VISIBLE_MS - 1;
+    expect(gate.allows({ isTrusted: true })).toBe(false);
+    now += 1;
+    expect(gate.allows({ isTrusted: true })).toBe(true);
+  });
+
   it("waits again when the page shows something new, as the save bar a newer offer", () => {
     let now = 1000;
     const gate = new ClickGate(() => now);

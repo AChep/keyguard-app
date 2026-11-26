@@ -411,11 +411,15 @@ Gate: unlocked. No prompt.
 | `truncated`    | boolean | More than 50 items matched.                                                   |
 | `items`        | item[]  | At most 50, in the order below.                                               |
 
-The items are the logins that match the page, of the accounts the user didn't
-hide, and not in the trash or the archive. With `"passkey"`, the logins with a
-passkey for `rp_id` follow, whether they match the page or not. With only
-`"passkey"`, the items are those logins alone. With empty `kinds`, `items` is
-empty: the response tells only `blocked` and `save_blocked`.
+The items are the logins that match the page by a URI, or whose name or
+username looks like the page's site; `matched` tells which. The app ranks
+them as its autofill does: next to a login that matches by a URI, a login
+alike by name alone may score too low to be listed. They are of the
+accounts the user didn't hide, and not in the trash or the archive. With
+`"passkey"`, the logins with a passkey for `rp_id` follow, whether they match
+the page or not. With only `"passkey"`, the items are those logins alone. With
+empty `kinds`, `items` is empty: the response tells only `blocked` and
+`save_blocked`.
 
 Items used on this device come first, most recent use first. A use is a
 release by `fill` or `totp`, another autofill by the app, or a passkey
@@ -435,6 +439,11 @@ other items follow: the best match first, then the logins of `"passkey"`. The
 | `passkeys`        | passkey[]? | With `"passkey"`: the item's discoverable passkeys for `rp_id`, which answer a request without `allowCredentials`. May be empty.           |
 | `last_used`       | boolean?   | `true` on the first item when it has a use on this device. Absent otherwise.                                                               |
 | `password_hidden` | boolean?   | `true` when the item's collections hide its password. Absent otherwise. The extension doesn't copy the password; `fill` still releases it. |
+| `matched`         | boolean?   | A URI of the item matches the page, as for [`search`](#search). Absent from older apps: the extension treats it as `true`.                 |
+| `uris`            | string[]?  | The item's URIs, in order, at most 5. The app leaves out URIs over 1024 characters. Absent when it lists none.                             |
+| `uri_count`       | integer?   | How many URIs the item has, when more than `uris` lists. Absent otherwise.                                                                 |
+| `folder`          | string?    | The name of the item's folder. Absent when it has none.                                                                                    |
+| `revision_date`   | string?    | When the item last changed, as an ISO-8601 instant.                                                                                        |
 
 | Passkey field       | Type    |                                      |
 | ------------------- | ------- | ------------------------------------ |
@@ -463,7 +472,8 @@ username or URI host holds `query`, ignoring case. Those that match the page
 come first, then those whose name starts with `query`, then the rest. Each
 group is sorted by name.
 
-An item is a `suggest` item without `passkeys` or `last_used`, plus:
+An item is a `suggest` item without `passkeys`, `last_used`, `uris`,
+`uri_count`, `folder` or `revision_date`, and `matched` is always present:
 
 | Item field | Type    |                                                                                                                                                     |
 | ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -741,17 +751,15 @@ The app sends events to paired sessions only.
 - A handle is an opaque string of at most 64 characters.
 - The app creates handles at random for each session. They die with the session.
 - An item handle is bound to its account, item and [site](#pages-and-sites),
-  and to whether the item matched the page. A handle from `suggest` is
-  matched, unless `suggest` lists the item only for a passkey of `rp_id`; a
-  handle from `search` is matched when its item's `matched` is `true`. A
-  `fill` or `totp` treats a matched handle as not matched when its item no
-  longer matches `url`, such as after an edit of its URIs. A passkey handle is
-  bound to its account, item, credential and RP ID.
+  and to whether the item matched the page. A handle from `suggest` or
+  `search` is matched when its item's `matched` is `true`. A `fill` or `totp`
+  treats a matched handle as not matched when no URI of its item matches `url`
+  any more, such as after an edit of its URIs. A passkey handle is bound to
+  its account, item, credential and RP ID.
 - On an `http` page, an item is matched only by a URI that matches the page
-  and starts with `http://`. A listing by `suggest` doesn't count. So an
-  `https` login isn't matched on the `http` page of its host: its release
-  always prompts and warns. Adding the page adds `http://` and the host, and
-  the item is matched there from then on.
+  and starts with `http://`. So an `https` login isn't matched on the `http`
+  page of its host: its release always prompts and warns. Adding the page adds
+  `http://` and the host, and the item is matched there from then on.
 - An item keeps its handles on a site for the whole session: one matched, one
   not. The app may forget the oldest handles of a long session.
 - An unknown or expired handle gets `invalid_request`.

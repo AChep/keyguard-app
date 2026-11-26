@@ -7,6 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.getSystemService
+import com.artemchep.keyguard.android.companion.CompanionBitwardenLoginDependencies
 import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImportTransportAndroid
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
@@ -119,6 +120,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.binds
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.factory
 
 class CacheDirProviderAndroid(
     private val context: Context,
@@ -290,6 +292,7 @@ class PlatformApplicationModule {
                 security = get(),
             )
         }
+        factory<CompanionBitwardenLoginDependencies>()
         single<ConnectivityService> {
             ConnectivityServiceAndroid(
                 context = get<Application>(),

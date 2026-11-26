@@ -861,7 +861,7 @@ jobs:
             python3 scripts/run_mtls_tests.py --android -- ./gradlew --max-workers=1
             -Pkeyguard.nativeCargo.cargoOffline=true
             :androidApp:connectedNoneDebugAndroidTest
-            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.nativebundle.NativeBundleSmokeTest,com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest,com.artemchep.keyguard.test.transport.MutualTlsNetworkTest
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.nativebundle.NativeBundleSmokeTest,com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest,com.artemchep.keyguard.test.transport.MutualTlsNetworkTest,com.artemchep.keyguard.test.di.AndroidDiStartupSmokeTest
       - name: "Build Wear package"
         if: matrix.api == 26 && needs.changes.outputs.android == 'true'
         run: >-

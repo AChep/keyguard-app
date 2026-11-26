@@ -12,6 +12,7 @@ import androidx.test.filters.SdkSuppress
 import coil3.SingletonImageLoader
 import com.artemchep.keyguard.Main
 import com.artemchep.keyguard.android.CredentialProviderGetRequestHandler
+import com.artemchep.keyguard.android.companion.CompanionBitwardenLoginDependencies
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.ImageLoaderFactory
 import com.artemchep.keyguard.common.model.MasterSession
@@ -61,6 +62,8 @@ class AndroidDiStartupSmokeTest {
             assertNotNull(koin.get<GetTotpCode>())
             assertNotNull(koin.get<GetAutofillDefaultMatchDetection>().invoke().first())
             assertNotNull(koin.get<GetAutofillInlineSuggestions>().invoke().first())
+            // The watch sign-in screen resolves these before the vault is unlocked.
+            koin.get<CompanionBitwardenLoginDependencies>().use { assertNotNull(it) }
 
             assertNotNull(koin.get<AppWorker>(qualifier = named(AppWorker.Feature.SYNC)))
             assertNotNull(koin.get<BackupRunService>())

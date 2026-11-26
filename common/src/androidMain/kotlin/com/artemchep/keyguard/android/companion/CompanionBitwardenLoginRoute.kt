@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.android.companion
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.android.CompanionAuthActivity
 import com.artemchep.keyguard.common.io.ioEffect
@@ -21,8 +22,8 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.login
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.koin.compose.currentKoinScope
@@ -46,29 +47,39 @@ private fun CompanionBitwardenLoginScreen(
     request: CompanionAuthActivity.Request,
     transmitter: RouteResultTransmitter<Unit>,
 ) = with(currentKoinScope()) {
+    // The phone may sign the watch in while its own vault is
+    // locked, so the screen can not use the transport of the vault.
+    val dependencies = remember {
+        get<CompanionBitwardenLoginDependencies>()
+    }
+    DisposableEffect(dependencies) {
+        onDispose {
+            dependencies.close()
+        }
+    }
     val companionAddAccount = remember(request) {
         CompanionBitwardenAddAccount(
             request = request,
-            companionAuthBridge = get(),
-            cryptoGenerator = get(),
-            base64Service = get(),
-            deviceIdUseCase = get(),
-            httpClientProvider = get(),
-            json = get(),
+            companionAuthBridge = dependencies.companionAuthBridge,
+            cryptoGenerator = dependencies.cryptoGenerator,
+            base64Service = dependencies.base64Service,
+            deviceIdUseCase = dependencies.deviceIdUseCase,
+            httpClientProvider = dependencies.httpClientProvider,
+            json = dependencies.json,
         )
     }
     val state = produceBitwardenLoginScreenState(
         addAccount = companionAddAccount,
-        requestEmailTfa = get(),
+        requestEmailTfa = dependencies.requestEmailTfa,
         // The companion account is sent to the watch,
         // while SSO saves the account on this device.
         isSsoAvailable = false,
-        cipherUnsecureUrlCheck = get(),
-        dateFormatter = get(),
-        fileService = get(),
-        mutualTlsService = get(),
-        confirmationRouteFactory = get(),
-        discoverBitwardenServer = get(),
+        cipherUnsecureUrlCheck = dependencies.cipherUnsecureUrlCheck,
+        dateFormatter = dependencies.dateFormatter,
+        fileService = dependencies.fileService,
+        mutualTlsService = dependencies.mutualTlsService,
+        confirmationRouteFactory = dependencies.confirmationRouteFactory,
+        discoverBitwardenServer = dependencies.discoverBitwardenServer,
         args = BitwardenLoginRoute.Args(),
         screenKey = "bitwardenlogin.companion",
         // The watch can not use a certificate whose

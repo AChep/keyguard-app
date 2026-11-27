@@ -42,7 +42,7 @@ exclude = [
 
 [workspace.package]
 # Generated from appVersionName; run ./gradlew generateAppVersions after a bump.
-version = "3.9.0"
+version = "3.10.0"
 edition = "2024"
 rust-version = "1.94.0"
 license-file = "LICENSE"

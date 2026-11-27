@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 帐户</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 个账户</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 事件</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 次出现</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
         <item quantity="other">被 <xliff:g id="number">%1$d</xliff:g> 个条目使用</item>
@@ -61,7 +61,7 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 个已保存的旧密码</item>
     </plurals>
     <plurals name="skipped_environment_variable_references_note">
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 环境中的项目引用</item>
+        <item quantity="other">环境中存在 <xliff:g id="number">%1$d</xliff:g> 条条目引用</item>
     </plurals>
     <plurals name="skipped_environment_references_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 个环境包含无法转移的条目引用</item>
@@ -106,7 +106,7 @@
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 身份</item>
     </plurals>
     <plurals name="import_review_notes_note">
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 注释</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 条笔记</item>
     </plurals>
     <plurals name="import_review_ssh_keys_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH 密钥</item>
@@ -130,7 +130,7 @@
         <item quantity="other">以及其他 <xliff:g id="number">%1$d</xliff:g> 个</item>
     </plurals>
     <plurals name="import_success_text">
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 项目已添加到帐户。</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 个条目已添加到此账户。</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
@@ -139,7 +139,7 @@
         <item quantity="other">已为 <xliff:g id="number">%1$s</xliff:g> 个地址请求验证邮件</item>
     </plurals>
     <plurals name="import_backup_snapshot_items">
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 项目</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 个条目</item>
     </plurals>
     <plurals name="import_backup_snapshot_attachments">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 附件</item>
@@ -158,7 +158,7 @@
         <item quantity="other">将在 <xliff:g id="seconds" example="30">%1$d</xliff:g> 秒后过期</item>
     </plurals>
     <plurals name="agent_approval_expires_in_minutes_plural">
-        <item quantity="other"><xliff:g id="minutes" example="5">%1$d</xliff:g> 分钟过期</item>
+        <item quantity="other">将在 <xliff:g id="minutes" example="5">%1$d</xliff:g> 分钟后过期</item>
     </plurals>
     <plurals name="gpg_user_ids_count_plural">
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 个活动的用户 ID</item>
@@ -176,21 +176,52 @@
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 属性</item>
     </plurals>
     <plurals name="attachment_preview_json_items">
-        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 项目</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 个条目</item>
     </plurals>
     <plurals name="pref_item_ssh_agent_bookmarks_config_hosts_plural">
-        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 主机已置頂了</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 台主机已固定</item>
     </plurals>
     <plurals name="pref_item_ssh_agent_bookmarks_config_skipped_plural">
-        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 书签跳过：他们的 URL 无效，或者代理不提供他们的密钥</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 个书签已跳过：URL 无效，或中继不提供其密钥</item>
     </plurals>
     <plurals name="app_link_status_devices_up_to_date_plural">
-        <item quantity="other"><xliff:g id="count" example="1">%1$d</xliff:g> <xliff:g id="total" example="2">%2$d</xliff:g> 设备最新版本</item>
+        <item quantity="other"><xliff:g id="total" example="2">%2$d</xliff:g> 台设备中已有 <xliff:g id="count" example="1">%1$d</xliff:g> 台是最新版本</item>
     </plurals>
     <plurals name="app_link_status_relay_storage_waiting_plural">
-        <item quantity="other">中继器存储在 <xliff:g id="count" example="2">%1$d</xliff:g> 设备上关闭</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 台设备上的中继存储已关闭</item>
+    </plurals>
+    <plurals name="masterkdf_summary_iterations_plural">
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> iterations</item>
+    </plurals>
+    <!-- The parallelism of the Argon2id key derivation: the number of lanes of its memory -->
+    <plurals name="masterkdf_summary_parallelism_plural">
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> lanes</item>
     </plurals>
     <plurals name="changepassword_authority_not_resealed_plural">
-        <item quantity="other">此设备不能在 <xliff:g id="count" example="2">%1$d</xliff:g> 组中添加、删除或取消链接的设备。</item>
+        <item quantity="other">此设备无法再在 <xliff:g id="count" example="2">%1$d</xliff:g> 个组中添加、移除或取消关联设备。</item>
+    </plurals>
+    <plurals name="browser_extension_logins_truncated_plural">
+        <item quantity="other">仅显示前 <xliff:g id="count" example="50">%1$d</xliff:g> 条登录。打开 Keyguard 查看其余内容。</item>
+    </plurals>
+    <plurals name="browser_extension_search_truncated_plural">
+        <item quantity="other">仅显示前 <xliff:g id="count" example="20">%1$d</xliff:g> 条登录。输入更多内容以缩小搜索范围。</item>
+    </plurals>
+    <plurals name="browser_extension_pairings_count_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 个已配对的浏览器</item>
+    </plurals>
+    <plurals name="browser_extension_connected_count_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 个已连接</item>
+    </plurals>
+    <plurals name="secret_scan_checked_plural">
+        <item quantity="other">Checked <xliff:g id="count" example="1200">%1$d</xliff:g> files</item>
+    </plurals>
+    <plurals name="secret_scan_variables_plural">
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> variables</item>
+    </plurals>
+    <plurals name="secret_scan_skipped_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files skipped</item>
+    </plurals>
+    <plurals name="secret_scan_changed_files_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files changed since the scan and were skipped</item>
     </plurals>
 </resources>

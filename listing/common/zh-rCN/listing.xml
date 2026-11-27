@@ -18,7 +18,7 @@
     <string name="listing_description_highlight_passkeys_android">通行密钥：创建通行密钥，用于在应用、浏览器和附近的电脑上登录。</string>
     <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
     <string name="listing_description_highlight_totp">一次性密码：在登录条目中保存身份验证器密钥，获取 TOTP、HOTP、Steam 和 mOTP 验证码。</string>
-    <string name="listing_description_highlight_generator">生成器：生成密码、密码短语、用户名、电子邮件别名，以及 SSH 和 GPG 密钥，支持自定义词表。</string>
+    <string name="listing_description_highlight_generator">生成器：生成密码、口令、用户名、电子邮件别名，以及 SSH 和 GPG 密钥，支持自定义词表。</string>
     <string name="listing_description_highlight_search">搜索：使用短语、排除条件和字段限定符查找条目，并保存常用筛选条件。</string>
     <!-- Desktop only. A list item that starts with the name of the feature -->
     <string name="listing_description_highlight_quick_search_desktop">快速搜索：在任意应用中通过全局快捷键查找条目，并复制其字段值。</string>
@@ -28,7 +28,7 @@
     <string name="listing_description_highlight_ssh_agent">SSH 代理：使用 SSH 密钥向服务器和 Git 托管平台进行身份验证，密钥始终留在密码库内。</string>
     <string name="listing_description_highlight_gpg_agent">GPG 代理和工具：在其他应用或 Keyguard 中签名和解密，GPG 密钥始终留在密码库内。</string>
     <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
-    <string name="listing_description_highlight_environments_desktop">环境变量集（测试版）：将 API 密钥等环境变量保存在密码库中，并传递给本地工具和编程智能体。</string>
+    <string name="listing_description_highlight_environments_desktop">环境（测试版）：将 API 密钥等环境变量保存在密码库中，并传递给本地工具和编程智能体。</string>
     <string name="listing_description_highlight_multiple_accounts">多账户：登录多个 Bitwarden 和 KeePass 账户，在同一个密码库中查看各账户的条目。</string>
     <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
     <string name="listing_description_highlight_self_hosted">自托管服务器：通过单点登录、客户端证书和自定义 HTTP 请求头连接到自己的服务器。</string>
@@ -41,7 +41,7 @@
     <string name="listing_description_highlight_backup">备份：将密码库快照按版本保存到文件夹、WebDAV 服务器或兼容 S3 的存储中。</string>
     <string name="listing_description_highlight_attachment_preview">附件：将文件上传到密码库，无需保存到磁盘即可预览图片、文本和 ZIP 压缩包。</string>
     <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
-    <string name="listing_description_highlight_sends">发送：通过带有效期的链接共享文本或文件，还可设置密码或访问限制。</string>
+    <string name="listing_description_highlight_sends">Sends：通过会过期的链接分享文本或文件，可选密码或访问次数限制。</string>
     <!-- Android only. A list item that starts with the name of the platform -->
     <string name="listing_description_highlight_wear_os_android">Wear OS：在手表上查看条目和一次性密码，并登录手表应用。</string>
     <!-- A list item that starts with the name of the feature -->
@@ -57,7 +57,7 @@
     <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
     <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES：将应用关联到条目时列出已安装的应用，并显示关联应用的名称和图标。</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
-    <string name="listing_screenshot_home_default">主界面</string>
+    <string name="listing_screenshot_home_default">主屏幕</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">主屏幕，深色主题</string>
     <!-- A content description shown below the Generator screenshot, made with the default settings -->

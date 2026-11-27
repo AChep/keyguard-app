@@ -33,6 +33,15 @@ struct MasterPasswordView: View {
     @Environment(VaultSessionModel.self) private var authModel
 
     var body: some View {
+        // iOS shows the more-actions menu in the navigation bar.
+        #if os(iOS)
+        NavigationStack { form }
+        #else
+        form
+        #endif
+    }
+
+    private var form: some View {
         MasterPasswordForm(makeSession: mode == .create ? authModel.makeSetupSession : authModel.makeUnlockSession) {
             snapshot, actions in
             MasterPasswordContent(mode: mode, snapshot: snapshot, actions: actions)

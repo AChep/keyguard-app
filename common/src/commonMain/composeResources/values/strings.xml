@@ -1138,6 +1138,7 @@
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
     <string name="setup_button_send_crash_reports">Send crash reports</string>
     <string name="setup_button_create_vault">Create a vault</string>
+    <string name="setup_kdf_invalid_text">The advanced settings are not valid.</string>
     <string name="setup_action_erase_data_title">Erase app data</string>
     <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
     <string name="setup_erase_vault_confirmation_text">This permanently deletes the local vault on this device. This cannot be undone.</string>

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.keyguard.setup
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
 import arrow.core.Either
 import arrow.core.None
@@ -25,8 +27,8 @@ import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword as validateMasterPassword
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormHandle
-import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormState
 import com.artemchep.keyguard.feature.masterkdf.masterKdfFormHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -35,6 +37,8 @@ import com.artemchep.keyguard.platform.crashlyticsIsEnabled
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.FlatItemAction
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -112,9 +116,20 @@ suspend fun RememberStateFlowScope.setupStateProducer(
         isBusyFlow = executor.isExecutingFlow,
     )
     val kdfExpandedSink = mutablePersistedFlow(KEY_KDF_EXPANDED) { DEFAULT_KDF_EXPANDED }
-    val kdfSectionFlow = setupKdfSectionFlow(
-        kdfForm = kdfForm,
-        kdfExpandedSink = kdfExpandedSink,
+    val onKdfExpandedChange: (Boolean) -> Unit = kdfExpandedSink::value::set
+    // The error does not depend on the entered
+    // values, so translate it once.
+    val kdfInvalidText = translate(Res.string.setup_kdf_invalid_text)
+
+    val actions = persistentListOf(
+        FlatItemAction(
+            id = "setup.advanced",
+            icon = Icons.Outlined.Tune,
+            title = Res.string.advanced_options.wrap(),
+            onClick = {
+                onKdfExpandedChange(true)
+            },
+        ),
     )
 
     // Clear the password field when the screen
@@ -156,18 +171,19 @@ suspend fun RememberStateFlowScope.setupStateProducer(
         crashlyticsSink,
         biometricStateFlow,
         executor.isExecutingFlow,
-        kdfSectionFlow,
-    ) { (passwordCell, validatedPassword), crashlytics, biometric, taskIsExecuting, kdfSection ->
+        combine(kdfForm.stateFlow, kdfExpandedSink, ::Pair),
+    ) { (passwordCell, validatedPassword), crashlytics, biometric, taskIsExecuting, (kdf, kdfExpanded) ->
         val validationError = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = validationError == null &&
-                kdfSection.state.kdf != null &&
-                !kdfSection.state.test.isRunning &&
+                kdf.kdf != null &&
+                !kdf.test.isRunning &&
                 !taskIsExecuting
         val state = SetupState(
             biometric = biometric,
-            kdf = kdfSection.state,
-            kdfExpanded = kdfSection.expanded,
-            onKdfExpandedChange = kdfSection.onExpandedChange,
+            kdf = kdf,
+            kdfExpanded = kdfExpanded,
+            onKdfExpandedChange = onKdfExpandedChange,
+            kdfError = kdfInvalidText.takeIf { kdf.kdf == null },
             password = TextFieldModel.of(
                 cell = passwordCell,
                 handle = passwordHandle,
@@ -181,6 +197,7 @@ suspend fun RememberStateFlowScope.setupStateProducer(
                 showBiometricPromptFlow = biometricPromptSink,
             ),
             isLoading = taskIsExecuting,
+            actions = actions,
             onCreateVault = if (canCreateVault) {
                 // If the biometric is checked & possible, then ask user to
                 // confirm his identity.
@@ -278,31 +295,6 @@ private fun RememberStateFlowScope.createVaultWithBiometricAction(
             // Send it down the sink
             prompt?.let(biometricPromptSink::emit)
         }
-    }
-}
-
-private class SetupKdfSection(
-    val state: MasterKdfFormState,
-    val expanded: Boolean,
-    val onExpandedChange: ((Boolean) -> Unit)?,
-)
-
-private fun setupKdfSectionFlow(
-    kdfForm: MasterKdfFormHandle,
-    kdfExpandedSink: MutableStateFlow<Boolean>,
-): Flow<SetupKdfSection> {
-    val onExpandedChange: (Boolean) -> Unit = kdfExpandedSink::value::set
-    return combine(
-        kdfForm.stateFlow,
-        kdfExpandedSink,
-    ) { kdf, expanded ->
-        val isValid = kdf.kdf != null
-        SetupKdfSection(
-            state = kdf,
-            // The section stays open until the values are valid.
-            expanded = expanded || !isValid,
-            onExpandedChange = onExpandedChange.takeIf { isValid },
-        )
     }
 }
 

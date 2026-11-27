@@ -6,6 +6,9 @@ import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormState
+import com.artemchep.keyguard.ui.ContextItem
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -18,11 +21,14 @@ data class SetupState(
     val biometric: Biometric? = null,
     /** The key derivation of the app password. */
     val kdf: MasterKdfFormState,
-    /** `true` if the key derivation section is open; forced while it is not valid. */
+    /** `true` if the key derivation section is shown. */
     val kdfExpanded: Boolean = false,
-    /** `null` while the section is forced open. */
-    val onKdfExpandedChange: ((Boolean) -> Unit)? = null,
+    /** Shows or hides the key derivation section. */
+    val onKdfExpandedChange: (Boolean) -> Unit,
+    /** A translated error, shown while the key derivation is not valid. */
+    val kdfError: String? = null,
     val isLoading: Boolean = false,
+    val actions: ImmutableList<ContextItem> = persistentListOf(),
     val onCreateVault: (() -> Unit)? = null,
 ) {
     companion object;

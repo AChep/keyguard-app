@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.keyguard.setup
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,9 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Lock
@@ -57,13 +60,15 @@ import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
+import com.artemchep.keyguard.ui.LeMOdelBottomSheet
+import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
+import com.artemchep.keyguard.ui.theme.Dimens
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -146,10 +151,56 @@ fun SetupScreen(
 ) {
     BiometricPromptEffect(setupState.sideEffects.showBiometricPromptFlow)
 
-    OtherScaffold {
+    OtherScaffold(
+        actions = {
+            OptionsButton(actions = setupState.actions)
+        },
+    ) {
         SetupContent(
             setupState = setupState,
         )
+    }
+    SetupKdfSheet(
+        setupState = setupState,
+    )
+}
+
+@Composable
+private fun SetupKdfSheet(
+    setupState: SetupState,
+) {
+    val updatedOnKdfExpandedChange by rememberUpdatedState(setupState.onKdfExpandedChange)
+    LeMOdelBottomSheet(
+        visible = setupState.kdfExpanded,
+        onDismissRequest = {
+            updatedOnKdfExpandedChange(false)
+        },
+    ) { contentPadding ->
+        val verticalScrollState = rememberScrollState()
+        Column(
+            modifier = Modifier
+                .verticalScroll(verticalScrollState)
+                .padding(contentPadding),
+        ) {
+            Text(
+                modifier = Modifier
+                    .padding(
+                        horizontal = Dimens.horizontalPadding,
+                        vertical = 8.dp,
+                    ),
+                text = stringResource(Res.string.advanced_options),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            MasterKdfForm(
+                modifier = Modifier
+                    .padding(
+                        start = Dimens.horizontalPadding,
+                        end = Dimens.horizontalPadding,
+                        bottom = Dimens.verticalPadding,
+                    ),
+                state = setupState.kdf,
+            )
+        }
     }
 }
 
@@ -233,7 +284,7 @@ fun ColumnScope.SetupContent(
     Spacer(Modifier.height(3.dp))
     val updatedCrashlytics by rememberUpdatedState(setupState.crashlytics)
     FlatItemLayoutExpressive(
-        shapeState = ShapeState.CENTER,
+        shapeState = ShapeState.END,
         padding = PaddingValues(0.dp),
         leading = {
             Checkbox(
@@ -253,20 +304,6 @@ fun ColumnScope.SetupContent(
         },
         enabled = updatedCrashlytics.onChange != null,
     )
-    Spacer(Modifier.height(3.dp))
-    SetupKdfToggle(
-        expanded = setupState.kdfExpanded,
-        onExpandedChange = setupState.onKdfExpandedChange,
-    )
-    ExpandedIfNotEmpty(
-        valueOrNull = Unit.takeIf { setupState.kdfExpanded },
-    ) {
-        MasterKdfForm(
-            modifier = Modifier
-                .padding(top = 8.dp),
-            state = setupState.kdf,
-        )
-    }
     Spacer(Modifier.height(24.dp))
     val onCreateButtonClick by rememberUpdatedState(setupState.onCreateVault)
     Button(
@@ -301,41 +338,18 @@ fun ColumnScope.SetupContent(
             text = stringResource(Res.string.setup_button_create_vault),
         )
     }
-}
-
-@Composable
-private fun SetupKdfToggle(
-    expanded: Boolean,
-    onExpandedChange: ((Boolean) -> Unit)?,
-) {
-    val updatedExpanded by rememberUpdatedState(expanded)
-    val updatedOnExpandedChange by rememberUpdatedState(onExpandedChange)
-    FlatItemLayoutExpressive(
-        shapeState = ShapeState.END,
-        padding = PaddingValues(0.dp),
-        content = {
-            Text(
-                text = stringResource(Res.string.advanced_options),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        trailing = {
-            DropdownIcon(
-                expanded = expanded,
-            )
-        },
-        onClick = if (onExpandedChange != null) {
-            // lambda
-            {
-                updatedOnExpandedChange?.invoke(!updatedExpanded)
-            }
-        } else {
-            null
-        },
-        // Forced open while the key derivation is not valid,
-        // which is not a reason to dim it.
-        enabled = true,
-    )
+    ExpandedIfNotEmpty(
+        valueOrNull = setupState.kdfError,
+    ) { error ->
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            text = error,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+        )
+    }
 }
 
 @Composable

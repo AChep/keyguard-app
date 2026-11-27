@@ -30,7 +30,7 @@ final class WorkspaceSessionModelTests: XCTestCase {
     func testPasswordFormsKeepDraftsSeparateAndRejectClosedOwnerCallbacks() async throws {
         func snapshot(_ password: String) -> MasterPasswordSnapshot {
             MasterPasswordSnapshot(
-                loaded: true, password: password, passwordError: nil, isLoading: false, canSubmit: true,
+                loaded: true, password: password, passwordError: nil, kdfError: nil, isLoading: false, canSubmit: true,
                 hasBiometric: true, biometricEnabled: false, crashlyticsEnabled: false, kdf: nil,
                 kdfExpanded: false)
         }

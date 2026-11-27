@@ -6,13 +6,15 @@ import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 /**
  * Form fields are owned by a presentation; authentication activity is shared.
  *
- * [kdf] is the key derivation of a new vault, `null` while unlocking. Its section stays
- * [kdfExpanded] while the values are not valid; collapsing it then does nothing.
+ * [kdf] is the key derivation of a new vault, `null` while unlocking; [kdfExpanded] tells
+ * whether its section is shown.
  */
 data class MasterPasswordSnapshot(
     val loaded: Boolean,
     val password: String,
     val passwordError: String?,
+    /** A translated error, shown while the key derivation is not valid. */
+    val kdfError: String?,
     val isLoading: Boolean,
     val canSubmit: Boolean,
     val hasBiometric: Boolean,
@@ -23,7 +25,7 @@ data class MasterPasswordSnapshot(
 ) {
     companion object {
         val empty = MasterPasswordSnapshot(
-            false, "", null, false, false, false, false, false,
+            false, "", null, null, false, false, false, false, false,
             kdf = null,
             kdfExpanded = false,
         )
@@ -35,6 +37,7 @@ internal fun UnlockState?.toMasterPasswordSnapshot(busy: Boolean): MasterPasswor
         loaded = true,
         password = password.text,
         passwordError = password.error,
+        kdfError = null,
         isLoading = isLoading || busy,
         canSubmit = unlockVaultByMasterPassword != null && !busy,
         hasBiometric = false,
@@ -49,6 +52,7 @@ internal fun SetupState?.toMasterPasswordSnapshot(busy: Boolean): MasterPassword
         loaded = true,
         password = password.text,
         passwordError = password.error,
+        kdfError = kdfError,
         isLoading = isLoading || busy,
         canSubmit = onCreateVault != null && !busy,
         hasBiometric = biometric != null,

@@ -114,5 +114,4 @@ See [Change the app password](/docs/lock-and-unlock/#change-the-app-password).
 Sets the Argon2id parameters that protect the vault key: iterations, memory and
 parallelism. More iterations and memory make the password harder to guess and
 unlocking slower. Parallelism sets the number of lanes. **Test** shows the
-unlock time on this device. You can also set them when you create the vault,
-under **Advanced**.
+unlock time on this device. You can also set them when you create the vault.

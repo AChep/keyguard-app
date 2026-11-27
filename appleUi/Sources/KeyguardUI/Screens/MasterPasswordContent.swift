@@ -35,7 +35,7 @@ struct MasterPasswordContent: View {
         Binding(get: { snapshot.crashlyticsEnabled }, set: actions.setCrashlytics)
     }
 
-    /// Stays open while the key derivation is not valid: collapsing it then does nothing.
+    /// The key derivation section: a disclosure group on macOS, a sheet on iOS.
     private var kdfExpandedBinding: Binding<Bool> {
         Binding(get: { snapshot.kdfExpanded }, set: actions.setKdfExpanded)
     }
@@ -82,20 +82,10 @@ struct MasterPasswordContent: View {
                     .frame(maxWidth: 320)
 
                     if let error = errorText {
-                        // Lead the inline validation error with a danger SF Symbol so it
-                        // is not communicated by color alone (color-blind / increased
-                        // contrast), and use the system-adaptive danger color.
-                        Label {
-                            Text(error)
-                        } icon: {
-                            Image(systemName: "exclamationmark.circle.fill")
-                        }
-                        .font(.footnote)
-                        .foregroundStyle(Color(platform: .platformDanger))
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: 320)
+                        errorLabel(error)
                     }
 
+                    #if os(macOS)
                     if mode == .create, let kdf = snapshot.kdf {
                         DisclosureGroup(L10n.advancedOptions, isExpanded: kdfExpandedBinding) {
                             MasterKdfFields(kdf: kdf, perform: actions.kdf)
@@ -105,7 +95,6 @@ struct MasterPasswordContent: View {
                         .frame(maxWidth: 320)
                     }
 
-                    #if os(macOS)
                     if mode == .unlock {
                         if isBusy {
                             ProgressView()
@@ -115,8 +104,13 @@ struct MasterPasswordContent: View {
                         submitButton
                     }
                     #else
+                    // The key derivation fields open from the toolbar's more-actions menu, in a sheet.
                     submitButton
                     #endif
+
+                    if let error = snapshot.kdfError {
+                        errorLabel(error)
+                    }
 
                     if mode == .unlock, hasBiometric {
                         Button {
@@ -154,7 +148,6 @@ struct MasterPasswordContent: View {
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
-            // The number pad of the key derivation fields has no return key.
             .scrollDismissesKeyboard(.interactively)
         }
         .background {
@@ -164,14 +157,21 @@ struct MasterPasswordContent: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if mode == .unlock, !authModel.unlockActions.isEmpty {
+            if hasMoreActions {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu(L10n.moreActions, systemImage: "ellipsis") {
-                        ForEach(authModel.unlockActions, id: \.id) { action in
-                            Button(action.title, role: .destructive) {
-                                pendingAction = action
+                        switch mode {
+                        case .unlock:
+                            ForEach(authModel.unlockActions, id: \.id) { action in
+                                Button(action.title, role: .destructive) {
+                                    pendingAction = action
+                                }
+                                .disabled(isBusy)
                             }
-                            .disabled(isBusy)
+                        case .create:
+                            Button(L10n.advancedOptions, systemImage: "slider.horizontal.3") {
+                                actions.setKdfExpanded(true)
+                            }
                         }
                     }
                     .labelStyle(.iconOnly)
@@ -181,6 +181,7 @@ struct MasterPasswordContent: View {
                 }
             }
         }
+        .sheet(isPresented: kdfExpandedBinding) { kdfSheet }
         #endif
         .onAppear {
             switch mode {
@@ -223,6 +224,48 @@ struct MasterPasswordContent: View {
         #else
         field
         #endif
+    }
+
+    #if os(iOS)
+    /// Whether the toolbar's more-actions menu has anything for this mode.
+    private var hasMoreActions: Bool {
+        switch mode {
+        case .unlock: !authModel.unlockActions.isEmpty
+        case .create: snapshot.kdf != nil
+        }
+    }
+
+    /// The key derivation fields, opened from the toolbar's more-actions menu.
+    private var kdfSheet: some View {
+        ModalSheet(title: L10n.advancedOptions, detents: [.medium, .large], dismissLabel: L10n.done) {
+            Form {
+                // Read from the current snapshot, so the fields follow edits.
+                if let kdf = snapshot.kdf {
+                    Section {
+                        MasterKdfFields(kdf: kdf, perform: actions.kdf)
+                    }
+                }
+            }
+            .formStyle(.grouped)
+            // The number pad of the key derivation fields has no return key.
+            .scrollDismissesKeyboard(.interactively)
+            .disabled(isBusy)
+        }
+    }
+    #endif
+
+    /// Leads with a danger SF Symbol, so the error is not communicated by color alone
+    /// (color-blind / increased contrast), and uses the system-adaptive danger color.
+    private func errorLabel(_ text: String) -> some View {
+        Label {
+            Text(text)
+        } icon: {
+            Image(systemName: "exclamationmark.circle.fill")
+        }
+        .font(.footnote)
+        .foregroundStyle(Color(platform: .platformDanger))
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: 320)
     }
 
     @ViewBuilder

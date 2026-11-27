@@ -36,13 +36,7 @@ public struct RootContainer<Main: View>: View {
             case .needsCreate:
                 MasterPasswordView(mode: .create)
             case .locked:
-                #if os(iOS)
-                NavigationStack {
-                    MasterPasswordView(mode: .unlock)
-                }
-                #else
                 MasterPasswordView(mode: .unlock)
-                #endif
             case .unlocked:
                 if !authModel.hasOnboarded {
                     OnboardingBanner { onboardingPresented = true }

@@ -316,9 +316,60 @@
         <item quantity="few">Relay storage is off on <xliff:g id="count" example="2">%1$d</xliff:g> devices</item>
         <item quantity="other">Relay storage is off on <xliff:g id="count" example="2">%1$d</xliff:g> devices</item>
     </plurals>
+    <plurals name="masterkdf_summary_iterations_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> iteration</item>
+        <item quantity="few"><xliff:g id="count" example="3">%1$d</xliff:g> iterations</item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> iterations</item>
+    </plurals>
+    <!-- The parallelism of the Argon2id key derivation: the number of lanes of its memory -->
+    <plurals name="masterkdf_summary_parallelism_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> lane</item>
+        <item quantity="few"><xliff:g id="count" example="4">%1$d</xliff:g> lanes</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> lanes</item>
+    </plurals>
     <plurals name="changepassword_authority_not_resealed_plural">
         <item quantity="one">This device can no longer add, remove or unlink linked devices.</item>
         <item quantity="few">This device can no longer add, remove or unlink linked devices in <xliff:g id="count" example="2">%1$d</xliff:g> groups.</item>
         <item quantity="other">This device can no longer add, remove or unlink linked devices in <xliff:g id="count" example="2">%1$d</xliff:g> groups.</item>
+    </plurals>
+    <plurals name="browser_extension_logins_truncated_plural">
+        <item quantity="one">Showing the first <xliff:g id="count" example="1">%1$d</xliff:g> login. Open Keyguard to see the rest.</item>
+        <item quantity="few">Showing the first <xliff:g id="count" example="50">%1$d</xliff:g> logins. Open Keyguard to see the rest.</item>
+        <item quantity="other">Showing the first <xliff:g id="count" example="50">%1$d</xliff:g> logins. Open Keyguard to see the rest.</item>
+    </plurals>
+    <plurals name="browser_extension_search_truncated_plural">
+        <item quantity="one">Showing the first <xliff:g id="count" example="1">%1$d</xliff:g> login. Type more to narrow the search.</item>
+        <item quantity="few">Showing the first <xliff:g id="count" example="20">%1$d</xliff:g> logins. Type more to narrow the search.</item>
+        <item quantity="other">Showing the first <xliff:g id="count" example="20">%1$d</xliff:g> logins. Type more to narrow the search.</item>
+    </plurals>
+    <plurals name="browser_extension_pairings_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> paired browser</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> paired browsers</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> paired browsers</item>
+    </plurals>
+    <plurals name="browser_extension_connected_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> connected</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> connected</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> connected</item>
+    </plurals>
+    <plurals name="secret_scan_checked_plural">
+        <item quantity="one">Checked <xliff:g id="count" example="1">%1$d</xliff:g> file</item>
+        <item quantity="few">Checked <xliff:g id="count" example="1200">%1$d</xliff:g> files</item>
+        <item quantity="other">Checked <xliff:g id="count" example="1200">%1$d</xliff:g> files</item>
+    </plurals>
+    <plurals name="secret_scan_variables_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> variable</item>
+        <item quantity="few"><xliff:g id="count" example="4">%1$d</xliff:g> variables</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> variables</item>
+    </plurals>
+    <plurals name="secret_scan_skipped_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> file skipped</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> files skipped</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files skipped</item>
+    </plurals>
+    <plurals name="secret_scan_changed_files_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> file changed since the scan and was skipped</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> files changed since the scan and were skipped</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files changed since the scan and were skipped</item>
     </plurals>
 </resources>

@@ -19,6 +19,8 @@
     <string name="more">Mere</string>
     <string name="server">Server</string>
     <string name="confirm">Bekræft</string>
+    <!-- Returns to the previous step -->
+    <string name="back">Back</string>
     <string name="change">Skift</string>
     <string name="website">Websted</string>
     <string name="phone">Telefon</string>
@@ -280,6 +282,7 @@
     <string name="passkey_available">Adgangsnøgle tilgængelig</string>
     <string name="passkey_credential_load_failed_title">Adgangsnøglen kunne ikke indlæses</string>
     <string name="passkey_credential_id_label">Legitimationsoplysningens id</string>
+    <string name="passkey_approval_sign_in_message">Sign in to <xliff:g id="site" example="example.com">%1$s</xliff:g> with a passkey:</string>
     <string name="twofa_available">Tofaktorgodkendelse tilgængelig</string>
     <string name="custom">Tilpasset</string>
     <string name="grant_permission">Tildel tilladelse</string>
@@ -312,6 +315,8 @@
     <string name="encryption_key">Nøgle</string>
     <string name="encryption_hash">Hash</string>
     <string name="encryption_salt">Salt</string>
+    <!-- A key that encrypts another key, such as the key of the vault -->
+    <string name="encryption_key_encryption_key">Key-encryption key</string>
     <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
     <string name="encryption_random_bits_data">Tilfældige <xliff:g id="length" example="64">%1$d</xliff:g>-bits data</string>
     <string name="none">Ingen</string>
@@ -631,6 +636,10 @@
     <string name="gpg_key_import_error_reconcile">GPG-nøglen kunne ikke flettes sikkert.</string>
     <string name="key_import_passphrase_hint">Indtast adgangssætningen til <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-nøglen</string>
     <string name="gpg_key_import_passphrase_dialog_message">Denne private <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g>-nøgle er krypteret. Keyguard gemmer den uden nøglens adgangssætning efter importen.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">Udløb</string>
     <string name="gpg_key_expiry_never">Aldrig</string>
     <string name="gpg_key_expiry_same_as_primary">Samme som den primære nøgle (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -760,6 +769,8 @@
     <string name="found_value">Waarde gevonden</string>
     <string name="autofill_unlock_keyguard">Oplås Keyguard</string>
     <string name="autofill_unlock_subtitle">Angiv din hovedadgangskode for at udfylde det valgte login.</string>
+    <!-- Shown in the iOS AutoFill extension when the key derivation of the vault needs more memory than iOS gives the extension -->
+    <string name="autofill_unlock_password_out_of_memory">AutoFill does not have enough memory to unlock with the master password. Unlock with Face ID or Touch ID, or open Keyguard.</string>
     <string name="autofill_open_keyguard">Åbn Keyguard</string>
     <!--
         Shows up as an entry in the system credential picker when the app
@@ -854,8 +865,14 @@
     <string name="error_otp_key_is_invalid">Engangsadgangskodens hemmelige nøgle er ugyldig</string>
     <string name="error_failed_file_already_exists">Aanmaken van bestand mislukt. Vervangen van een bestaand bestand is niet toegestaan</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">Denne konto er allerede føjet til Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Kunne ikke oprette en nøgle, ikke nok hukommelse. Tjek KDF-serverindstillingerne.</string>
+    <string name="error_master_kdf_out_of_memory">Not enough memory to derive the key. Lower the memory of the key derivation.</string>
+    <string name="error_master_password_changed_meanwhile">The app password changed in the meantime. Try again.</string>
     <string name="error_failed_generate_otp_code">Mislykkedes at generere OTP-kode</string>
     <string name="error_failed_create_passkey">Mislykkedes at oprette en adgangsnøgle</string>
     <string name="error_failed_create_password">Wachtwoord aanmaken mislukt</string>
@@ -1022,6 +1039,12 @@
     <string name="wordlist_word_search_placeholder">Søgeord</string>
     <string name="wordlist_rename_action">Omdøb ordliste</string>
     <string name="wordlist_words_empty_label">Denne ordliste er tom</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">URL-tilsidesættelse</string>
     <string name="urloverride_list_header_title">URL-tilsidesættelser</string>
     <string name="urloverride_list_section_title">URL-tilsidesættelser</string>
@@ -1038,6 +1061,11 @@
     <string name="urlblock_empty_label">Geen geblokkeerde URI's</string>
     <string name="urlblock_expose_title">Gegevens vrijgeven aan het framework voor automatisch invullen vóór het ontgrendelen van de kluis</string>
     <string name="urlblock_expose_text">Indien ingeschakeld, wordt het item buiten de kluis opgeslagen, waardoor de suggesties voor automatisch invullen volledig kunnen worden verborgen, zelfs als de kluis is vergrendeld</string>
+    <!-- Blocked URIs: what a rule blocks -->
+    <string name="urlblock_scope_title">Block</string>
+    <string name="urlblock_scope_all">Autofill and saving</string>
+    <!-- Blocked URIs: the rule keeps autofill and only stops offers to save logins -->
+    <string name="urlblock_scope_save">Saving only</string>
     <string name="urlrule_global_label">Global</string>
     <string name="urlrule_excluded_label">Udeladt</string>
     <string name="privilegedapps_header_title">Bevoorrechte apps</string>
@@ -1054,9 +1082,28 @@
     <string name="setup_biometric_auth_confirm_title">Opret en boks</string>
     <string name="setup_button_send_crash_reports">Indsend nedbrudsrapporter</string>
     <string name="setup_button_create_vault">Opret en boks</string>
+    <string name="setup_kdf_invalid_text">The advanced settings are not valid.</string>
     <string name="setup_action_erase_data_title">Slet app-data</string>
     <string name="setup_action_erase_data_text">Luk appen og slet alle lokale app-data</string>
     <string name="setup_erase_vault_confirmation_text">Dette sletter den lokale boks på denne enhed permanent. Det kan ikke fortrydes.</string>
+    <!-- Key derivation (Argon2id) of the app password -->
+    <string name="masterkdf_note">Argon2id key derivation. More memory and iterations make the app password harder to guess and unlocking slower. Parallelism sets the number of lanes.</string>
+    <string name="masterkdf_iterations_label">Iterations</string>
+    <string name="masterkdf_memory_label">Memory (MiB)</string>
+    <string name="masterkdf_parallelism_label">Parallelism</string>
+    <string name="masterkdf_error_out_of_range">Must be between <xliff:g id="min" example="2">%1$s</xliff:g> and <xliff:g id="max" example="100">%2$s</xliff:g></string>
+    <!-- A button that derives a key once with the entered values and shows how long it took -->
+    <string name="masterkdf_test_button">Test</string>
+    <!-- The result of the test; the placeholder is a number of seconds, such as 1.2 -->
+    <string name="masterkdf_test_result">Unlocking takes about <xliff:g id="seconds" example="1.2">%1$s</xliff:g> s on this device.</string>
+    <string name="masterkdf_memory_warning_ios">AutoFill may fail to unlock the vault with more than <xliff:g id="memory" example="64">%1$s</xliff:g> MiB of memory.</string>
+    <string name="masterkdf_title">Key derivation</string>
+    <!-- The key derivation of the vault in the settings; the placeholders are the localized memory, iterations and parallelism, such as 64 MiB, 3 iterations and 4 lanes -->
+    <string name="masterkdf_summary_argon2id">Argon2id · <xliff:g id="memory" example="64 MiB">%1$s</xliff:g> · <xliff:g id="iterations" example="3 iterations">%2$s</xliff:g> · <xliff:g id="parallelism" example="4 lanes">%3$s</xliff:g></string>
+    <string name="masterkdf_summary_memory"><xliff:g id="memory" example="64">%1$s</xliff:g> MiB</string>
+    <!-- The key derivation of a vault created by an older version of the app -->
+    <string name="masterkdf_summary_pbkdf2_legacy">PBKDF2 (legacy)</string>
+    <string name="changekdf_changed_successfully">Key derivation changed</string>
     <string name="unlock_header_text">Boksen er låst. Angiv app-adgangskoden for at fortsætte.</string>
     <string name="unlock_button_unlock">Oplås</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
@@ -1249,6 +1296,10 @@
     <string name="password_strength_good_label">God</string>
     <string name="password_strength_fair_label">Rimelig</string>
     <string name="password_strength_weak_label">Svag</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">Meget stærke adgangskoder</string>
     <string name="passwords_strong_label">Meget stærke adgangskoder</string>
     <string name="passwords_good_label">Gode adgangskoder</string>
@@ -1637,6 +1688,10 @@
     <string name="watchtower_item_compromised_accounts_title">Kompromitterede konti</string>
     <string name="watchtower_item_compromised_accounts_text">Tjek for databrud vha. et brugernavn eller en e-mailadresse.</string>
     <string name="watchtower_notification_new_alerts_title">Nye Watchtower-advarsler</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">Nye Watchtower-advarsler</string>
     <string name="watchtower_alerts_new_title">Nye advarsler</string>
     <string name="watchtower_alerts_empty_title">Ingen nye advarsler</string>
@@ -1646,9 +1701,6 @@
     <string name="notification_vault_backup_title">Sikkerhedskopierer boks</string>
     <string name="changepassword_header_title">Skift app-adgangskode</string>
     <string name="changepassword_change_password_button">Skift adgangskode</string>
-    <string name="changepassword_biometric_auth_checkbox">Biometrisk godkendelse</string>
-    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
-    <string name="changepassword_biometric_auth_confirm_title">Skift app-adgangskode</string>
     <string name="changepassword_disclaimer_local_note">App-adgangskoden gemmes aldrig på enheden eller sendes over netværket. Den bruges generering af en hemmelig nøgle til brug for kryptering af lokale data.</string>
     <string name="changepassword_disclaimer_abuse_note">Medmindre man mistænker uautoriseret adgang eller opdager en malware på enheden, er der ingen grund til at skifte adgangskoden, hvis den ellers er stærk og unik.</string>
     <string name="changepassword_password_changed_successfully">Adgangskode skiftet</string>
@@ -1770,6 +1822,8 @@
     <string name="settingssearch_backup_location_keywords">destination mappe server WebDAV S3 bucket</string>
     <string name="settingssearch_backup_password_keywords">kryptering adgangskode konfigureret</string>
     <string name="settingssearch_build_ref_keywords">revision commit kildekode build reference</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">licens rettighed licenstoken token</string>
     <string name="settingssearch_search_placeholder">Søgeindstillinger</string>
     <string name="settings_appearance_header_title">Udseende</string>
@@ -1886,7 +1940,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Afventende ændringer</string>
     <string name="pref_item_automatic_backups_run_now_title">Sikkerhedskopiér nu</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Platformen understøttes ikke</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatisk sikkerhedskopiering er tilgængelig på Android, desktop, macOS og iOS.</string>
@@ -1936,9 +1989,19 @@
     <string name="navigation_items_missing_filter_text">Filter ikke fundet</string>
     <string name="navigation_items_predefined_route_text">Foruddefineret rute</string>
     <string name="pref_item_app_version_title">App-version</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">App build-dato</string>
     <string name="pref_item_app_build_ref_title">App build-ref</string>
     <string name="pref_item_app_changelog_title">App-ændringslog</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Teamet bag appen</string>
     <string name="pref_item_reddit_community_title">Reddit-fællesskab</string>
     <string name="pref_item_github_title">GitHub-projekt</string>
@@ -2088,6 +2151,8 @@
     <string name="pref_item_agent_filters_summary_all">Alle nøgler er tilgængelige</string>
     <string name="pref_item_agent_filters_summary_active">Filtre er aktive</string>
     <string name="pref_item_agent_history_title">Anmodningslog</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Aktivér SSH-agent</string>
@@ -2295,8 +2360,8 @@
     <string name="datasafety_local_settings_note">Brugerindstillinger krypteres med en enhedsspecifik nøgle.</string>
     <string name="datasafety_local_settings_no_app_encryption_note">Brugerindstillinger gemmes lokalt uden kryptering på appniveau.</string>
     <string name="datasafety_local_vault_section">Boks</string>
-    <string name="datasafety_local_encryption_algorithm_intro">Boksen krypteres med en nøgle afledt af App-adgangskoden i flg. trin:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">Salt og Hash gemmes dernæst lokalt på en enhed for senere at generere en hovednøgle til at oplåse boksen.</string>
+    <string name="datasafety_local_encryption_algorithm_intro_v2">The Vault is encrypted with a random Key. The App password protects that Key:</string>
+    <string name="datasafety_local_encryption_algorithm_outro_v2">The Salt and the Key, encrypted with the Key-encryption key, are then stored locally on a device. Unlocking derives the Key-encryption key again to decrypt the Key.</string>
     <string name="datasafety_local_unlocking_vault">Oplåsning af en boks betyder lagring af en korrekt nøgle i en enheds RAM, og derved kunne læse og ændre en krypteret boks.</string>
     <string name="datasafety_local_stored_on_device_text">Lokale data omfatter downloads, brugerindstillinger og boksen, som er gemt på denne enhed.</string>
     <string name="datasafety_local_kdf_versions_note">Nøgleafledning (KDF) bruger Argon2id i version 1 og PBKDF2 i den ældre version 0.</string>
@@ -2504,6 +2569,15 @@
     <string name="pref_item_automatic_backups_folder_access_help">Hvis adgangen til mappen mistes, skal du vælge mappen igen for at gendanne tilladelsen.</string>
     <string name="pref_item_automatic_backups_webdav_keep_password">Lad adgangskodefeltet være tomt for at beholde den gemte adgangskode.</string>
     <string name="pref_item_automatic_backups_s3_keep_secret">Lad feltet til den hemmelige adgangsnøgle stå tomt for at beholde den gemte nøgle.</string>
+    <string name="pref_item_start_in_background_title">Start in background at login</string>
+    <string name="pref_item_start_in_background_text">Keep the main window closed when Keyguard starts at login. Open Keyguard from the launcher or system tray.</string>
+    <string name="pref_item_launch_at_login_failed_text">Could not update launch at login. Try again.</string>
+    <string name="pref_item_launch_at_login_disabled_text">Disabled in system settings. Enable it there to launch at login.</string>
+    <string name="pref_item_launch_at_login_policy_text">Managed by system policy.</string>
+    <string name="pref_item_launch_at_login_stale_text">The startup entry points to a missing app. Enable it again to update the entry.</string>
+    <string name="pref_item_launch_at_login_state_unknown_text">Keyguard can't read the startup state.</string>
+    <string name="pref_item_launch_at_login_open_settings">Open startup settings</string>
+    <string name="pref_item_launch_at_login_reason">Start Keyguard at login to make its desktop integrations available.</string>
     <string name="pref_item_launch_at_login_title">Start Keyguard, når du logger ind</string>
     <string name="pref_item_launch_at_login_approval_note">Godkendelse kræves i Systemindstillinger ▸ Loginemner.</string>
     <string name="pref_item_launch_at_login_unavailable_text">Start ved login er ikke tilgængelig i denne udgave.</string>
@@ -3000,4 +3074,184 @@
     <string name="app_link_alert_removed_this_by_former_text">A device that is no longer linked removed this device. If you didn't do this, link your devices again.</string>
     <string name="app_link_alert_removed_with_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> was removed with the device that added it.</string>
     <string name="app_link_alert_left_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> left.</string>
+    <!-- Browser extension: the name and description in the browser's extension list -->
+    <string name="browser_extension_description">Fill logins and one-time passwords from the Keyguard desktop app.</string>
+    <string name="browser_extension_connector_missing_title">Connector not installed</string>
+    <string name="browser_extension_connector_missing_text">Turn on Settings → Autofill → Browser extension in the Keyguard desktop app.</string>
+    <string name="browser_extension_app_unavailable_title">Keyguard isn’t running</string>
+    <string name="browser_extension_app_unavailable_text">Open the Keyguard desktop app.</string>
+    <string name="browser_extension_integration_disabled_title">Browser extension is off</string>
+    <string name="browser_extension_integration_disabled_text">Turn it on in the Keyguard app: Settings → Autofill → Browser extension.</string>
+    <string name="browser_extension_update_required_title">Connector needs an update</string>
+    <string name="browser_extension_update_required_text">Update the Keyguard app, then open it.</string>
+    <string name="browser_extension_extension_update_required_title">Update the Keyguard extension</string>
+    <string name="browser_extension_extension_update_required_text">The Keyguard app no longer supports this version of the extension. Update the extension.</string>
+    <string name="browser_extension_app_update_required_title">Update the Keyguard app</string>
+    <string name="browser_extension_app_update_required_text">The desktop app cannot read its browser pairings. Update the app, then retry to use your existing pairing.</string>
+    <string name="browser_extension_unverified_host_title">Connector not verified</string>
+    <string name="browser_extension_unverified_host_text">Keyguard refused the browser connector: it isn’t the one bundled with the app. Open the Keyguard app to repair it.</string>
+    <string name="browser_extension_too_many_sessions_title">Too many browsers connected</string>
+    <string name="browser_extension_too_many_sessions_text">Close Keyguard in another browser, then try again.</string>
+    <string name="browser_extension_not_paired_title">Pair with Keyguard</string>
+    <string name="browser_extension_not_paired_text">Pair this browser with the Keyguard desktop app to fill logins.</string>
+    <string name="browser_extension_pair_button">Pair</string>
+    <string name="browser_extension_pairing_code_title">Compare the code</string>
+    <string name="browser_extension_pairing_code_text">Keyguard shows a pairing request. Confirm it only if it shows the same code.</string>
+    <string name="browser_extension_key_mismatch_title">Keyguard’s key changed</string>
+    <string name="browser_extension_key_mismatch_text">The app that answered isn’t the one this browser paired with. If you didn’t reinstall Keyguard or remove this browser from it, someone may be intercepting the connection.</string>
+    <string name="browser_extension_pair_again_button">Pair again</string>
+    <string name="browser_extension_locked_text">The vault is locked. Unlock it to fill logins.</string>
+    <string name="browser_extension_unlock_pending_text">Unlock the vault in the Keyguard app.</string>
+    <string name="browser_extension_page_unsupported_text">Keyguard can’t fill on this page.</string>
+    <string name="browser_extension_site_blocked_text">This site matches a blocked URI. Keyguard doesn’t fill here.</string>
+    <string name="browser_extension_fill_button">Fill</string>
+    <!-- Browser extension: goes back from an item's details to the list in a narrow popup -->
+    <string name="browser_extension_back">Back</string>
+    <string name="browser_extension_error_user_denied">Declined in Keyguard.</string>
+    <string name="browser_extension_error_approval_timeout">The request timed out in Keyguard.</string>
+    <string name="browser_extension_error_vault_locked">The vault is locked.</string>
+    <string name="browser_extension_error_not_supported">This version of Keyguard doesn’t support this.</string>
+    <string name="browser_extension_error_not_allowed">Keyguard refused the request.</string>
+    <string name="browser_extension_error_busy">Keyguard is busy. Try again.</string>
+    <string name="browser_extension_error_disconnected">Lost the connection to Keyguard.</string>
+    <string name="browser_extension_pair_locked_text">Unlock Keyguard in the app, then pair.</string>
+    <!-- Browser extension: the description of the keyboard shortcut in the browser's shortcut settings -->
+    <string name="browser_extension_command_fill_login">Fill the login</string>
+    <string name="browser_extension_menu_generate_password">Generate password</string>
+    <string name="browser_extension_menu_fill_totp">Fill one-time password</string>
+    <!-- Browser extension: the popup button and the inline menu row that open the app's window with a new login for the page -->
+    <string name="browser_extension_new_login">New login</string>
+    <!-- Browser extension: marks the login filled last on the tab, listed first on the next step of a sign-in -->
+    <string name="browser_extension_last_used">Last used</string>
+    <!-- Browser extension: the popup searches the whole vault -->
+    <string name="browser_extension_search_empty">No logins found</string>
+    <!-- Browser extension: marks a search result whose URIs don’t match the page; Keyguard asks before it fills it -->
+    <string name="browser_extension_search_unmatched">Not saved for this site</string>
+    <string name="browser_extension_save_title">Save this login in Keyguard?</string>
+    <string name="browser_extension_save_not_now">Not now</string>
+    <string name="browser_extension_save_never">Never for this site</string>
+    <string name="browser_extension_options_inline_menu_text">Shows matching logins next to login fields.</string>
+    <!-- Browser extension options: a sign-in that asks for the username on one page and for the password on the next -->
+    <string name="browser_extension_options_password_step_title">Fill the password step</string>
+    <string name="browser_extension_options_password_step_text">After you fill a username on its own page, fills the password on the next one.</string>
+    <string name="browser_extension_options_submit_title">Sign in after filling</string>
+    <string name="browser_extension_options_submit_text">Selects the form’s sign-in or next button after a login fill.</string>
+    <string name="browser_extension_options_save_text">Offers to save a login after you sign in or sign up.</string>
+    <string name="browser_extension_options_passkeys_text">Keyguard answers passkey requests of websites.</string>
+    <!-- Browser extension options: where the sites of "Never for this site" are kept -->
+    <string name="browser_extension_options_never_save_text">Never for this site adds the site to Blocked URIs in the Keyguard app: Settings → Autofill → Block autofill.</string>
+    <string name="browser_extension_options_browser_saving_title">Turn off browser password saving</string>
+    <string name="browser_extension_options_browser_saving_text">Stops the browser from offering to save passwords, so only Keyguard asks.</string>
+    <string name="browser_extension_options_browser_saving_other_extension">Another extension manages this setting.</string>
+    <string name="browser_extension_options_browser_saving_not_controllable">The browser or a policy manages this setting.</string>
+    <string name="browser_extension_error_no_form">Keyguard found no login form on this page.</string>
+    <string name="browser_extension_error_nothing_to_fill">This login has nothing to fill into this form.</string>
+    <string name="browser_extension_error_no_otp_field">Keyguard found no one-time code field on this page.</string>
+    <string name="browser_extension_error_not_editable">The field is read-only, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_field_opted_out">The page asks password managers not to fill this field.</string>
+    <string name="browser_extension_error_field_hidden">The page hides the field, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_field_off_screen">The field is off screen. Scroll to it, then try again.</string>
+    <string name="browser_extension_error_field_covered">Something on the page covers the field, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_popup_covered">The page covers Keyguard. Close what’s open on the page, then try again.</string>
+    <string name="browser_extension_error_frame_hidden">The page hides or covers the frame with this field.</string>
+    <string name="browser_extension_error_frame_unchecked">Keyguard couldn’t check the page around this frame, so it didn’t fill it.</string>
+    <string name="browser_extension_error_page_changed">The page changed. Try again.</string>
+    <!-- Browser extension: the integration in the app's settings and request log -->
+    <string name="browser_extension_title">Browser extension</string>
+    <string name="cli_agent_history_request_browser_pair">Pair a browser</string>
+    <string name="cli_agent_history_request_browser_unlock">Unlock the vault</string>
+    <string name="cli_agent_history_request_browser_fill">Fill a login</string>
+    <string name="cli_agent_history_request_browser_totp">Fill a one-time password</string>
+    <string name="cli_agent_history_request_browser_save">Save a login</string>
+    <!-- Request log: the browser extension added a "Saving only" blocked URI for a site -->
+    <string name="cli_agent_history_request_browser_never_save">Never save on a site</string>
+    <string name="browser_extension_history_pairing">Pairing: <xliff:g id="name" example="Work laptop">%1$s</xliff:g></string>
+    <string name="browser_extension_pairing_name">Pairing name</string>
+    <!-- Request log: the label of the browser extension's ID, such as chrome-extension://abcdefghijklmnop/ -->
+    <string name="browser_extension_history_extension">Extension</string>
+    <!-- Browser extension: the approval prompts of the desktop app -->
+    <string name="browser_extension_approval_title">Browser extension request</string>
+    <string name="browser_extension_approval_unlock_reason">A browser asks to unlock the vault</string>
+    <string name="browser_extension_approval_pair_title">Pair a browser</string>
+    <string name="browser_extension_approval_pair_message_known_app"><xliff:g id="who" example="Google Chrome">%1$s</xliff:g> wants to pair with Keyguard.</string>
+    <string name="browser_extension_approval_pair_message_unknown_app">A browser wants to pair with Keyguard.</string>
+    <string name="browser_extension_approval_pair_code_note">Approve only if the browser shows the same code.</string>
+    <string name="browser_extension_approval_pair_name_label">Browser name</string>
+    <string name="browser_extension_approval_unverified">Unverified connector: Keyguard couldn’t check the program that connected.</string>
+    <string name="browser_extension_approval_origin">Extension: <xliff:g id="origin" example="chrome-extension://abcdefghijklmnop/">%1$s</xliff:g></string>
+    <string name="browser_extension_approval_fill_message"><xliff:g id="who" example="Work laptop">%1$s</xliff:g> wants to fill a login on <xliff:g id="site" example="https://example.com">%2$s</xliff:g>:</string>
+    <string name="browser_extension_approval_totp_message"><xliff:g id="who" example="Work laptop">%1$s</xliff:g> wants a one-time password for <xliff:g id="site" example="https://example.com">%2$s</xliff:g>:</string>
+    <string name="browser_extension_approval_remember_note">Keyguard remembers this approval for this item and site: <xliff:g id="duration" example="1 hour">%1$s</xliff:g>.</string>
+    <string name="browser_extension_approval_always_ask_note">Keyguard asks every time.</string>
+    <string name="browser_extension_approval_reprompt_note">This item asks for your master password every time.</string>
+    <string name="browser_extension_approval_top_site_note">The site is embedded in a page of <xliff:g id="site" example="https://example.net">%1$s</xliff:g>.</string>
+    <!-- Browser extension: the page that asks, when its host isn't the site that the prompt names -->
+    <string name="browser_extension_approval_origin_note">The request comes from <xliff:g id="origin" example="https://login.example.com">%1$s</xliff:g>.</string>
+    <string name="browser_extension_approval_unmatched_note">This item isn’t saved for <xliff:g id="site" example="https://example.com">%1$s</xliff:g>.</string>
+    <string name="browser_extension_approval_add_uri">Add <xliff:g id="uri" example="https://login.example.com">%1$s</xliff:g> to this item</string>
+    <string name="browser_extension_save_window_title">Save login</string>
+    <!-- Browser extension: the settings of the desktop app -->
+    <string name="browser_extension_enable">Enable browser extension</string>
+    <string name="browser_extension_enable_text">Fill logins, one-time passwords and passkeys in your browser.</string>
+    <string name="browser_extension_status_connector_failed">A browser connector failed. See Browser connectors.</string>
+    <string name="browser_extension_connectors_title">Browser connectors</string>
+    <string name="browser_extension_connectors_note">Keyguard installs a connector for each browser it finds. Turn a browser off to remove its connector.</string>
+    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose native messaging folder it can see.</string>
+    <string name="browser_extension_connector_installed">Installed</string>
+    <string name="browser_extension_connector_not_installed">Not installed</string>
+    <string name="browser_extension_connector_needs_repair">Needs repair</string>
+    <string name="browser_extension_connector_error_host_missing">This copy of Keyguard has no browser connector. Reinstall Keyguard.</string>
+    <!-- Windows doesn't start Keyguard's browser connector through its alias. "App execution aliases" is the name of a page in Windows Settings -->
+    <string name="browser_extension_connector_error_host_alias">Windows doesn’t start Keyguard’s browser connector. In Windows Settings, open App execution aliases and turn on <xliff:g id="alias" example="keyguard-browser-host.exe">%1$s</xliff:g> for Keyguard, then try again.</string>
+    <string name="browser_extension_connector_error_browser_absent">Keyguard didn’t find the browser. Open it once, then try again.</string>
+    <string name="browser_extension_connector_error_foreign_file">Keyguard didn’t write <xliff:g id="path" example="/home/user/.mozilla/native-messaging-hosts/com.artemchep.keyguard.json">%1$s</xliff:g>, so it left the file alone. Remove the file, then try again.</string>
+    <string name="browser_extension_connector_error_unsupported">This build of Keyguard can’t install browser connectors.</string>
+    <string name="browser_extension_connector_error_unsafe_file">Keyguard didn’t change <xliff:g id="path" example="/home/user/.config">%1$s</xliff:g>: it’s a link, belongs to another user, or other users can change it.</string>
+    <string name="browser_extension_connector_error_update_required">The command-line tool doesn’t match this version of Keyguard. Reinstall Keyguard.</string>
+    <string name="browser_extension_connector_error_failed">Keyguard couldn’t change the browser connector: <xliff:g id="error" example="Permission denied">%1$s</xliff:g></string>
+    <string name="browser_extension_pairings_title">Paired browsers</string>
+    <string name="browser_extension_pairings_error">Keyguard couldn’t change the paired browser.</string>
+    <string name="browser_extension_pairing_paired_at">Paired: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>
+    <string name="browser_extension_pairing_last_used_at">Last used: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>
+    <string name="browser_extension_pairing_connected">Connected</string>
+    <string name="browser_extension_pairing_remove_title">Remove the paired browser?</string>
+    <string name="browser_extension_autofill_windows_text">Browser extension &amp; passkeys</string>
+    <string name="browser_extension_pairing_remove_text"><xliff:g id="name" example="Work laptop">%1$s</xliff:g> can’t use Keyguard until you pair it again. Its open connections end.</string>
+    <!-- The Flathub build of a browser, on Linux -->
+    <string name="browser_name_flatpak"><xliff:g id="browser" example="Google Chrome">%1$s</xliff:g> (Flatpak)</string>
+    <!-- Browser extension: the passkeys that the desktop app serves to the browser -->
+    <string name="browser_extension_passkey_get_title">Sign in with a passkey</string>
+    <string name="browser_extension_passkey_create_title">Save a passkey</string>
+    <string name="browser_extension_passkey_another_device">Use another device</string>
+    <!-- Browser extension: the relying party of the passkey, in the window where the user picks an item -->
+    <string name="browser_extension_passkey_rp_id">Relying party: <xliff:g id="rp_id" example="example.com">%1$s</xliff:g></string>
+    <string name="browser_extension_approval_passkey_get_message"><xliff:g id="who" example="Work laptop">%1$s</xliff:g> wants to sign in to <xliff:g id="site" example="https://example.com">%2$s</xliff:g> with a passkey:</string>
+    <string name="browser_extension_approval_passkey_create_message"><xliff:g id="who" example="Work laptop">%1$s</xliff:g> wants to save a passkey for <xliff:g id="site" example="https://example.com">%2$s</xliff:g> in:</string>
+    <string name="browser_extension_approval_user_verification_note">The site asks Keyguard to verify it’s you.</string>
+    <!-- Browser extension: the relying party of the passkey, when it is of another site than the page -->
+    <string name="browser_extension_approval_rp_id_note">The passkey belongs to <xliff:g id="rp_id" example="example.org">%1$s</xliff:g>.</string>
+    <string name="cli_agent_history_request_browser_passkey_get">Sign in with a passkey</string>
+    <string name="cli_agent_history_request_browser_passkey_create">Save a passkey</string>
+    <!-- Find plaintext secrets: screens that scan the disk for SSH private keys or .env files -->
+    <string name="secret_scan_ssh_title">Find plaintext SSH keys</string>
+    <string name="secret_scan_dotenv_title">Find plaintext .env files</string>
+    <string name="secret_scan_scan">Scan</string>
+    <string name="secret_scan_ssh_intro">Find SSH keys saved as files on this computer and import them into your vault.</string>
+    <string name="secret_scan_dotenv_intro">Find .env files on this computer and import them into your vault.</string>
+    <!-- The list of folders is comma-separated, for example "~, /work" -->
+    <string name="secret_scan_intro_where">Searches <xliff:g id="folders" example="~, /work">%1$s</xliff:g>.</string>
+    <string name="secret_scan_ssh_intro_import">Nothing leaves this device, and the files stay where they are. Once the SSH agent is set up, you can delete them.</string>
+    <string name="secret_scan_dotenv_intro_import">Nothing leaves this device, and the files stay where they are.</string>
+    <string name="secret_scan_rescan">Rescan</string>
+    <string name="secret_scan_add_folder">Add folder</string>
+    <string name="secret_scan_import_button">Import selected</string>
+    <string name="secret_scan_chip_no_passphrase">No passphrase</string>
+    <string name="secret_scan_chip_passphrase">Passphrase</string>
+    <string name="secret_scan_chip_in_vault">In vault</string>
+    <string name="secret_scan_empty_title">No plaintext secrets found</string>
+    <string name="secret_scan_scanned_folders">Scanned folders:</string>
+    <string name="secret_scan_flatpak_note">Keyguard can't see your home folder here. Use Add folder to choose where to search.</string>
+    <string name="secret_scan_import_account_title">Import into</string>
+    <string name="secret_scan_passphrase_message"><xliff:g id="path" example="~/.ssh/id_ed25519">%1$s</xliff:g> is encrypted. Cancel to skip this key.</string>
+    <string name="secret_scan_passphrase_wrong_message">Wrong passphrase for <xliff:g id="path" example="~/.ssh/id_ed25519">%1$s</xliff:g>. Cancel to skip this key.</string>
 </resources>

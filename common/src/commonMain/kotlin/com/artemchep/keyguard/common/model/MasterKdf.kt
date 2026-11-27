@@ -3,30 +3,26 @@ package com.artemchep.keyguard.common.model
 import com.artemchep.keyguard.util.foundation.crypto.KdfLimits
 
 /**
- * The key derivation that turns the app password into the
- * master password hash and the master key.
+ * The key derivation that turns the app password into the key that
+ * wraps the master key, or, in the derived format, into the master
+ * password hash and the master key.
  */
 sealed interface MasterKdf {
-    /**
-     * The label of the derivation. It is stored in the fingerprint
-     * and on every [MasterKey].
-     */
-    val version: MasterKdfVersion
-
     /**
      * Legacy PBKDF2-SHA256: 100 000 iterations for the hash,
      * 10 000 iterations for the key.
      */
-    data object Pbkdf2Legacy : MasterKdf {
-        override val version: MasterKdfVersion
-            get() = MasterKdfVersion.V0
-    }
+    data object Pbkdf2Legacy : MasterKdf
 
     data class Argon2id(
         val iterations: Int,
         val memoryKib: Int,
         val parallelism: Int,
     ) : MasterKdf {
+        /** The memory, in bytes. */
+        val memoryBytes: Long
+            get() = memoryKib.toLong() * BYTES_PER_KIB
+
         companion object {
             /**
              * The parameters of version 1. Frozen: the vaults
@@ -45,6 +41,8 @@ sealed interface MasterKdf {
 
             const val KIB_PER_MIB = 1024
 
+            private const val BYTES_PER_KIB = 1024L
+
             private const val BYTES_PER_MIB = 1_048_576UL
 
             // Bounds of the key derivation form.
@@ -60,9 +58,6 @@ sealed interface MasterKdf {
             const val PARALLELISM_MIN = 1
             const val PARALLELISM_MAX = 16
         }
-
-        override val version: MasterKdfVersion
-            get() = if (this == V1) MasterKdfVersion.V1 else MasterKdfVersion.V2
     }
 
     /**
@@ -70,7 +65,7 @@ sealed interface MasterKdf {
      * the password does not unlock the vault.
      */
     data class Unsupported(
-        override val version: MasterKdfVersion,
+        val version: MasterKdfVersion,
     ) : MasterKdf
 
     companion object {

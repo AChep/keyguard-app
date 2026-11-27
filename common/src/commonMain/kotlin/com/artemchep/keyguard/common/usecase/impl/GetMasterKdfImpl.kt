@@ -12,6 +12,6 @@ class GetMasterKdfImpl(
 ) : GetMasterKdf {
     override fun invoke(): Flow<MasterKdf?> = fingerprintReadRepository
         .get()
-        .map { fingerprint -> fingerprint?.kdf }
+        .map { fingerprint -> fingerprint?.master?.kdf }
         .distinctUntilChanged()
 }

@@ -1,38 +1,40 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AuthResult
-import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.model.MasterKdf
+import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
-import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
-import com.artemchep.keyguard.common.usecase.GenerateMasterKeyUseCase
-import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
+import com.artemchep.keyguard.common.usecase.RewrapMasterKeyUseCase
 
 class AuthGenerateMasterKeyUseCaseImpl(
-    private val generateMasterHashUseCase: GenerateMasterHashUseCase,
-    private val generateMasterKeyUseCase: GenerateMasterKeyUseCase,
-    private val generateMasterSaltUseCase: GenerateMasterSaltUseCase,
+    private val cryptoGenerator: CryptoGenerator,
+    private val rewrapMasterKeyUseCase: RewrapMasterKeyUseCase,
 ) : AuthGenerateMasterKeyUseCase {
     override fun invoke(
-        kdf: MasterKdf,
+        kdf: MasterKdf.Argon2id,
     ) = { password: MasterPassword ->
-        // Generate a hash from the given password and known
-        // salt, to identify if the password is valid.
-        generateMasterSaltUseCase()
-            .effectMap { salt ->
-                val hash = generateMasterHashUseCase(password, salt, kdf).bind()
-                val key = generateMasterKeyUseCase(password, hash).bind()
-                AuthResult(
-                    kdf = kdf,
-                    key = key,
-                    token = FingerprintPassword(
-                        hash = hash,
-                        salt = salt,
-                    ),
-                )
+        ioEffect {
+            val key = MasterKey(
+                version = MasterKdfVersion.V2,
+                byteArray = cryptoGenerator.seed(MasterKeyWrapping.MASTER_KEY_SIZE),
+            )
+            // Wipe the new key if it never leaves this function.
+            @Suppress("TooGenericExceptionCaught")
+            val token = try {
+                rewrapMasterKeyUseCase(key, password, kdf).bind()
+            } catch (e: Throwable) {
+                key.byteArray.fill(0)
+                throw e
             }
+            AuthResult(
+                key = key,
+                token = token,
+            )
+        }
     }
 }

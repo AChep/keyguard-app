@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.P2pGroupId
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.withHkdfCipherKey
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.usecase.impl.GenerateMasterHashUtils
 import com.artemchep.keyguard.common.util.useAndClear
@@ -71,7 +72,7 @@ class KeyguardAuthorityKeys(
         private const val SALT_SIZE = 32
         private const val SEED_SIZE = 32
         private const val SEALING_KEY_SIZE = 64
-        private const val HKDF_INFO = "keyguard-p2p-authority/v1"
+        private val HKDF_INFO = "keyguard-p2p-authority/v1".encodeToByteArray()
     }
 
     private val hashUtils = GenerateMasterHashUtils(cryptoGenerator)
@@ -180,24 +181,14 @@ class KeyguardAuthorityKeys(
         salt: ByteArray,
         kdf: MasterKdf,
         block: (SymmetricCryptoKey2) -> T,
-    ): T {
-        val bytes = hashUtils.hash(MasterPassword.of(password).byteArray, salt, kdf).bind()
-            .useAndClear { secret ->
-                cryptoGenerator.hkdf(
-                    seed = secret,
-                    salt = salt,
-                    info = HKDF_INFO.encodeToByteArray(),
-                    length = SEALING_KEY_SIZE,
-                )
-            }
-        val key = SymmetricCryptoKey2(bytes)
-        val parts = key.requireAesCbc256_HmacSha256_B64()
-        return try {
-            block(key)
-        } finally {
-            bytes.fill(0)
-            parts.encKey.fill(0)
-            parts.macKey.fill(0)
+    ): T = hashUtils.hash(MasterPassword.of(password).byteArray, salt, kdf).bind()
+        .useAndClear { secret ->
+            cryptoGenerator.withHkdfCipherKey(
+                seed = secret,
+                salt = salt,
+                info = HKDF_INFO,
+                length = SEALING_KEY_SIZE,
+                block = block,
+            )
         }
-    }
 }

@@ -22,6 +22,7 @@ import com.artemchep.keyguard.common.service.vault.impl.SessionMetadataRepositor
 import com.artemchep.keyguard.common.service.vault.impl.SessionRepositoryImpl
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.AuthGenerateMasterKeyUseCase
+import com.artemchep.keyguard.common.usecase.RewrapMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.BiometricKeyDecryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
@@ -54,6 +55,8 @@ import com.artemchep.keyguard.common.usecase.PutVaultPersist
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.impl.AuthConfirmMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.AuthGenerateMasterKeyUseCaseImpl
+import com.artemchep.keyguard.common.usecase.impl.MasterKeyWrapping
+import com.artemchep.keyguard.common.usecase.impl.RewrapMasterKeyUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.BiometricKeyDecryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.BiometricKeyEncryptUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.ClearVaultSessionImpl
@@ -95,6 +98,10 @@ internal class ApplicationAuthenticationModule {
         single<AuthConfirmMasterKeyUseCaseImpl>() bind AuthConfirmMasterKeyUseCase::class
 
         single<AuthGenerateMasterKeyUseCaseImpl>() bind AuthGenerateMasterKeyUseCase::class
+
+        single<RewrapMasterKeyUseCaseImpl>() bind RewrapMasterKeyUseCase::class
+
+        single<MasterKeyWrapping>()
 
         single<GetMasterKdfImpl>() bind GetMasterKdf::class
 

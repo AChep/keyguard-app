@@ -2,12 +2,14 @@ package com.artemchep.keyguard.common.service.vault.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.FingerprintFido2
+import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.util.fido2.FIDO2_RP_ID
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlinx.coroutines.flow.first
@@ -36,7 +38,10 @@ class FingerprintFido2RepositoryTest {
                 )
                 .bind()
             val tokens = assertNotNull(repository.get().first())
-            assertContentEquals(byteArrayOf(1), tokens.master.hash.byteArray)
+            assertContentEquals(
+                byteArrayOf(1),
+                assertIs<FingerprintPassword.Derived>(tokens.master).hash.byteArray,
+            )
             assertNull(tokens.fido2)
         }
     }

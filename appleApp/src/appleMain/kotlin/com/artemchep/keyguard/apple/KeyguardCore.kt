@@ -1496,13 +1496,13 @@ class KeyguardCore(runtime: KeyguardRuntime, initialScenePhase: KeyguardScenePha
 
     // Change master password
 
-    private val changePasswordController by lazy { ChangePasswordController(context, authPromptHost) }
+    private val changePasswordController by lazy { ChangePasswordController(context) }
 
     fun makeChangePasswordSession(): ChangePasswordSession = changePasswordController.makeChangePasswordSession()
 
     // Change key derivation
 
-    private val changeKdfController by lazy { ChangeKdfController(context, authPromptHost) }
+    private val changeKdfController by lazy { ChangeKdfController(context) }
 
     fun makeChangeKdfSession(): ChangeKdfSession = changeKdfController.makeChangeKdfSession()
 

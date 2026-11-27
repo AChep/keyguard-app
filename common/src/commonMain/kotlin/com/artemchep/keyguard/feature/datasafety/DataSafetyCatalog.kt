@@ -7,11 +7,15 @@ import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.common.usecase.impl.MasterKeyWrapping
 import org.jetbrains.compose.resources.StringResource
 
 // GenerateMasterSaltUseCaseImpl generates 64 bytes, expressed here in bits.
 @PublishedApi
 internal const val DATA_SAFETY_VAULT_SALT_BITS = 512
+
+@PublishedApi
+internal const val DATA_SAFETY_VAULT_KEY_BITS = MasterKeyWrapping.MASTER_KEY_SIZE * Byte.SIZE_BITS
 
 @PublishedApi
 internal const val DATA_SAFETY_LEARN_MORE_URL = "https://bitwarden.com/help/what-encryption-is-used/"
@@ -111,20 +115,11 @@ internal inline fun dataSafetyVaultItems(
     ),
     DataSafetyItem.Text(
         key = "local.vault.algorithm.intro",
-        text = text(Res.string.datasafety_local_encryption_algorithm_intro),
+        text = text(Res.string.datasafety_local_encryption_algorithm_intro_v2),
         secondary = true,
     ),
     DataSafetyItem.Spacer(
         key = "local.vault.algorithm.intro.spacer",
-        height = 16.dp,
-    ),
-    DataSafetyItem.Text(
-        key = "local.vault.algorithm.kdf",
-        text = text(Res.string.datasafety_local_kdf_versions_note),
-        secondary = true,
-    ),
-    DataSafetyItem.Spacer(
-        key = "local.vault.algorithm.kdf.spacer",
         height = 16.dp,
     ),
 )
@@ -136,9 +131,9 @@ internal inline fun dataSafetyVaultAlgorithmItems(
     dividerHorizontalPadding: Dp,
 ): List<DataSafetyItem> {
     val labelAppPassword = text(Res.string.app_password)
-    val labelHash = text(Res.string.encryption_hash)
     val labelSalt = text(Res.string.encryption_salt)
     val labelKey = text(Res.string.encryption_key)
+    val labelKek = text(Res.string.encryption_key_encryption_key)
     return listOf(
         DataSafetyItem.Row(
             key = "local.vault.algorithm.salt",
@@ -152,20 +147,20 @@ internal inline fun dataSafetyVaultAlgorithmItems(
             horizontalPadding = dividerHorizontalPadding,
         ),
         DataSafetyItem.Row(
-            key = "local.vault.algorithm.hash",
-            title = labelHash,
-            value = "KDF($labelAppPassword, $labelSalt)",
+            key = "local.vault.algorithm.key",
+            title = labelKey,
+            value = format(Res.string.encryption_random_bits_data, DATA_SAFETY_VAULT_KEY_BITS),
             secondary = true,
         ),
         DataSafetyItem.Divider(
-            key = "local.vault.algorithm.hash.divider",
+            key = "local.vault.algorithm.key.divider",
             verticalPadding = 8.dp,
             horizontalPadding = dividerHorizontalPadding,
         ),
         DataSafetyItem.Row(
-            key = "local.vault.algorithm.key",
-            title = labelKey,
-            value = "KDF($labelAppPassword, $labelHash)",
+            key = "local.vault.algorithm.kek",
+            title = labelKek,
+            value = "HKDF(KDF($labelAppPassword, $labelSalt))",
             secondary = true,
         ),
         DataSafetyItem.Spacer(
@@ -174,9 +169,13 @@ internal inline fun dataSafetyVaultAlgorithmItems(
         ),
         DataSafetyItem.Text(
             key = "local.vault.algorithm.outro",
-            text = text(Res.string.datasafety_local_encryption_algorithm_outro),
+            text = text(Res.string.datasafety_local_encryption_algorithm_outro_v2),
             secondary = true,
         ),
+    ) + dataSafetyVaultLegacyAlgorithmItems(
+        text = text,
+        dividerHorizontalPadding = dividerHorizontalPadding,
+    ) + listOf(
         DataSafetyItem.Divider(
             key = "local.vault.unlocking.divider",
             verticalPadding = 16.dp,
@@ -187,6 +186,50 @@ internal inline fun dataSafetyVaultAlgorithmItems(
                 Res.string.datasafety_local_unlocking_vault,
                 labelKey,
             ),
+        ),
+    )
+}
+
+/** The key derivation versions, and the scheme of the vaults created by older versions of the app. */
+@PublishedApi
+internal inline fun dataSafetyVaultLegacyAlgorithmItems(
+    text: (StringResource) -> String,
+    dividerHorizontalPadding: Dp,
+): List<DataSafetyItem> {
+    val labelAppPassword = text(Res.string.app_password)
+    val labelHash = text(Res.string.encryption_hash)
+    val labelSalt = text(Res.string.encryption_salt)
+    val labelKey = text(Res.string.encryption_key)
+    return listOf(
+        DataSafetyItem.Spacer(
+            key = "local.vault.algorithm.kdf.spacer",
+            height = 16.dp,
+        ),
+        DataSafetyItem.Text(
+            key = "local.vault.algorithm.kdf",
+            text = text(Res.string.datasafety_local_kdf_versions_note),
+            secondary = true,
+        ),
+        DataSafetyItem.Spacer(
+            key = "local.vault.algorithm.legacy.spacer",
+            height = 16.dp,
+        ),
+        DataSafetyItem.Row(
+            key = "local.vault.algorithm.legacy.hash",
+            title = labelHash,
+            value = "KDF($labelAppPassword, $labelSalt)",
+            secondary = true,
+        ),
+        DataSafetyItem.Divider(
+            key = "local.vault.algorithm.legacy.hash.divider",
+            verticalPadding = 8.dp,
+            horizontalPadding = dividerHorizontalPadding,
+        ),
+        DataSafetyItem.Row(
+            key = "local.vault.algorithm.legacy.key",
+            title = labelKey,
+            value = "KDF($labelAppPassword, $labelHash)",
+            secondary = true,
         ),
     )
 }

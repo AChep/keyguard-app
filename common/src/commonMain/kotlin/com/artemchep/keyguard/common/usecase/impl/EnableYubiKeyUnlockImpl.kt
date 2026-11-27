@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.YUBIKEY_UNLOCK_HKDF_INFO
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
+import com.artemchep.keyguard.common.service.vault.updateIfMaster
 import com.artemchep.keyguard.common.usecase.EnableYubiKeyUnlock
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
@@ -59,7 +60,10 @@ class EnableYubiKeyUnlockImpl(
             hkdfSalt = hkdfSalt,
             encryptedMasterKey = encryptedMasterKey,
         )
-        keyReadWriteRepository.put(tokens.copy(yubiKey = yubiKey))
+        keyReadWriteRepository
+            .updateIfMaster(tokens.master) { latest ->
+                latest.copy(yubiKey = yubiKey)
+            }
             .bind()
     }
 }

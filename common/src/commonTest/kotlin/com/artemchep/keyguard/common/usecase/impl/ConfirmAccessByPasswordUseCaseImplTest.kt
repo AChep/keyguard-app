@@ -11,11 +11,14 @@ import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.model.MasterKdf
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
+import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
 import com.artemchep.keyguard.core.session.usecase.AuthMasterKeyUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -32,32 +35,61 @@ class ConfirmAccessByPasswordUseCaseImplTest {
         parallelism = 2,
     )
 
-    private val token = FingerprintPassword(
-        hash = MasterPasswordHash(kdf, byteArrayOf(1)),
+    private val wrapped = FingerprintPassword.Wrapped(
+        kdf = kdf,
         salt = MasterPasswordSalt(byteArrayOf(2)),
+        wrappedKey = byteArrayOf(1),
+    )
+
+    private val derived = FingerprintPassword.Derived(
+        kdf = MasterKdf.Argon2id.V1,
+        hash = MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(4, 5)),
+        salt = MasterPasswordSalt(byteArrayOf(6)),
     )
 
     @Test
-    fun `matching password confirms access with the key derivation of the vault`() {
-        var usedKdf: MasterKdf? = null
-        val useCase = useCase { kdf ->
-            usedKdf = kdf
+    fun `matching password confirms access to a wrapped vault`() {
+        var usedToken: FingerprintPassword? = null
+        val key = byteArrayOf(3)
+        val useCase = useCase(wrapped) { token ->
+            usedToken = token
             io(
                 AuthResult(
-                    kdf = kdf,
-                    key = MasterKey(kdf.version, byteArrayOf(3)),
+                    key = MasterKey(MasterKdfVersion.V2, key),
                     token = token,
                 ),
             )
         }
 
         assertTrue(useCase("password").bindBlocking())
-        assertEquals(kdf, usedKdf)
+        assertEquals<FingerprintPassword?>(wrapped, usedToken)
+        // Only the answer is needed: the key is wiped.
+        assertTrue(key.all { it == 0.toByte() })
+    }
+
+    @Test
+    fun `a derived vault checks the hash only`() {
+        val useCase = useCase(
+            token = derived,
+            hash = { io(derived.hash.copy(byteArray = derived.hash.byteArray.copyOf())) },
+        ) { error("The master key must not be derived") }
+
+        assertTrue(useCase("password").bindBlocking())
+    }
+
+    @Test
+    fun `a derived vault denies access on another hash`() {
+        val useCase = useCase(
+            token = derived,
+            hash = { io(MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(4, 6))) },
+        ) { error("The master key must not be derived") }
+
+        assertFalse(useCase("password").bindBlocking())
     }
 
     @Test
     fun `wrong password denies access`() {
-        val useCase = useCase {
+        val useCase = useCase(wrapped) {
             ioRaise(PasswordMismatchException())
         }
 
@@ -66,7 +98,7 @@ class ConfirmAccessByPasswordUseCaseImplTest {
 
     @Test
     fun `other failures are not reported as a wrong password`() {
-        val useCase = useCase {
+        val useCase = useCase(wrapped) {
             ioRaise(MasterKdfOutOfMemoryException(null))
         }
 
@@ -76,12 +108,13 @@ class ConfirmAccessByPasswordUseCaseImplTest {
     }
 
     private fun useCase(
-        derive: (MasterKdf) -> IO<AuthResult>,
+        token: FingerprintPassword,
+        hash: () -> IO<MasterPasswordHash> = { error("The hash must not be derived") },
+        derive: (FingerprintPassword) -> IO<AuthResult>,
     ) = ConfirmAccessByPasswordUseCaseImpl(
         keyReadWriteRepository = object : FingerprintReadWriteRepository {
             override fun get(): Flow<Fingerprint?> = flowOf(
                 Fingerprint(
-                    kdf = kdf,
                     master = token,
                     biometric = null,
                 ),
@@ -91,12 +124,17 @@ class ConfirmAccessByPasswordUseCaseImplTest {
 
             override fun update(transform: (Fingerprint?) -> Fingerprint?): IO<Unit> = ioUnit()
         },
+        generateMasterHashUseCase = object : GenerateMasterHashUseCase {
+            override fun invoke(
+                password: MasterPassword,
+                salt: MasterPasswordSalt,
+                kdf: MasterKdf,
+            ): IO<MasterPasswordHash> = hash()
+        },
         authConfirmMasterKeyUseCase = object : AuthConfirmMasterKeyUseCase {
             override fun invoke(
-                salt: MasterPasswordSalt,
-                hash: MasterPasswordHash,
-                kdf: MasterKdf,
-            ): AuthMasterKeyUseCase = { derive(kdf) }
+                token: FingerprintPassword,
+            ): AuthMasterKeyUseCase = { derive(token) }
         },
     )
 }

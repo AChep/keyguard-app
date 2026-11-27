@@ -11,7 +11,10 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.Fingerprint
+import com.artemchep.keyguard.common.model.FingerprintBiometric
+import com.artemchep.keyguard.common.model.FingerprintFido2
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.FingerprintYubiKey
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
@@ -41,8 +44,11 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
+import com.artemchep.keyguard.common.usecase.RewrapMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.core.session.usecase.AuthMasterKeyUseCase
+import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
+import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.LeBiometricCipher
@@ -54,6 +60,7 @@ import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
@@ -211,68 +218,18 @@ class UnlockUseCaseImplTest {
     }
 
     @Test
-    fun `a password change re-seals before the re-key and reports the keys it did not`() =
-        checkPasswordChange(biometric = false)
-
-    @Test
-    fun `a biometric password change seals the new key before the re-key`() =
-        checkPasswordChange(biometric = true)
-
-    private fun checkPasswordChange(biometric: Boolean) = withFixture(biometric) {
-        val change = startPasswordChange(biometric)
-        generating.complete(Unit)
-        opening.await()
-        opened.complete(vaultSession)
-
-        val report = assertIs<Either.Right<VaultState.Main.ChangePassword.Report>>(change.await()).value
-        // One key did not open with the old password, and another one changed meanwhile.
-        assertEquals(2, report.authoritiesNotResealed)
-        val encrypt = if (biometric) listOf("encrypt") else emptyList()
-        assertEquals(listOf("prepare") + encrypt + listOf("rekey", "commit", "put"), events.toList())
-        assertEquals(biometric, savedFingerprint?.biometric != null)
-        assertNotNull(published.await())
-    }
-
-    @Test
-    fun `a failed re-seal preparation leaves the vault as it was`() = withFixture {
-        prepareFailure = IllegalStateException("Cannot read the sync groups")
-        val change = startPasswordChange()
-        generating.complete(Unit)
-
-        val reported = assertIs<IllegalStateException>(assertIs<Either.Left<Throwable>>(change.await()).value)
-        assertEquals(prepareFailure?.message, reported.message)
-        assertEquals(listOf("prepare"), events.toList())
-        assertNull(savedFingerprint)
-        assertFalse(rekeyed.isCompleted)
-    }
-
-    @Test
-    fun `a password change cancelled after the re-key still saves the new fingerprint`() = withFixture {
-        rekeyGate = CompletableDeferred()
-        val change = startPasswordChange()
-        generating.complete(Unit)
-        rekeyed.await()
-        change.cancel()
-        rekeyGate.complete(Unit)
-        opening.await()
-        opened.complete(vaultSession)
-        published.await()
-
-        change.join()
-        assertTrue(change.isCancelled)
-        assertEquals(listOf("prepare", "rekey", "commit", "put"), events.toList())
-        assertNotNull(savedFingerprint)
-    }
-
-    @Test
-    fun `a vault created with custom key derivation parameters unlocks with the password`() =
+    fun `a new vault wraps a random master key and unlocks with the password`() =
         withFixture(crypto = true) {
-            createAndOpen("1234", CUSTOM_KDF)
+            val main = createAndOpen("1234", CUSTOM_KDF)
             val fingerprint = assertNotNull(savedFingerprint)
-            assertEquals(CUSTOM_KDF, fingerprint.kdf)
+            assertEquals(CUSTOM_KDF, fingerprint.master.kdf)
+            assertIs<FingerprintPassword.Wrapped>(fingerprint.master)
+            assertEquals(MasterKdfVersion.V2, fingerprint.version)
             val session = assertIs<MasterSession.Key>(published.await())
             assertEquals(MasterKdfVersion.V2, session.masterKey.version)
+            assertEquals(32, session.masterKey.byteArray.size)
             assertEquals(deriveKey(fingerprint, "1234"), session.masterKey)
+            assertEquals(CUSTOM_KDF, main.changePassword.kdf)
 
             sessions.value = lockedSession()
             val unlock = awaitState<VaultState.Unlock>()
@@ -282,87 +239,188 @@ class UnlockUseCaseImplTest {
         }
 
     @Test
-    fun `a key derivation change re-keys the vault and leaves the authority keys as they are`() =
+    fun `an outdated unlock screen checks the password against the latest fingerprint`() =
         withFixture(crypto = true) {
-            val changePassword = createAndOpen("1234", CUSTOM_KDF).changePassword
-            assertEquals(CUSTOM_KDF, changePassword.kdf)
-            val before = assertNotNull(savedFingerprint)
+            val main = createAndOpen("1234", CUSTOM_KDF)
+            sessions.value = lockedSession()
+            val unlock = awaitState<VaultState.Unlock>()
+            // Another process changes the password: it re-wraps the same master key.
+            val before = assertNotNull(fingerprints.value)
+            fingerprints.value = before.copy(master = rewrap(main.masterKey, "5678"))
+
+            val old = unlock.unlockWithMasterPassword.getCreateIo("1234").attempt().bind()
+            assertIs<PasswordMismatchException>(assertIs<Either.Left<Throwable>>(old).value)
+            assertIs<Either.Right<Unit>>(unlock.unlockWithMasterPassword.getCreateIo("5678").attempt().bind())
+        }
+
+    @Test
+    fun `a key derivation change re-wraps the master key and keeps everything else`() =
+        withFixture(crypto = true) {
+            val main = createAndOpen("1234", CUSTOM_KDF)
+            val before = addUnlockMethods()
+            // Changes from the fingerprint without the other unlock methods.
+            val changePassword = main.changePassword
             events.clear()
 
             val report = changePassword.withMasterPassword.getCreateIo("1234", Change.Kdf(OTHER_KDF)).bind()
 
             assertEquals(0, report.authoritiesNotResealed)
-            assertEquals(listOf("rekey", "put"), events.toList())
+            // No re-key, no re-seal of the authority keys, no new session.
+            assertEquals(listOf("put"), events.toList())
+            assertTrue(rekeys.isEmpty())
+            assertEquals(1, publishes.size)
             val after = assertNotNull(savedFingerprint)
-            assertEquals(OTHER_KDF, after.kdf)
+            assertEquals(OTHER_KDF, after.master.kdf)
+            assertIs<FingerprintPassword.Wrapped>(after.master)
             assertNotEquals(before.master.salt, after.master.salt)
-            val newKey = deriveKey(after, "1234")
-            assertEquals(listOf(newKey), rekeys.toList())
-            // The old parameters no longer give the key of the database.
-            assertNotEquals(deriveKey(before, "1234"), newKey)
+            assertSame(before.biometric, after.biometric)
+            assertSame(before.yubiKey, after.yubiKey)
+            assertSame(before.fido2, after.fido2)
+            // The new parameters open the same master key.
+            assertEquals(main.masterKey, deriveKey(after, "1234"))
+
+            val state = awaitState<VaultState.Main>()
+            assertSame(vaultSession, state.session)
+            assertEquals(OTHER_KDF, state.changePassword.kdf)
         }
 
     @Test
-    fun `a password change keeps the custom key derivation`() = withFixture(crypto = true) {
-        val changePassword = createAndOpen("1234", CUSTOM_KDF).changePassword
-        events.clear()
+    fun `a password change re-wraps the master key and re-seals the authority keys`() =
+        withFixture(crypto = true) {
+            val main = createAndOpen("1234", CUSTOM_KDF)
+            val before = addUnlockMethods()
+            // Changes from the fingerprint without the other unlock methods.
+            val changePassword = main.changePassword
+            events.clear()
 
-        changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")).bind()
+            val report = changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")).bind()
 
-        assertEquals(listOf("prepare", "rekey", "commit", "put"), events.toList())
-        val after = assertNotNull(savedFingerprint)
-        assertEquals(CUSTOM_KDF, after.kdf)
-        assertEquals(listOf(deriveKey(after, "5678")), rekeys.toList())
-    }
+            assertEquals(2, report.authoritiesNotResealed)
+            assertEquals(listOf("prepare", "put", "commit"), events.toList())
+            assertTrue(rekeys.isEmpty())
+            assertEquals(1, publishes.size)
+            val after = assertNotNull(savedFingerprint)
+            // Keeps the custom key derivation.
+            assertEquals(CUSTOM_KDF, after.master.kdf)
+            assertSame(before.biometric, after.biometric)
+            assertSame(before.yubiKey, after.yubiKey)
+            assertSame(before.fido2, after.fido2)
+            assertEquals(main.masterKey, deriveKey(after, "5678"))
+            assertFailsWith<PasswordMismatchException> { deriveKey(after, "1234") }
+        }
 
     @Test
     fun `a password change to the same password still re-seals the authority keys`() = withFixture(crypto = true) {
-        val changePassword = createAndOpen("1234", CUSTOM_KDF).changePassword
+        val main = createAndOpen("1234", CUSTOM_KDF)
         events.clear()
 
-        changePassword.withMasterPassword.getCreateIo("1234", Change.Password("1234")).bind()
+        main.changePassword.withMasterPassword.getCreateIo("1234", Change.Password("1234")).bind()
 
-        assertEquals(listOf("prepare", "rekey", "commit", "put"), events.toList())
+        assertEquals(listOf("prepare", "put", "commit"), events.toList())
         val after = assertNotNull(savedFingerprint)
-        assertEquals(CUSTOM_KDF, after.kdf)
-        assertEquals(listOf(deriveKey(after, "1234")), rekeys.toList())
+        assertEquals(CUSTOM_KDF, after.master.kdf)
+        assertEquals(main.masterKey, deriveKey(after, "1234"))
     }
 
     @Test
-    fun `a password change moves a legacy vault to the default key derivation`() = withFixture(crypto = true) {
-        val changePassword = openLegacy("1234").changePassword
-        assertEquals(MasterKdf.Pbkdf2Legacy, changePassword.kdf)
+    fun `a failed re-seal preparation leaves the vault as it was`() = withFixture(crypto = true) {
+        val main = createAndOpen("1234", CUSTOM_KDF)
+        val before = assertNotNull(savedFingerprint)
+        events.clear()
+        prepareFailure = IllegalStateException("Cannot read the sync groups")
 
-        changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")).bind()
+        val result = main.changePassword.withMasterPassword
+            .getCreateIo("1234", Change.Password("5678"))
+            .attempt()
+            .bind()
 
-        val after = assertNotNull(savedFingerprint)
-        assertEquals(MasterKdf.Argon2id.DEFAULT, after.kdf)
-        assertEquals(listOf(deriveKey(after, "5678")), rekeys.toList())
+        val reported = assertIs<IllegalStateException>(assertIs<Either.Left<Throwable>>(result).value)
+        assertEquals(prepareFailure?.message, reported.message)
+        assertEquals(listOf("prepare"), events.toList())
+        assertSame(before, savedFingerprint)
     }
 
     @Test
-    fun `two changes at once run one after the other`() = withFixture(crypto = true) {
-        val changePassword = createAndOpen("1234", CUSTOM_KDF).changePassword
+    fun `a wrong current password changes nothing`() = withFixture(crypto = true) {
+        val main = createAndOpen("1234", CUSTOM_KDF)
+        val before = assertNotNull(savedFingerprint)
+        events.clear()
+
+        val result = main.changePassword.withMasterPassword
+            .getCreateIo("4321", Change.Kdf(OTHER_KDF))
+            .attempt()
+            .bind()
+
+        assertIs<PasswordMismatchException>(assertIs<Either.Left<Throwable>>(result).value)
+        assertTrue(events.isEmpty())
+        assertSame(before, savedFingerprint)
+    }
+
+    @Test
+    fun `a password change moves a legacy vault to the wrapped format with the same master key`() =
+        withFixture(crypto = true) {
+            val legacy = openLegacy("1234")
+            val before = assertNotNull(fingerprints.value)
+            val changePassword = legacy.changePassword
+            assertEquals(MasterKdf.Pbkdf2Legacy, changePassword.kdf)
+
+            changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")).bind()
+
+            // No re-key and no new session: the master key stays the same.
+            assertEquals(listOf("prepare", "put", "commit"), events.toList())
+            assertTrue(rekeys.isEmpty())
+            assertTrue(publishes.isEmpty())
+            val after = assertNotNull(savedFingerprint)
+            assertEquals(MasterKdf.Argon2id.DEFAULT, after.master.kdf)
+            assertIs<FingerprintPassword.Wrapped>(after.master)
+            assertEquals(MasterKdfVersion.V2, after.version)
+            assertSame(before.biometric, after.biometric)
+            assertSame(before.yubiKey, after.yubiKey)
+            assertSame(before.fido2, after.fido2)
+            val key = deriveKey(after, "5678")
+            assertTrue(legacy.masterKey.byteArray.contentEquals(key.byteArray))
+            assertFailsWith<PasswordMismatchException> { deriveKey(after, "1234") }
+        }
+
+    @Test
+    fun `a wrong current password does not move a legacy vault`() = withFixture(crypto = true) {
+        val legacy = openLegacy("1234")
+        val before = fingerprints.value
+
+        val result = legacy.changePassword.withMasterPassword
+            .getCreateIo("4321", Change.Kdf(OTHER_KDF))
+            .attempt()
+            .bind()
+
+        assertIs<PasswordMismatchException>(assertIs<Either.Left<Throwable>>(result).value)
+        assertTrue(events.isEmpty())
+        assertNull(savedFingerprint)
+        assertSame(before, fingerprints.value)
+    }
+
+    @Test
+    fun `two wrapped changes at once run one after the other`() = withFixture(crypto = true) {
+        val main = createAndOpen("1234", CUSTOM_KDF)
         confirmations.clear()
-        rekeyGate = CompletableDeferred()
+        putStarted = CompletableDeferred()
+        putGate = CompletableDeferred()
 
-        val first = start(changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")))
-        rekeyed.await()
-        // The first change holds the lock while it re-keys the database,
+        val first = start(main.changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678")))
+        putStarted.await()
+        // The first change holds the lock while it writes the fingerprint,
         // so the second one does not even verify the password yet.
-        val second = start(changePassword.withMasterPassword.getCreateIo("1234", Change.Kdf(OTHER_KDF)))
+        val second = start(main.changePassword.withMasterPassword.getCreateIo("1234", Change.Kdf(OTHER_KDF)))
         assertNull(withTimeoutOrNull(200.milliseconds) { second.await() })
         assertEquals(1, confirmations.size)
 
-        rekeyGate.complete(Unit)
+        putGate.complete(Unit)
         assertIs<Either.Right<VaultState.Main.ChangePassword.Report>>(first.await())
-        // The second change started from the replaced fingerprint.
         val failure = assertIs<Either.Left<Throwable>>(second.await()).value
         assertIs<MasterPasswordChangedException>(failure)
         assertEquals(1, confirmations.size)
         val fingerprint = assertNotNull(savedFingerprint)
-        assertEquals(CUSTOM_KDF, fingerprint.kdf)
-        assertEquals(listOf(deriveKey(fingerprint, "5678")), rekeys.toList())
+        assertEquals(CUSTOM_KDF, fingerprint.master.kdf)
+        assertEquals(main.masterKey, deriveKey(fingerprint, "5678"))
     }
 
     @Test
@@ -453,6 +511,9 @@ class UnlockUseCaseImplTest {
         val opening = CompletableDeferred<Unit>()
         val opened = CompletableDeferred<VaultSession>()
         val published = CompletableDeferred<MasterSession>()
+
+        /** The sessions the use case published. */
+        val publishes = ConcurrentLinkedQueue<MasterSession>()
         val fingerprints = MutableStateFlow<Fingerprint?>(null)
         val sessions = MutableStateFlow<MasterSession>(MasterSession.Empty())
         val states = Channel<VaultState>(Channel.UNLIMITED)
@@ -462,8 +523,8 @@ class UnlockUseCaseImplTest {
         var savedFingerprint: Fingerprint? = null
         val events = ConcurrentLinkedQueue<String>()
         var prepareFailure: Throwable? = null
-        val rekeyed = CompletableDeferred<Unit>()
-        var rekeyGate = CompletableDeferred(Unit)
+        var putStarted = CompletableDeferred<Unit>()
+        var putGate = CompletableDeferred(Unit)
 
         /** The keys the database was re-keyed with. */
         val rekeys = ConcurrentLinkedQueue<MasterKey>()
@@ -471,29 +532,62 @@ class UnlockUseCaseImplTest {
         /** The key derivations of the verified passwords. */
         val confirmations = ConcurrentLinkedQueue<MasterKdf>()
         private lateinit var initialCreateState: VaultState.Create
+
+        /** A vault of the derived format, of version 1. */
         private val auth = AuthResult(
-            kdf = MasterKdf.Argon2id.V1,
             key = MasterKey(MasterKdfVersion.V1, byteArrayOf(1)),
-            token = FingerprintPassword(
+            token = FingerprintPassword.Derived(
+                kdf = MasterKdf.Argon2id.V1,
                 hash = MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(2)),
                 salt = MasterPasswordSalt(byteArrayOf(3)),
             ),
         )
+
+        /** A new wrapped master key. */
+        private val generated = AuthResult(
+            key = MasterKey(MasterKdfVersion.V2, byteArrayOf(6)),
+            token = FingerprintPassword.Wrapped(
+                kdf = MasterKdf.Argon2id.V1,
+                salt = MasterPasswordSalt(byteArrayOf(7)),
+                wrappedKey = byteArrayOf(8),
+            ),
+        )
         private val log = LogRepositoryBridge(emptyList())
-        private val realConfirm = crypto?.let {
-            AuthConfirmMasterKeyUseCaseImpl(
-                generateMasterHashUseCase = GenerateMasterHashUseCaseImpl(log, it),
-                generateMasterKeyUseCase = GenerateMasterKeyUseCaseImpl(log, it),
+        private val cipherEncryptor = crypto?.let {
+            NativeCipherEncryptor(
+                cryptoGenerator = it,
+                base64Service = Base64ServiceImpl(),
             )
         }
         private val realHash = crypto?.let {
             GenerateMasterHashUseCaseImpl(log, it)
         }
-        private val realGenerate = crypto?.let {
-            AuthGenerateMasterKeyUseCaseImpl(
+        private val realKey = crypto?.let {
+            GenerateMasterKeyUseCaseImpl(log, it)
+        }
+        private val wrapping = crypto?.let {
+            MasterKeyWrapping(
+                cryptoGenerator = it,
+                cipherEncryptor = requireNotNull(cipherEncryptor),
+            )
+        }
+        private val realConfirm = crypto?.let {
+            AuthConfirmMasterKeyUseCaseImpl(
                 generateMasterHashUseCase = GenerateMasterHashUseCaseImpl(log, it),
                 generateMasterKeyUseCase = GenerateMasterKeyUseCaseImpl(log, it),
+                masterKeyWrapping = requireNotNull(wrapping),
+            )
+        }
+        private val realRewrap = crypto?.let {
+            RewrapMasterKeyUseCaseImpl(
+                masterKeyWrapping = requireNotNull(wrapping),
                 generateMasterSaltUseCase = GenerateMasterSaltUseCaseImpl(it),
+            )
+        }
+        private val realGenerate = crypto?.let {
+            AuthGenerateMasterKeyUseCaseImpl(
+                cryptoGenerator = it,
+                rewrapMasterKeyUseCase = requireNotNull(realRewrap),
             )
         }
         private val databaseManager = object : VaultDatabaseManager {
@@ -503,8 +597,6 @@ class UnlockUseCaseImplTest {
             override fun changePassword(newMasterKey: MasterKey): IO<Unit> = ioEffect {
                 events += "rekey"
                 rekeys += newMasterKey
-                rekeyed.complete(Unit)
-                rekeyGate.await()
             }
         }
         private val useCase = UnlockUseCaseImpl(
@@ -538,6 +630,7 @@ class UnlockUseCaseImplTest {
             },
             putVaultSession = object : PutVaultSession {
                 override fun invoke(session: MasterSession): IO<Unit> = ioEffect {
+                    publishes += session
                     published.complete(session)
                 }
             },
@@ -558,6 +651,8 @@ class UnlockUseCaseImplTest {
                 }
                 override fun put(key: Fingerprint?): IO<Unit> = ioEffect {
                     writeFailure?.let { throw it }
+                    putStarted.complete(Unit)
+                    putGate.await()
                     events += "put"
                     savedFingerprint = key
                     if (!deferFingerprintDelivery) fingerprints.value = key
@@ -577,13 +672,11 @@ class UnlockUseCaseImplTest {
             decryptBiometricKeyUseCase = unused(),
             authConfirmMasterKeyUseCase = object : AuthConfirmMasterKeyUseCase {
                 override fun invoke(
-                    salt: MasterPasswordSalt,
-                    hash: MasterPasswordHash,
-                    kdf: MasterKdf,
+                    token: FingerprintPassword,
                 ): AuthMasterKeyUseCase = { password ->
                     ioEffect {
-                        confirmations += kdf
-                        realConfirm?.invoke(salt, hash, kdf)?.invoke(password)?.bind() ?: auth
+                        confirmations += token.kdf
+                        realConfirm?.invoke(token)?.invoke(password)?.bind() ?: auth
                     }
                 }
             },
@@ -594,17 +687,27 @@ class UnlockUseCaseImplTest {
                     kdf: MasterKdf,
                 ): IO<MasterPasswordHash> = ioEffect {
                     confirmations += kdf
-                    realHash?.invoke(password, salt, kdf)?.bind() ?: auth.token.hash
+                    realHash?.invoke(password, salt, kdf)?.bind()
+                        ?: (auth.token as FingerprintPassword.Derived).hash
                 }
             },
             authGenerateMasterKeyUseCase = object : AuthGenerateMasterKeyUseCase {
-                override fun invoke(kdf: MasterKdf): AuthMasterKeyUseCase = { password ->
+                override fun invoke(kdf: MasterKdf.Argon2id): AuthMasterKeyUseCase = { password ->
                     ioEffect {
                         generationStarted.complete(Unit)
                         generating.await()
-                        realGenerate?.invoke(kdf)?.invoke(password)?.bind() ?: auth
+                        realGenerate?.invoke(kdf)?.invoke(password)?.bind() ?: generated
                     }
                 }
+            },
+            rewrapMasterKeyUseCase = object : RewrapMasterKeyUseCase {
+                override fun invoke(
+                    masterKey: MasterKey,
+                    password: MasterPassword,
+                    kdf: MasterKdf.Argon2id,
+                ): IO<FingerprintPassword.Wrapped> =
+                    requireNotNull(realRewrap) { "Re-wrapping needs the real key derivation" }
+                        .invoke(masterKey, password, kdf)
             },
             cryptoGenerator = unused(),
             cipherEncryptor = unused(),
@@ -660,27 +763,6 @@ class UnlockUseCaseImplTest {
             }
         }
 
-        /** Opens the vault, then starts to change its password. */
-        suspend fun startPasswordChange(biometric: Boolean = false) = run {
-            fingerprints.value = existingFingerprint()
-            sessions.value = MasterSession.Key(
-                masterKey = auth.key,
-                session = vaultSession,
-                origin = MasterSession.Key.Authenticated,
-                createdAt = Instant.DISTANT_PAST,
-            )
-            val changePassword = awaitState<VaultState.Main>().changePassword
-            val action = if (biometric) {
-                assertNotNull(changePassword.withMasterPasswordAndBiometric)
-                    .getCreateIo("1234", Change.Password("5678"))
-            } else {
-                changePassword.withMasterPassword.getCreateIo("1234", Change.Password("5678"))
-            }
-            scope.async { action.attempt().bind() }.also {
-                generationStarted.await()
-            }
-        }
-
         /** Creates the vault with the [kdf], then opens it. Needs the real key derivation. */
         suspend fun createAndOpen(password: String, kdf: MasterKdf.Argon2id): VaultState.Main {
             generating.complete(Unit)
@@ -691,18 +773,29 @@ class UnlockUseCaseImplTest {
             return awaitState<VaultState.Main>()
         }
 
-        /** Opens a vault of the legacy key derivation. Needs the real key derivation. */
+        /**
+         * Opens a vault of the legacy key derivation, with the biometric, YubiKey
+         * and FIDO2 unlock. Needs the real key derivation.
+         */
         suspend fun openLegacy(password: String): VaultState.Main {
             generating.complete(Unit)
             opened.complete(vaultSession)
-            val result = requireNotNull(realGenerate)(MasterKdf.Pbkdf2Legacy)(MasterPassword.of(password)).bind()
+            val kdf = MasterKdf.Pbkdf2Legacy
+            val salt = MasterPasswordSalt(ByteArray(64) { it.toByte() })
+            val hash = requireNotNull(realHash)(MasterPassword.of(password), salt, kdf).bind()
+            val key = requireNotNull(realKey)(MasterPassword.of(password), hash).bind()
             fingerprints.value = Fingerprint(
-                kdf = result.kdf,
-                master = result.token,
-                biometric = null,
+                master = FingerprintPassword.Derived(
+                    kdf = kdf,
+                    hash = hash,
+                    salt = salt,
+                ),
+                biometric = BIOMETRIC,
+                yubiKey = YUBI_KEY,
+                fido2 = FIDO2,
             )
             sessions.value = MasterSession.Key(
-                masterKey = result.key,
+                masterKey = key,
                 session = vaultSession,
                 origin = MasterSession.Key.Authenticated,
                 createdAt = Instant.DISTANT_PAST,
@@ -710,19 +803,37 @@ class UnlockUseCaseImplTest {
             return awaitState<VaultState.Main>()
         }
 
+        /** Adds the other unlock methods to the fingerprint, and returns it. */
+        fun addUnlockMethods(): Fingerprint {
+            val fingerprint = assertNotNull(fingerprints.value).copy(
+                biometric = BIOMETRIC,
+                yubiKey = YUBI_KEY,
+                fido2 = FIDO2,
+            )
+            fingerprints.value = fingerprint
+            return fingerprint
+        }
+
+        /** Wraps the [masterKey] under the [password], like a password change does. */
+        suspend fun rewrap(masterKey: MasterKey, password: String): FingerprintPassword.Wrapped =
+            requireNotNull(realRewrap)(masterKey, MasterPassword.of(password), CUSTOM_KDF).bind()
+
         /** Derives the master key the [fingerprint] gives for the [password]. */
         suspend fun deriveKey(fingerprint: Fingerprint, password: String): MasterKey =
-            requireNotNull(realConfirm)(
-                fingerprint.master.salt,
-                fingerprint.master.hash,
-                fingerprint.kdf,
-            )(MasterPassword.of(password)).bind().key
+            requireNotNull(realConfirm)(fingerprint.master)(MasterPassword.of(password)).bind().key
 
         fun <T> start(io: IO<T>) = scope.async { io.attempt().bind() }
 
         suspend fun assertSetupPreserved() {
             assertNull(withTimeoutOrNull(200.milliseconds) { states.receive() })
             assertEquals(listOf(initialCreateState), observed.toList())
+        }
+
+        suspend fun awaitMain(predicate: (VaultState.Main) -> Boolean): VaultState.Main {
+            while (true) {
+                val state = awaitState<VaultState.Main>()
+                if (predicate(state)) return state
+            }
         }
 
         suspend inline fun <reified T : VaultState> awaitState(): T {
@@ -733,7 +844,6 @@ class UnlockUseCaseImplTest {
         }
 
         fun existingFingerprint() = Fingerprint(
-            kdf = auth.kdf,
             master = auth.token,
             biometric = null,
         )
@@ -756,6 +866,25 @@ class UnlockUseCaseImplTest {
             iterations = 3,
             memoryKib = 16 * 1024,
             parallelism = 2,
+        )
+
+        private val BIOMETRIC = FingerprintBiometric(
+            iv = byteArrayOf(1),
+            encryptedMasterKey = byteArrayOf(2),
+        )
+
+        private val YUBI_KEY = FingerprintYubiKey(
+            slot = 2,
+            challenge = byteArrayOf(1),
+            hkdfSalt = byteArrayOf(2),
+            encryptedMasterKey = "2.yubikey",
+        )
+
+        private val FIDO2 = FingerprintFido2(
+            credentialId = "credential",
+            salt = "salt",
+            hkdfSalt = "hkdf-salt",
+            encryptedMasterKey = "2.fido2",
         )
 
         private fun lockedSession() = MasterSession.Empty(

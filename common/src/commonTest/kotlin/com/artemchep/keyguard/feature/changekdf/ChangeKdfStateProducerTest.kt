@@ -11,7 +11,6 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.VaultState.Main.ChangePassword.Change
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.vault.VaultSession
-import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.MeasureMasterKdfUseCase
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -24,15 +23,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 
@@ -190,12 +190,22 @@ class ChangeKdfStateProducerTest {
         }
 
     @Test
-    fun `biometric is offered only when available`() =
+    fun `a failed change is reported as a message and keeps the screen`() =
         runTest {
-            assertNull(fixture(kdf = CUSTOM).current().biometric)
+            val error = IllegalStateException("Wrong password")
+            val fixture = fixture(kdf = MasterKdf.Argon2id.DEFAULT, failure = error)
+            fixture.current().password.onChange!!.invoke(PASSWORD)
+            fixture.current().kdf.memory.onChange!!.invoke("128")
 
-            val withBiometric = fixture(kdf = CUSTOM, biometric = true)
-            assertEquals(true, withBiometric.current().biometric?.checked)
+            fixture.current().onConfirm!!.invoke()
+            runCurrent()
+
+            assertSame(error, fixture.scope.errors.single())
+            assertTrue(fixture.scope.messages.isEmpty())
+            assertTrue(fixture.scope.navigations.isEmpty())
+            val state = fixture.current()
+            assertFalse(state.isLoading)
+            assertNotNull(state.onConfirm)
         }
 
     private data class ChangeCall(
@@ -216,7 +226,7 @@ class ChangeKdfStateProducerTest {
     // work with runCurrent(), as advanceUntilIdle() skips it.
     private suspend fun TestScope.fixture(
         kdf: MasterKdf,
-        biometric: Boolean = false,
+        failure: Throwable? = null,
         measure: suspend () -> Duration = { Duration.ZERO },
     ): Fixture {
         val scope = MasterKdfTestScope(backgroundScope)
@@ -225,14 +235,11 @@ class ChangeKdfStateProducerTest {
             vaultState(
                 kdf = kdf,
                 calls = calls,
-                biometric = biometric,
+                failure = failure,
             ),
         )
         val unlockUseCase = object : UnlockUseCase {
             override fun invoke(): Flow<VaultState> = vaultState
-        }
-        val getBiometricRequireConfirmation = object : GetBiometricRequireConfirmation {
-            override fun invoke(): Flow<Boolean> = flowOf(false)
         }
         val measureMasterKdf = object : MeasureMasterKdfUseCase {
             override fun invoke(kdf: MasterKdf.Argon2id): IO<Duration> = ioEffect {
@@ -243,7 +250,6 @@ class ChangeKdfStateProducerTest {
             CoroutineScope by backgroundScope {}
         val stateFlow = scope.changeKdfStateProducer(
             unlockUseCase = unlockUseCase,
-            getBiometricRequireConfirmation = getBiometricRequireConfirmation,
             measureMasterKdf = measureMasterKdf,
             windowCoroutineScope = windowCoroutineScope,
         )
@@ -258,11 +264,12 @@ class ChangeKdfStateProducerTest {
     private fun vaultState(
         kdf: MasterKdf,
         calls: MutableList<ChangeCall>,
-        biometric: Boolean = false,
+        failure: Throwable? = null,
     ): VaultState.Main {
         val getCreateIo = { currentPassword: String, change: Change ->
             ioEffect {
                 calls += ChangeCall(currentPassword, change)
+                if (failure != null) throw failure
                 VaultState.Main.ChangePassword.Report()
             }
         }
@@ -275,14 +282,6 @@ class ChangeKdfStateProducerTest {
                 withMasterPassword = VaultState.Main.ChangePassword.WithPassword(
                     getCreateIo = getCreateIo,
                 ),
-                withMasterPasswordAndBiometric = if (biometric) {
-                    VaultState.Main.ChangePassword.WithBiometric(
-                        getCipher = { error("Unused") },
-                        getCreateIo = getCreateIo,
-                    )
-                } else {
-                    null
-                },
             ),
             session = TestVaultSession,
         )

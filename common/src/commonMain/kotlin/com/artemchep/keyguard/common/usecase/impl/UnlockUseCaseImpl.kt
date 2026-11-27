@@ -1,14 +1,13 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import arrow.core.Either
-import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
 import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityKeys
 import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityResealer
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityReseals
 import com.artemchep.keyguard.common.exception.MasterPasswordChangedException
 import com.artemchep.keyguard.common.exception.PasswordMismatchException
-import com.artemchep.keyguard.common.exception.UnsupportedMasterKdfVersionException
 import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
@@ -22,7 +21,6 @@ import com.artemchep.keyguard.common.io.flatTap
 import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.handleErrorWith
-import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
@@ -36,6 +34,7 @@ import com.artemchep.keyguard.util.fido2.FIDO2_INPUT_LENGTH
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
+import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
@@ -65,11 +64,13 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
+import com.artemchep.keyguard.common.usecase.RewrapMasterKeyUseCase
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.util.catch
 import com.artemchep.keyguard.common.util.flow.measureTimeTillFirstEvent
 import com.artemchep.keyguard.common.util.memoize
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
@@ -118,6 +119,7 @@ class UnlockUseCaseImpl(
     private val authConfirmMasterKeyUseCase: AuthConfirmMasterKeyUseCase,
     private val generateMasterHashUseCase: GenerateMasterHashUseCase,
     private val authGenerateMasterKeyUseCase: AuthGenerateMasterKeyUseCase,
+    private val rewrapMasterKeyUseCase: RewrapMasterKeyUseCase,
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
@@ -148,17 +150,8 @@ class UnlockUseCaseImpl(
     }
 
     /**
-     * Generates a new master key with the given key derivation from the
-     * given password.
-     */
-    private fun generateMasterKey(
-        password: String,
-        kdf: MasterKdf.Argon2id,
-    ): IO<AuthResult> = authGenerateMasterKeyUseCase(kdf)(MasterPassword.of(password))
-
-    /**
-     * Runs the changes of the master password one at a time: each one
-     * re-keys the database and replaces the fingerprint.
+     * Runs the changes of the master password one at a time:
+     * each one replaces the fingerprint.
      */
     private val changeMasterPasswordMutex = Mutex()
 
@@ -222,7 +215,6 @@ class UnlockUseCaseImpl(
                 ).bind()
                 createMainVaultState(
                     tokens = persistableUserTokens,
-                    biometric = biometric.forCreate,
                     masterKey = session.masterKey,
                     session = session.session,
                 )
@@ -308,7 +300,7 @@ class UnlockUseCaseImpl(
         return VaultState.Create(
             createWithMasterPassword = VaultState.Create.WithPassword(
                 getCreateIo = { password, kdf ->
-                    generateMasterKey(password, kdf)
+                    authGenerateMasterKeyUseCase(kdf)(MasterPassword.of(password))
                         .flatMap { result ->
                             create(
                                 result = result,
@@ -339,7 +331,7 @@ class UnlockUseCaseImpl(
                 VaultState.Create.WithBiometric(
                     getCipher = getCipherForEncryption,
                     getCreateIo = { password, kdf ->
-                        generateMasterKey(password, kdf)
+                        authGenerateMasterKeyUseCase(kdf)(MasterPassword.of(password))
                             .flatMap { result ->
                                 val masterKey = result.key
                                 val cipherIo = ioEffect {
@@ -387,18 +379,11 @@ class UnlockUseCaseImpl(
         biometric: BiometricStatus,
         lockInfo: MasterSession.Empty.LockInfo?,
     ): VaultState {
-        val unlockMasterKey = authConfirmMasterKeyUseCase(
-            tokens.master.salt,
-            tokens.master.hash,
-            tokens.kdf,
-        )
-            .compose { password: String ->
-                MasterPassword.of(password)
-            }
         return VaultState.Unlock(
             unlockWithMasterPassword = VaultState.Unlock.WithPassword(
+                kdf = tokens.master.kdf,
                 getCreateIo = { password ->
-                    unlockMasterKey(password)
+                    confirmLatestMasterKey(password)
                         // Try to unlock the vault using generated
                         // master key.
                         .map { it.key }
@@ -439,7 +424,7 @@ class UnlockUseCaseImpl(
                         decryptBiometricKeyUseCase(cipherIo, encryptedMasterKey)
                             .map { masterKeyBytes ->
                                 MasterKey(
-                                    version = tokens.kdf.version,
+                                    version = tokens.version,
                                     byteArray = masterKeyBytes,
                                 )
                             }
@@ -516,6 +501,21 @@ class UnlockUseCaseImpl(
         )
     }
 
+    /**
+     * Confirms the [password] against the latest fingerprint, not the one the
+     * unlock screen was created with: another process may have changed the
+     * password since. A wrapped vault keeps its master key on a change, so the
+     * outdated fingerprint would still accept the old password.
+     */
+    private fun confirmLatestMasterKey(
+        password: String,
+    ): IO<AuthResult> = ioEffect {
+        val latestTokens = keyReadWriteRepository.get().first()
+            ?: throw MasterPasswordChangedException()
+        authConfirmMasterKeyUseCase(latestTokens.master)(MasterPassword.of(password))
+            .bind()
+    }
+
     private fun decryptYubiKeyMasterKey(
         tokens: Fingerprint,
         response: ByteArray,
@@ -532,7 +532,7 @@ class UnlockUseCaseImpl(
             symmetricCryptoKey = SymmetricCryptoKey2(wrappingKey),
         ).data
         MasterKey(
-            version = tokens.kdf.version,
+            version = tokens.version,
             byteArray = plainBytes,
         )
     }.handleErrorWith { e ->
@@ -541,75 +541,24 @@ class UnlockUseCaseImpl(
 
     private fun createMainVaultState(
         tokens: Fingerprint,
-        biometric: BiometricStatus,
         masterKey: MasterKey,
         session: VaultSession,
     ): VaultState {
         val databaseManager = vaultDatabaseSessionAccess.get(session) ?: return VaultState.Loading
-        val getCreateIo = { currentPassword: String, change: VaultState.Main.ChangePassword.Change ->
-            changeMasterPassword(
-                databaseManager = databaseManager,
-                tokens = tokens,
-                currentPassword = currentPassword,
-                change = change,
-                getBiometricTokens = null,
-            )
-        }
         val changePassword = VaultState.Main.ChangePassword(
             key = tokens.master,
-            kdf = tokens.kdf,
+            kdf = tokens.master.kdf,
             withMasterPassword = VaultState.Main.ChangePassword.WithPassword(
-                getCreateIo = getCreateIo,
+                getCreateIo = { currentPassword, change ->
+                    changeMasterPassword(
+                        databaseManager = databaseManager,
+                        tokens = tokens,
+                        masterKey = masterKey,
+                        currentPassword = currentPassword,
+                        change = change,
+                    )
+                },
             ),
-            withMasterPasswordAndBiometric = if (biometric is BiometricStatus.Available) {
-                val getCipherForEncryption = biometric
-                    .createCipher
-                    .partially1(BiometricPurpose.Encrypt)
-                    // Handle key invalidation
-                    .createCipherOrDisableBiometrics()
-                    .let { block ->
-                        // lambda
-                        suspend { Either.catch(block) }
-                    }
-                    // Save the cipher for further use by
-                    // the code in the block. This allows us to not
-                    // return the cipher from the action.
-                    .memoize()
-                VaultState.Main.ChangePassword.WithBiometric(
-                    getCipher = getCipherForEncryption,
-                    getCreateIo = { currentPassword, change ->
-                        changeMasterPassword(
-                            databaseManager = databaseManager,
-                            tokens = tokens,
-                            currentPassword = currentPassword,
-                            change = change,
-                        ) { newMasterKey ->
-                            val cipherIo = ioEffect {
-                                getCipherForEncryption()
-                                    .getOrElse { e ->
-                                        throw e
-                                    }
-                            }
-                            val encryptedNewMasterKey = biometricKeyEncryptUseCase(cipherIo, newMasterKey)
-                                .handleErrorWith { e ->
-                                    val newException = BiometricKeyEncryptException(e)
-                                    ioRaise(newException)
-                                }
-                                .bind()
-                            val cipher = getCipherForEncryption()
-                                .getOrElse { e ->
-                                    throw e
-                                }
-                            FingerprintBiometric(
-                                iv = cipher.iv,
-                                encryptedMasterKey = encryptedNewMasterKey,
-                            )
-                        }
-                    },
-                )
-            } else {
-                null
-            },
         )
         return VaultState.Main(
             masterKey = masterKey,
@@ -622,26 +571,26 @@ class UnlockUseCaseImpl(
      * Applies the [change] to the vault that [currentPassword] opens: a new master
      * password or a new key derivation.
      *
-     * The slow and fallible work runs before the database is re-keyed, so a failure there
-     * changes nothing. From the re-key on, the vault opens only with the new fingerprint:
-     * nothing may stop its writing, or neither password would open the vault.
+     * The master key of the open vault is wrapped under the new password or key
+     * derivation, see [FingerprintPassword.Wrapped]. The master key stays the same, so
+     * the database, the session and the biometric, YubiKey and FIDO2 unlock stay as
+     * they are. A vault of the derived format moves to the wrapped one this way.
      *
      * The changes run one at a time. A change that starts from an outdated fingerprint
      * [tokens] fails with [MasterPasswordChangedException]: its current password belongs
-     * to a master key the database no longer uses.
+     * to another fingerprint.
      *
+     * @param masterKey the master key of the open vault.
      * @param change a new password keeps the current key derivation, or moves a legacy
      *   or unknown one to [MasterKdf.Argon2id.DEFAULT]. A new key derivation keeps the
      *   current password.
-     * @param getBiometricTokens seals the new master key for the biometric unlock, or `null`
-     *   to turn the biometric unlock off.
      */
     private fun changeMasterPassword(
         databaseManager: VaultDatabaseManager,
         tokens: Fingerprint,
+        masterKey: MasterKey,
         currentPassword: String,
         change: VaultState.Main.ChangePassword.Change,
-        getBiometricTokens: (suspend (MasterKey) -> FingerprintBiometric)?,
     ): IO<VaultState.Main.ChangePassword.Report> = ioEffect {
         changeMasterPasswordMutex.withLock {
             // Another change could have replaced the fingerprint
@@ -651,42 +600,42 @@ class UnlockUseCaseImpl(
                 throw MasterPasswordChangedException()
             }
 
-            generateMasterHashUseCase.verifyPassword(tokens, currentPassword).bind()
-            // The authority keys use their own key derivation, so a change of the key
-            // derivation alone leaves them as they are.
-            val (newPassword, newKdf, reseal) = when (change) {
-                is VaultState.Main.ChangePassword.Change.Password -> {
-                    val kdf = tokens.kdf as? MasterKdf.Argon2id ?: MasterKdf.Argon2id.DEFAULT
-                    Triple(change.newPassword, kdf, true)
-                }
+            val (newPassword, newKdf) = when (change) {
+                is VaultState.Main.ChangePassword.Change.Password ->
+                    change.newPassword to (tokens.master.kdf as? MasterKdf.Argon2id ?: MasterKdf.Argon2id.DEFAULT)
 
-                is VaultState.Main.ChangePassword.Change.Kdf -> Triple(currentPassword, change.kdf, false)
+                is VaultState.Main.ChangePassword.Change.Kdf ->
+                    currentPassword to change.kdf
             }
-            val result = generateMasterKey(newPassword, newKdf).bind()
+            verifyPassword(
+                master = tokens.master,
+                masterKey = masterKey,
+                password = currentPassword,
+            )
+            val newMaster = MasterPassword.of(newPassword).let { password ->
+                password.byteArray.useAndClear {
+                    rewrapMasterKeyUseCase(masterKey, password, newKdf).bind()
+                }
+            }
             // The key derivations are slow: re-seal the authority keys in memory first.
-            val prepared = if (reseal) {
+            // They use their own key derivation, so a new key derivation of the vault
+            // alone leaves them as they are.
+            val prepared = if (change is VaultState.Main.ChangePassword.Change.Password) {
                 authorityResealer.prepare(databaseManager, currentPassword, newPassword)
             } else {
                 null
             }
-            val biometricTokens = getBiometricTokens?.invoke(result.key)
             val skipped = withContext(NonCancellable) {
-                databaseManager
-                    .changePassword(result.key)
-                    .bind()
-                val skipped = prepared
-                    ?.let {
-                        authorityResealer.commit(databaseManager, it.reseals) { e ->
-                            val msg = "Failed to write the re-sealed authority key of a linked device: ${e.message}"
-                            logRepository.post(TAG, msg, level = LogLevel.WARNING)
+                keyReadWriteRepository
+                    .update { latest ->
+                        if (latest == null || latest.master != tokens.master) {
+                            throw MasterPasswordChangedException()
                         }
+                        // Keeps the other unlock methods.
+                        latest.copy(master = newMaster)
                     }
-                    .orEmpty()
-                create(
-                    result = result,
-                    biometricTokens = biometricTokens,
-                ).bind()
-                skipped
+                    .bind()
+                commitReseals(databaseManager, prepared)
             }
             val stale = prepared?.stale.orEmpty()
             val notResealed = stale.size + skipped.size
@@ -705,6 +654,55 @@ class UnlockUseCaseImpl(
             it.printStackTrace()
         }
         .dispatchOn(Dispatchers.Default)
+
+    /**
+     * Writes the [prepared] re-seals of the authority keys, and returns
+     * the groups it skipped.
+     */
+    private suspend fun commitReseals(
+        databaseManager: VaultDatabaseManager,
+        prepared: KeyguardAuthorityReseals?,
+    ): List<String> = prepared
+        ?.let {
+            authorityResealer.commit(databaseManager, it.reseals) { e ->
+                val msg = "Failed to write the re-sealed authority key of a linked device: ${e.message}"
+                logRepository.post(TAG, msg, level = LogLevel.WARNING)
+            }
+        }
+        .orEmpty()
+
+    /**
+     * Verifies that the [password] opens the [master], and that the [master]
+     * holds the [masterKey] of the open vault.
+     *
+     * @throws PasswordMismatchException if the password is wrong.
+     */
+    private suspend fun verifyPassword(
+        master: FingerprintPassword,
+        masterKey: MasterKey,
+        password: String,
+    ) {
+        val masterPassword = MasterPassword.of(password)
+        masterPassword.byteArray.useAndClear {
+            when (master) {
+                // Only the hash stage runs: the derived format checks the
+                // password with the hash, not with the master key.
+                is FingerprintPassword.Derived -> generateMasterHashUseCase
+                    .verifyPassword(master, masterPassword)
+                    .bind()
+
+                is FingerprintPassword.Wrapped -> authConfirmMasterKeyUseCase(master)(masterPassword)
+                    .bind()
+                    .key.byteArray
+                    .useAndClear { key ->
+                        // The fingerprint must wrap the key of the open database.
+                        if (!key.constantTimeEquals(masterKey.byteArray)) {
+                            throw MasterPasswordChangedException()
+                        }
+                    }
+            }
+        }
+    }
 
     /**
      * `true` if there is a saved biometric binding and the platform
@@ -781,7 +779,6 @@ class UnlockUseCaseImpl(
         biometricTokens: FingerprintBiometric? = null,
     ): IO<Unit> {
         val token = Fingerprint(
-            kdf = result.kdf,
             master = result.token,
             biometric = biometricTokens,
         )
@@ -810,24 +807,3 @@ class UnlockUseCaseImpl(
     private fun writeLastPasswordUseTimestamp(): IO<Unit> = sessionMetadataReadWriteRepository
         .setLastPasswordUseTimestamp(instant = Clock.System.now())
 }
-
-/**
- * Verifies that the [password] gives the master hash of the [tokens].
- * Only the hash stage runs: the master key is not derived.
- */
-private fun GenerateMasterHashUseCase.verifyPassword(
-    tokens: Fingerprint,
-    password: String,
-): IO<Unit> = invoke(MasterPassword.of(password), tokens.master.salt, tokens.kdf)
-    .flatMap { hash ->
-        if (hash.byteArray.constantTimeEquals(tokens.master.hash.byteArray)) {
-            io(Unit)
-        } else {
-            ioRaise(PasswordMismatchException())
-        }
-    }
-    .handleErrorWith(
-        predicate = { e -> e is UnsupportedMasterKdfVersionException },
-    ) {
-        ioRaise(PasswordMismatchException())
-    }

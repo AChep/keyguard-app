@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -22,9 +21,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import arrow.core.partially1
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -32,12 +29,10 @@ import com.artemchep.keyguard.ui.AutofillButton
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.FabScope
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -103,26 +98,6 @@ private fun LazyListScope.ChangePasswordContentSkeleton() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = Dimens.horizontalPadding),
-        )
-    }
-    item("password.new.biometric.spacer.skeleton") {
-        Spacer(Modifier.height(8.dp))
-    }
-    item("biometric.skeleton") {
-        FlatItemLayout(
-            leading = {
-                SkeletonCheckbox(
-                    clickable = false,
-                )
-            },
-            content = {
-                SkeletonText(
-                    modifier = Modifier
-                        .fillMaxWidth(0.3f),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            enabled = true,
         )
     }
     item("biometric.disclaimer.spacer.skeleton") {
@@ -204,31 +179,7 @@ private fun ChangePasswordNewPasswordItem(
 }
 
 @Composable
-internal fun ChangePasswordBiometricItem(
-    biometric: ChangePasswordState.Biometric,
-) {
-    FlatItemLayout(
-        leading = {
-            Checkbox(
-                enabled = biometric.onChange != null,
-                checked = biometric.checked,
-                onCheckedChange = {
-                    biometric.onChange?.invoke(it)
-                },
-            )
-        },
-        content = {
-            Text(
-                text = stringResource(Res.string.changepassword_biometric_auth_checkbox),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        onClick = biometric.onChange?.partially1(!biometric.checked),
-    )
-}
-
-@Composable
-internal fun ChangePasswordDisclaimerIconItem() {
+private fun ChangePasswordDisclaimerIconItem() {
     Icon(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
@@ -240,7 +191,7 @@ internal fun ChangePasswordDisclaimerIconItem() {
 }
 
 @Composable
-internal fun ChangePasswordDisclaimerTextItem(
+private fun ChangePasswordDisclaimerTextItem(
     text: String,
 ) {
     Text(
@@ -258,8 +209,6 @@ internal fun ChangePasswordDisclaimerTextItem(
 fun ChangePasswordScreen(
     state: ChangePasswordState,
 ) {
-    BiometricPromptEffect(state.sideEffects.showBiometricPromptFlow)
-
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
@@ -353,17 +302,6 @@ private fun LazyListScope.ChangePasswordContent(
     }
     item("password.new") {
         ChangePasswordNewPasswordItem(state = state)
-    }
-    val biometric = state.biometric
-    if (biometric != null) {
-        item("password.new.biometric.spacer") {
-            Spacer(Modifier.height(8.dp))
-        }
-        item("biometric") {
-            ChangePasswordBiometricItem(
-                biometric = biometric,
-            )
-        }
     }
     item("biometric.disclaimer.spacer") {
         Spacer(

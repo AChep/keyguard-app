@@ -1,15 +1,12 @@
 package com.artemchep.keyguard.feature.changekdf
 
 import androidx.compose.runtime.Composable
-import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.MeasureMasterKdfUseCase
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.modelFlow
@@ -18,10 +15,7 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationPassword
 import com.artemchep.keyguard.feature.auth.common.util.validatePassword
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordAction
-import com.artemchep.keyguard.feature.changepassword.ChangePasswordActions
-import com.artemchep.keyguard.feature.changepassword.ChangePasswordState
-import com.artemchep.keyguard.feature.changepassword.changePasswordBiometricFlow
-import com.artemchep.keyguard.feature.changepassword.createChangePasswordActions
+import com.artemchep.keyguard.feature.changepassword.createChangePasswordAction
 import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormHandle
 import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormState
 import com.artemchep.keyguard.feature.masterkdf.masterKdfFormHandle
@@ -46,7 +40,6 @@ private const val KEY_KDF = "kdf"
 fun changeKdfState(): Loadable<ChangeKdfState> = with(currentKoinScope()) {
     changeKdfState(
         unlockUseCase = get(),
-        getBiometricRequireConfirmation = get(),
         measureMasterKdf = get(),
         // The change replaces the vault scope before recording success and closing this screen.
         windowCoroutineScope = getKoin().get<WindowCoroutineScope>(),
@@ -56,7 +49,6 @@ fun changeKdfState(): Loadable<ChangeKdfState> = with(currentKoinScope()) {
 @Composable
 fun changeKdfState(
     unlockUseCase: UnlockUseCase,
-    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     measureMasterKdf: MeasureMasterKdfUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): Loadable<ChangeKdfState> = produceScreenState(
@@ -68,7 +60,6 @@ fun changeKdfState(
 ) {
     changeKdfStateProducer(
         unlockUseCase = unlockUseCase,
-        getBiometricRequireConfirmation = getBiometricRequireConfirmation,
         measureMasterKdf = measureMasterKdf,
         windowCoroutineScope = windowCoroutineScope,
     )
@@ -81,35 +72,25 @@ fun changeKdfState(
  */
 suspend fun RememberStateFlowScope.changeKdfStateProducer(
     unlockUseCase: UnlockUseCase,
-    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     measureMasterKdf: MeasureMasterKdfUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): Flow<Loadable<ChangeKdfState>> {
-    val biometricPromptSink = EventFlow<BiometricAuthPrompt>()
-
     val passwordHandle = textFieldHandle(KEY_PASSWORD)
 
-    // A change runs one at a time: a second one would race the
-    // re-key of the vault with the first one.
+    // A change runs one at a time.
     val loadingSink = MutableStateFlow(false)
 
     val vaultFlow = unlockUseCase()
         .map { vaultState ->
             (vaultState as? VaultState.Main)?.let { state ->
-                val requireConfirmation = getBiometricRequireConfirmation()
-                    .first()
-                val actions = createChangePasswordActions(
-                    state = state,
-                    requireConfirmation = requireConfirmation,
-                    biometricPromptSink = biometricPromptSink,
-                    windowCoroutineScope = windowCoroutineScope,
-                    loadingSink = loadingSink,
-                    successMessage = Res.string.changekdf_changed_successfully,
-                    biometricPromptTitle = Res.string.changekdf_biometric_auth_confirm_title,
-                )
                 ChangeKdfVault(
                     kdf = state.changePassword.kdf,
-                    actions = actions,
+                    change = createChangePasswordAction(
+                        state = state,
+                        windowCoroutineScope = windowCoroutineScope,
+                        loadingSink = loadingSink,
+                        successMessage = Res.string.changekdf_changed_successfully,
+                    ),
                 )
             }
         }
@@ -132,9 +113,6 @@ suspend fun RememberStateFlowScope.changeKdfStateProducer(
         isBusyFlow = loadingSink,
     )
 
-    val biometricFlow = changePasswordBiometricFlow(
-        actionsFlow = vaultFlow.map { it?.actions },
-    )
     val passwordFlow = passwordHandle.modelFlow { password ->
         validatedPassword(password)
     }
@@ -142,14 +120,10 @@ suspend fun RememberStateFlowScope.changeKdfStateProducer(
     val stateFactory = ChangeKdfStateFactory(
         passwordHandle = passwordHandle,
         kdfForm = kdfForm,
-        sideEffects = ChangePasswordState.SideEffects(
-            showBiometricPromptFlow = biometricPromptSink,
-        ),
     )
     return combine(
         passwordFlow,
         kdfForm.stateFlow,
-        biometricFlow,
         vaultFlow,
         loadingSink,
         stateFactory::create,
@@ -159,18 +133,16 @@ suspend fun RememberStateFlowScope.changeKdfStateProducer(
 private class ChangeKdfVault(
     /** The current key derivation of the vault. */
     val kdf: MasterKdf,
-    val actions: ChangePasswordActions,
+    val change: ChangePasswordAction,
 )
 
 private class ChangeKdfStateFactory(
     private val passwordHandle: TextFieldHandle,
     private val kdfForm: MasterKdfFormHandle,
-    private val sideEffects: ChangePasswordState.SideEffects,
 ) {
     fun create(
         password: TextFieldModel,
         kdf: MasterKdfFormState,
-        biometric: ChangePasswordState.Biometric?,
         vault: ChangeKdfVault?,
         isLoading: Boolean,
     ): Loadable<ChangeKdfState> {
@@ -182,14 +154,9 @@ private class ChangeKdfStateFactory(
                 newKdf != vault?.kdf &&
                 !kdf.test.isRunning &&
                 !isLoading
-        val change = if (biometric?.checked == true) {
-            vault?.actions?.changeWithBiometric
-        } else {
-            vault?.actions?.change
-        }
-        val onConfirm = if (canConfirm && vault != null && change != null) {
+        val onConfirm = if (canConfirm && vault != null) {
             changeKdfAction(
-                change = change,
+                change = vault.change,
                 currentKdf = vault.kdf,
                 passwordHandle = passwordHandle,
                 kdfForm = kdfForm,
@@ -198,10 +165,8 @@ private class ChangeKdfStateFactory(
             null
         }
         val state = ChangeKdfState(
-            sideEffects = sideEffects,
             password = password,
             kdf = kdf,
-            biometric = biometric,
             isLoading = isLoading,
             onConfirm = onConfirm,
         )

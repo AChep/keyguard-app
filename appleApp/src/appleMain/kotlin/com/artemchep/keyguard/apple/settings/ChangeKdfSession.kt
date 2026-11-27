@@ -21,8 +21,6 @@ class ChangeKdfSession internal constructor(
 
     val kdf: MasterKdfActions = MasterKdfActions { block -> session.withActions { block(it.kdf) } }
 
-    fun setBiometric(enabled: Boolean) = session.withActions { it.setBiometric?.invoke(enabled) }
-
     fun submit() = session.withActions { it.submit?.invoke() }
 
     fun close() = session.close()
@@ -31,6 +29,5 @@ class ChangeKdfSession internal constructor(
 internal data class ChangeKdfActions(
     val setPassword: ((String) -> Unit)? = null,
     val kdf: MasterKdfHandlers = MasterKdfHandlers(),
-    val setBiometric: ((Boolean) -> Unit)? = null,
     val submit: (() -> Unit)? = null,
 )

@@ -1,12 +1,10 @@
 package com.artemchep.keyguard.common.usecase
 
-import com.artemchep.keyguard.common.model.MasterKdf
-import com.artemchep.keyguard.common.model.MasterPasswordHash
-import com.artemchep.keyguard.common.model.MasterPasswordSalt
+import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.core.session.usecase.AuthMasterKeyUseCase
 
-interface AuthConfirmMasterKeyUseCase : (
-    MasterPasswordSalt,
-    MasterPasswordHash,
-    MasterKdf,
-) -> AuthMasterKeyUseCase
+/**
+ * Returns the master key that the password opens in the given
+ * token, or fails with a password mismatch.
+ */
+interface AuthConfirmMasterKeyUseCase : (FingerprintPassword) -> AuthMasterKeyUseCase

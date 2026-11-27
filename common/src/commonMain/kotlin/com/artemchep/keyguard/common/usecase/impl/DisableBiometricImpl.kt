@@ -17,10 +17,13 @@ class DisableBiometricImpl(
     override fun invoke() = keyReadWriteRepository.get()
         .toIO()
         .flatMap { tokens ->
-            val newTokens = tokens?.copy(biometric = null)
-            val clearBindingIo = if (newTokens != tokens) {
+            val clearBindingIo = if (tokens?.biometric != null) {
+                // Clear the latest fingerprint: an outdated
+                // copy may hold an old password.
                 keyReadWriteRepository
-                    .put(newTokens)
+                    .update { latest ->
+                        latest?.copy(biometric = null)
+                    }
             } else {
                 ioUnit()
             }

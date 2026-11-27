@@ -319,6 +319,8 @@
     <string name="encryption_key">Key</string>
     <string name="encryption_hash">Hash</string>
     <string name="encryption_salt">Salt</string>
+    <!-- A key that encrypts another key, such as the key of the vault -->
+    <string name="encryption_key_encryption_key">Key-encryption key</string>
     <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
     <string name="encryption_random_bits_data">Random <xliff:g id="length" example="64">%1$d</xliff:g>-bits of data</string>
     <string name="none">None</string>
@@ -796,6 +798,8 @@
 
     <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
     <string name="autofill_unlock_subtitle">Enter your master password to fill the selected login.</string>
+    <!-- Shown in the iOS AutoFill extension when the key derivation of the vault needs more memory than iOS gives the extension -->
+    <string name="autofill_unlock_password_out_of_memory">AutoFill does not have enough memory to unlock with the master password. Unlock with Face ID or Touch ID, or open Keyguard.</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
     <!--
         Shows up as an entry in the system credential picker when the app
@@ -1138,7 +1142,7 @@
     <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
     <string name="setup_erase_vault_confirmation_text">This permanently deletes the local vault on this device. This cannot be undone.</string>
     <!-- Key derivation (Argon2id) of the app password -->
-    <string name="masterkdf_note">Argon2id key derivation. Higher values make the app password harder to guess and unlocking slower.</string>
+    <string name="masterkdf_note">Argon2id key derivation. More memory and iterations make the app password harder to guess and unlocking slower. Parallelism sets the number of lanes.</string>
     <string name="masterkdf_iterations_label">Iterations</string>
     <string name="masterkdf_memory_label">Memory (MiB)</string>
     <string name="masterkdf_parallelism_label">Parallelism</string>
@@ -1154,8 +1158,6 @@
     <string name="masterkdf_summary_memory"><xliff:g id="memory" example="64">%1$s</xliff:g> MiB</string>
     <!-- The key derivation of a vault created by an older version of the app -->
     <string name="masterkdf_summary_pbkdf2_legacy">PBKDF2 (legacy)</string>
-    <string name="changekdf_biometric_auth_confirm_title">Change key derivation</string>
-    <string name="changekdf_disclaimer_unlock_methods_note">The change removes YubiKey unlock and Security key (FIDO2) unlock. Turn them on again afterward.</string>
     <string name="changekdf_changed_successfully">Key derivation changed</string>
 
     <string name="unlock_header_text">The vault is locked. Enter your app password to continue.</string>
@@ -1811,9 +1813,6 @@
 
     <string name="changepassword_header_title">Change app password</string>
     <string name="changepassword_change_password_button">Change password</string>
-    <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
-    <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
-    <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
@@ -2492,11 +2491,11 @@
     <string name="datasafety_local_settings_note">The User settings are encrypted using a device-specific key.</string>
     <string name="datasafety_local_settings_no_app_encryption_note">User settings are stored locally without app-level encryption.</string>
     <string name="datasafety_local_vault_section">Vault</string>
-    <string name="datasafety_local_encryption_algorithm_intro">The Vault is encrypted using a Key, derived from the App password using following steps:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">The Salt and Hash are then stored locally on a device, to later generate a master key to unlock the vault.</string>
+    <string name="datasafety_local_encryption_algorithm_intro_v2">The Vault is encrypted with a random Key. The App password protects that Key:</string>
+    <string name="datasafety_local_encryption_algorithm_outro_v2">The Salt and the Key, encrypted with the Key-encryption key, are then stored locally on a device. Unlocking derives the Key-encryption key again to decrypt the Key.</string>
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_local_stored_on_device_text">Local data includes downloads, user settings, and the vault stored on this device.</string>
-    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id with the default parameters for version 1, Argon2id with custom parameters for version 2 and PBKDF2 for legacy version 0.</string>
+    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id with the parameters set in the app. Older vaults derive the Key directly from the App password, as below: version 1 with Argon2id at the default parameters, legacy version 0 with PBKDF2. The next change of the App password or the key derivation keeps their Key and protects it as above.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
 

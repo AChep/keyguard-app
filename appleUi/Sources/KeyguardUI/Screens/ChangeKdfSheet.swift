@@ -21,7 +21,6 @@ struct ChangeKdfSheet: View {
                 s: snapshot,
                 setPassword: { text in perform { $0.setPassword(text: text) } },
                 kdf: { edit in perform { edit($0.kdf) } },
-                setBiometric: { enabled in perform { $0.setBiometric(enabled: enabled) } },
                 submit: { perform { $0.submit() } }
             )
         }

@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.dispatchOn
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.handleError
+import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
@@ -28,6 +29,7 @@ import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
 import com.artemchep.keyguard.util.io.atomic.SyncLevel
 import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import com.artemchep.keyguard.util.io.atomic.writeFileAtomically
+import com.artemchep.keyguard.util.io.fileRevisionOrNull
 import com.artemchep.keyguard.util.io.readTextIfExists
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
@@ -73,6 +75,12 @@ class FileJsonKeyValueStoreStore(
         }
         .dispatchOn(Dispatchers.IO)
 
+    override fun revision(): IO<Any?> = fileIo
+        .effectMap { destination ->
+            destination.path.fileRevisionOrNull()
+        }
+        .dispatchOn(Dispatchers.IO)
+
     override fun write(state: PersistentMap<String, Any?>): IO<Unit> = fileIo
         .effectMap { destination ->
             val text = json.encodeToString(state.toJson())
@@ -102,6 +110,12 @@ class FileJsonKeyValueStoreStore(
 
 interface JsonKeyValueStoreStore {
     fun read(): IO<PersistentMap<String, Any?>>
+
+    /**
+     * A cheap token that changes when the stored state changes, for example
+     * when another process writes the file. The default never changes.
+     */
+    fun revision(): IO<Any?> = io(null)
 
     fun write(state: PersistentMap<String, Any?>): IO<Unit>
 }
@@ -157,6 +171,9 @@ class JsonKeyValueStore(
     private var init = false
     private var needsReload = false
 
+    /** The [JsonKeyValueStoreStore.revision] the [sink] was last read or written at. */
+    private var revision: Any? = null
+
     private suspend fun ensureInit(): PersistentMap<String, Any?> = mutex.withLock {
         initializeLocked()
         sink.value
@@ -166,17 +183,31 @@ class JsonKeyValueStore(
         // Initialize the sink with data from the external
         // database.
         if (!init) {
+            // Read the revision first: a write that lands in between
+            // causes one extra reload, never a missed one.
+            revision = readRevisionOrNull()
             sink.value = str.read()
                 .handleError { persistentMapOf<String, Any?>() }
                 .bind()
             init = true
+            needsReload = false
+            return
         }
-        if (needsReload) {
+        // Another process, for example an AutoFill extension, may
+        // have written the file since it was read.
+        val latestRevision = readRevisionOrNull()
+        if (needsReload || latestRevision != revision) {
             // Do not overwrite a possibly published commit using stale memory.
             sink.value = str.read().bind()
+            revision = latestRevision
             needsReload = false
         }
     }
+
+    // A failed check counts as no change, and keeps the cached state.
+    private suspend fun readRevisionOrNull(): Any? = str.revision()
+        .handleError { revision }
+        .bind()
 
     // The backend may throw any failure, including cancellation after publication.
     @Suppress("TooGenericExceptionCaught")
@@ -194,7 +225,9 @@ class JsonKeyValueStore(
                 if (!notPublished) {
                     withContext(NonCancellable) {
                         try {
+                            val latestRevision = readRevisionOrNull()
                             sink.value = str.read().bind()
+                            revision = latestRevision
                         } catch (readError: Throwable) {
                             needsReload = true
                             error.addSuppressed(readError)
@@ -204,6 +237,9 @@ class JsonKeyValueStore(
                 throw error
             }
             sink.value = value
+            // Record the own write, so it does not cause a reload. The write
+            // is published already: do not turn it into a failure.
+            revision = withContext(NonCancellable) { readRevisionOrNull() }
         }
     }
 

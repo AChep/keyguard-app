@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
+import com.artemchep.keyguard.common.service.vault.updateIfMaster
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -38,7 +39,11 @@ internal suspend fun rearmBiometricBinding(
             iv = cipher.iv,
             encryptedMasterKey = encryptedMasterKey,
         )
-        keyReadWriteRepository.put(tokens.copy(biometric = binding)).bind()
+        keyReadWriteRepository
+            .updateIfMaster(tokens.master) { latest ->
+                latest.copy(biometric = binding)
+            }
+            .bind()
         saved = true
         return true
     } finally {

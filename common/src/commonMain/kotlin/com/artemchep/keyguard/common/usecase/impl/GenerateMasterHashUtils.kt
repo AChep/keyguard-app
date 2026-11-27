@@ -70,7 +70,7 @@ internal fun CryptoGenerator.deriveMasterBytes(
  * Derives with the Argon2id [kdf]. A native allocation failure
  * becomes a [MasterKdfOutOfMemoryException].
  */
-private fun CryptoGenerator.masterArgon2id(
+internal fun CryptoGenerator.masterArgon2id(
     password: ByteArray,
     salt: ByteArray,
     kdf: MasterKdf.Argon2id,

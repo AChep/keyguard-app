@@ -50,7 +50,6 @@ class SettingsFormSessionTest {
                     ChangePasswordActions(
                         setCurrentPassword = { edits += "$index:current:$it" },
                         setNewPassword = { edits += "$index:new:$it" },
-                        setBiometric = { edits += "$index:biometric:$it" },
                         submit = { edits += "$index:submit" },
                     ),
                 )
@@ -59,14 +58,13 @@ class SettingsFormSessionTest {
         }
         sessions[0].setCurrentPassword("old A")
         sessions[1].setNewPassword("new B")
-        sessions[1].setBiometric(false)
         sessions[1].submit()
         completions[1]()
         sessions[1].submit()
         sessions[0].close()
         completions[0]()
         sessions[0].setNewPassword("stale")
-        assertEquals(listOf("0:current:old A", "1:new:new B", "1:biometric:false", "1:submit"), edits)
+        assertEquals(listOf("0:current:old A", "1:new:new B", "1:submit"), edits)
         assertEquals(listOf(1), closed)
     }
 
@@ -89,7 +87,6 @@ class SettingsFormSessionTest {
                             reset = { edits += "$index:reset" },
                             test = { edits += "$index:test" },
                         ),
-                        setBiometric = { edits += "$index:biometric:$it" },
                         submit = { edits += "$index:submit" },
                     ),
                 )
@@ -102,7 +99,6 @@ class SettingsFormSessionTest {
         sessions[0].kdf.setParallelism("2")
         sessions[0].kdf.test()
         sessions[1].kdf.reset()
-        sessions[1].setBiometric(false)
         sessions[1].submit()
         completions[1]()
         sessions[1].submit()
@@ -112,7 +108,7 @@ class SettingsFormSessionTest {
         assertEquals(
             listOf(
                 "0:password:current A", "1:iterations:4", "1:memory:128", "0:parallelism:2",
-                "0:test", "1:reset", "1:biometric:false", "1:submit",
+                "0:test", "1:reset", "1:submit",
             ),
             edits,
         )

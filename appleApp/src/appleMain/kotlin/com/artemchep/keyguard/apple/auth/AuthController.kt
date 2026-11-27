@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
@@ -26,6 +27,7 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.throttleLatest
+import com.artemchep.keyguard.platform.AppleSessionMode
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +63,14 @@ internal class AuthController(
     private val disableYubiKeyUnlock: DisableYubiKeyUnlock by lazy { ctx.koin.get() }
     private val showMessage: ShowMessage by lazy { ctx.koin.get() }
 
+    /** Refuses a password unlock the AutoFill extension has no memory for. */
+    private val autofillKdfAllows: ((MasterKdf) -> Boolean)? =
+        if (ctx.koin.getOrNull<AppleSessionMode>() == AppleSessionMode.AUTOFILL) {
+            platformAutofillKdfAllows()
+        } else {
+            null
+        }
+
     private var latestUnlockState: UnlockState? = null
     private var latestUnlockActionHandlers: Map<String, () -> Unit> = emptyMap()
     // Shared executor rejects simultaneous unlock/create operations across form owners.
@@ -88,7 +98,7 @@ internal class AuthController(
                 if (state is VaultState.Unlock) coroutineScope {
                     formScope("unlock", this).unlockStateProducer(
                         clearData = clearData,
-                        unlockVaultByMasterPassword = state.unlockWithMasterPassword,
+                        unlockVaultByMasterPassword = state.unlockWithMasterPassword.guardedBy(autofillKdfAllows),
                         unlockVaultByBiometric = null,
                         unlockVaultByYubiKey = null,
                     ).throttleLatest().combine(prompts.isActive) { loadable, busy ->
@@ -114,7 +124,8 @@ internal class AuthController(
                         val stateFlow = formScope("unlock.options", this)
                             .unlockStateProducer(
                                 clearData = clearData,
-                                unlockVaultByMasterPassword = state.unlockWithMasterPassword,
+                                unlockVaultByMasterPassword = state.unlockWithMasterPassword
+                                    .guardedBy(autofillKdfAllows),
                                 unlockVaultByBiometric = state.unlockWithBiometric,
                                 unlockVaultByYubiKey = state.unlockWithYubiKey,
                                 unlockVaultByFido2 = state.unlockWithFido2,

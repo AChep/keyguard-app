@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.crypto
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 
 interface CryptoGenerator {
     fun hkdf(
@@ -58,6 +59,34 @@ interface CryptoGenerator {
     fun random(): Int
 
     fun random(range: IntRange): Int
+}
+
+/**
+ * Derives an AES-CBC-256 + HMAC-SHA256 key from the [seed] with HKDF, runs the
+ * [block] with it, then wipes the key. The [seed] stays as it is.
+ */
+inline fun <T> CryptoGenerator.withHkdfCipherKey(
+    seed: ByteArray,
+    salt: ByteArray?,
+    info: ByteArray,
+    length: Int,
+    block: (SymmetricCryptoKey2) -> T,
+): T {
+    val bytes = hkdf(
+        seed = seed,
+        salt = salt,
+        info = info,
+        length = length,
+    )
+    val key = SymmetricCryptoKey2(bytes)
+    val parts = key.requireAesCbc256_HmacSha256_B64()
+    return try {
+        block(key)
+    } finally {
+        bytes.fill(0)
+        parts.encKey.fill(0)
+        parts.macKey.fill(0)
+    }
 }
 
 fun CryptoGenerator.seedHex(

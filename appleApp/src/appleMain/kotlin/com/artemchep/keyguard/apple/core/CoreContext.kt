@@ -191,6 +191,7 @@ private fun appleKernelModule(
                 authConfirmMasterKeyUseCase = get(),
                 generateMasterHashUseCase = get(),
                 authGenerateMasterKeyUseCase = get(),
+                rewrapMasterKeyUseCase = get(),
                 cryptoGenerator = get(),
                 cipherEncryptor = get(),
                 yubiKeyUnlockAvailability = get(),

@@ -38,6 +38,11 @@ sealed interface VaultState {
         val unlockWithFido2: WithFido2? = null,
     ) : VaultState {
         class WithPassword(
+            /**
+             * The key derivation the password goes through. Lets a
+             * constrained host refuse it before it runs.
+             */
+            val kdf: MasterKdf,
             val getCreateIo: (String) -> IO<Unit>,
         )
 
@@ -89,7 +94,6 @@ sealed interface VaultState {
              */
             val kdf: MasterKdf,
             val withMasterPassword: WithPassword,
-            val withMasterPasswordAndBiometric: WithBiometric?,
         ) {
             sealed interface Change {
                 /**
@@ -107,14 +111,6 @@ sealed interface VaultState {
             }
 
             class WithPassword(
-                val getCreateIo: (
-                    currentPassword: String,
-                    change: Change,
-                ) -> IO<Report>,
-            )
-
-            class WithBiometric(
-                val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
                 val getCreateIo: (
                     currentPassword: String,
                     change: Change,

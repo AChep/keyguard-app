@@ -46,7 +46,7 @@ class FingerprintRepositoryImplTest {
 
     @Test
     fun `v1 key derivation writes version 1 with a plain salt`() = runTest {
-        val fingerprint = fingerprint(MasterKdf.Argon2id.V1)
+        val fingerprint = derived(MasterKdf.Argon2id.V1)
         repository.put(fingerprint).bind()
 
         val entity = readEntity()
@@ -57,7 +57,7 @@ class FingerprintRepositoryImplTest {
 
     @Test
     fun `legacy key derivation writes version 0 with a plain salt`() = runTest {
-        val fingerprint = fingerprint(MasterKdf.Pbkdf2Legacy)
+        val fingerprint = derived(MasterKdf.Pbkdf2Legacy)
         repository.put(fingerprint).bind()
 
         val entity = readEntity()
@@ -67,8 +67,8 @@ class FingerprintRepositoryImplTest {
     }
 
     @Test
-    fun `custom key derivation writes version 2 with a header`() = runTest {
-        val fingerprint = fingerprint(custom)
+    fun `wrapped master key writes version 2 with a header`() = runTest {
+        val fingerprint = wrapped(custom)
         repository.put(fingerprint).bind()
 
         val entity = readEntity()
@@ -77,12 +77,29 @@ class FingerprintRepositoryImplTest {
             header(7, 262144, 2) + salt,
             base64.decode(entity.master.saltBase64),
         )
+        assertContentEquals(wrappedKey, base64.decode(entity.master.hashBase64))
 
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(custom, parsed.kdf)
-        assertEquals(custom, parsed.master.hash.kdf)
-        assertContentEquals(salt, parsed.master.salt.byteArray)
+        assertEquals(custom, parsed.master.kdf)
+        assertEquals(MasterKdfVersion.V2, parsed.version)
+        val master = assertIs<FingerprintPassword.Wrapped>(parsed.master)
+        assertContentEquals(salt, master.salt.byteArray)
+        assertContentEquals(wrappedKey, master.wrappedKey)
         assertEquals(fingerprint, parsed)
+    }
+
+    @Test
+    fun `wrapped master key with the default parameters still writes a header`() = runTest {
+        val fingerprint = wrapped(MasterKdf.Argon2id.V1)
+        repository.put(fingerprint).bind()
+
+        val entity = readEntity()
+        assertEquals(2, entity.version)
+        assertContentEquals(
+            header(3, 65536, 4) + salt,
+            base64.decode(entity.master.saltBase64),
+        )
+        assertEquals(fingerprint, repository.get().first())
     }
 
     @Test
@@ -91,9 +108,13 @@ class FingerprintRepositoryImplTest {
         writeEntity(version = 2, saltBytes = bytes)
 
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(MasterKdf.Unsupported(MasterKdfVersion.V2), parsed.kdf)
-        assertEquals(parsed.kdf, parsed.master.hash.kdf)
-        assertContentEquals(bytes, parsed.master.salt.byteArray)
+        assertEquals(MasterKdf.Unsupported(MasterKdfVersion.V2), parsed.master.kdf)
+        assertEquals(MasterKdfVersion.V2, parsed.version)
+        val master = assertIs<FingerprintPassword.Wrapped>(parsed.master)
+        assertContentEquals(bytes, master.salt.byteArray)
+        assertContentEquals(ByteArray(32) { 0x42 }, master.wrappedKey)
+        // The other unlock methods still open the vault.
+        assertNotNull(parsed.biometric)
     }
 
     @Test
@@ -112,7 +133,8 @@ class FingerprintRepositoryImplTest {
             writeEntity(version = 2, saltBytes = header + salt)
 
             val parsed = assertNotNull(repository.get().first())
-            assertEquals(MasterKdf.Unsupported(MasterKdfVersion.V2), parsed.kdf)
+            assertEquals(MasterKdf.Unsupported(MasterKdfVersion.V2), parsed.master.kdf)
+            assertIs<FingerprintPassword.Wrapped>(parsed.master)
         }
     }
 
@@ -127,8 +149,9 @@ class FingerprintRepositoryImplTest {
                 memoryKib = 1_048_576,
                 parallelism = 64,
             ),
-            parsed.kdf,
+            parsed.master.kdf,
         )
+        assertIs<FingerprintPassword.Wrapped>(parsed.master)
         assertContentEquals(salt, parsed.master.salt.byteArray)
     }
 
@@ -139,7 +162,8 @@ class FingerprintRepositoryImplTest {
         val before = raw.first()
 
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(MasterKdf.Unsupported(MasterKdfVersion.fromRaw(9)), parsed.kdf)
+        assertEquals(MasterKdf.Unsupported(MasterKdfVersion.fromRaw(9)), parsed.master.kdf)
+        assertIs<FingerprintPassword.Derived>(parsed.master)
         assertContentEquals(bytes, parsed.master.salt.byteArray)
 
         // Rewrite it through the domain model, as turning
@@ -158,8 +182,17 @@ class FingerprintRepositoryImplTest {
     }
 
     @Test
-    fun `rewrite by an older build keeps the custom key derivation`() = runTest {
-        val fingerprint = fingerprint(custom)
+    fun `wrapped master key survives a rewrite`() = runTest {
+        repository.put(wrapped(custom)).bind()
+        val before = raw.first()
+
+        repository.update { it?.copy() }.bind()
+        assertEquals(before, raw.first())
+    }
+
+    @Test
+    fun `rewrite by an older build keeps the wrapped master key`() = runTest {
+        val fingerprint = wrapped(custom)
         repository.put(fingerprint).bind()
 
         // An older build knows only these fields: it decodes the
@@ -173,10 +206,14 @@ class FingerprintRepositoryImplTest {
         )
         raw.setAndCommit(json.encodeToString(rewritten)).bind()
 
+        // The older build copies both fields verbatim.
+        assertEquals(old.master, rewritten.master)
+
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(custom, parsed.kdf)
-        assertEquals(custom, parsed.master.hash.kdf)
-        assertContentEquals(salt, parsed.master.salt.byteArray)
+        assertEquals(custom, parsed.master.kdf)
+        val master = assertIs<FingerprintPassword.Wrapped>(parsed.master)
+        assertContentEquals(salt, master.salt.byteArray)
+        assertContentEquals(wrappedKey, master.wrappedKey)
         assertNotNull(parsed.biometric)
     }
 
@@ -188,8 +225,9 @@ class FingerprintRepositoryImplTest {
         ).bind()
 
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(MasterKdf.Pbkdf2Legacy, parsed.kdf)
-        assertEquals(MasterPasswordHash(MasterKdf.Pbkdf2Legacy, hash), parsed.master.hash)
+        assertEquals(MasterKdf.Pbkdf2Legacy, parsed.master.kdf)
+        val master = assertIs<FingerprintPassword.Derived>(parsed.master)
+        assertEquals(MasterPasswordHash(MasterKdf.Pbkdf2Legacy, hash), master.hash)
         assertContentEquals(salt, parsed.master.salt.byteArray)
         assertEquals(null, parsed.biometric)
     }
@@ -205,20 +243,32 @@ class FingerprintRepositoryImplTest {
         ).bind()
 
         val parsed = assertNotNull(repository.get().first())
-        assertEquals(MasterKdf.Pbkdf2Legacy, parsed.kdf)
+        assertEquals(MasterKdf.Pbkdf2Legacy, parsed.master.kdf)
         val biometric = assertIs<FingerprintBiometric>(parsed.biometric)
         assertContentEquals(iv, biometric.iv)
         assertContentEquals(encryptedMasterKey, biometric.encryptedMasterKey)
     }
 
-    private fun fingerprint(kdf: MasterKdf) = Fingerprint(
-        kdf = kdf,
-        master = FingerprintPassword(
+    private val wrappedKey = "2.aXY=|Y3Q=|bWFj".encodeToByteArray()
+
+    private fun derived(kdf: MasterKdf) = Fingerprint(
+        master = FingerprintPassword.Derived(
+            kdf = kdf,
             hash = MasterPasswordHash(
                 kdf = kdf,
                 byteArray = ByteArray(32) { 0x42 },
             ),
             salt = MasterPasswordSalt(salt),
+        ),
+        // The biometric token has no value equality.
+        biometric = null,
+    )
+
+    private fun wrapped(kdf: MasterKdf.Argon2id) = Fingerprint(
+        master = FingerprintPassword.Wrapped(
+            kdf = kdf,
+            salt = MasterPasswordSalt(salt),
+            wrappedKey = wrappedKey,
         ),
         // The biometric token has no value equality.
         biometric = null,

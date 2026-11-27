@@ -5,7 +5,6 @@ struct ChangeKdfSheetContent: View {
     let s: ChangeKdfSnapshot
     let setPassword: (String) -> Void
     let kdf: MasterKdfPerform
-    let setBiometric: (Bool) -> Void
     let submit: () -> Void
     @State private var password = ""
 
@@ -15,7 +14,9 @@ struct ChangeKdfSheetContent: View {
             width: 460,
             height: 640,
             detents: [.large],
-            dismissLabel: L10n.cancel
+            dismissLabel: L10n.cancel,
+            // The change can not be cancelled once it runs.
+            dismissEnabled: !s.isLoading
         ) {
             Form {
                 Section {
@@ -36,12 +37,8 @@ struct ChangeKdfSheetContent: View {
                 if let kdf = s.kdf {
                     Section {
                         MasterKdfFields(kdf: kdf, perform: self.kdf)
-                    } footer: {
-                        Text(L10n.changekdfDisclaimerUnlockMethodsNote)
                     }
                 }
-                BiometricReenrollSection(
-                    visible: s.biometricVisible, checked: s.biometricChecked, setChecked: setBiometric)
             }
             .formStyle(.grouped)
             // The number pad of the key derivation fields has no return key.
@@ -54,6 +51,7 @@ struct ChangeKdfSheetContent: View {
             .keyboardShortcut(.defaultAction)
             .disabled(!s.canConfirm || s.isLoading || s.password != password)
         }
+        .interactiveDismissDisabled(s.isLoading)
         .onChange(of: s.loaded, initial: true) { _, loaded in
             guard loaded else { return }
             // Seed once from the producer. Later snapshots echo earlier edits

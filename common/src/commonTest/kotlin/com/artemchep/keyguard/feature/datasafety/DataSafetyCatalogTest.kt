@@ -28,12 +28,14 @@ class DataSafetyCatalogTest {
     }
 
     @Test
-    fun `vault description includes legacy KDF support and the salt size in bits`() {
+    fun `vault description includes the wrapped key, legacy KDF support and the sizes in bits`() {
         val items = catalog(Platform.Mobile.Ios.Native)
         val rows = items.filterIsInstance<DataSafetyItem.Row>().associateBy { it.key }
         assertEquals("512", rows.getValue("local.vault.algorithm.salt").value)
-        assertEquals("KDF(password, salt)", rows.getValue("local.vault.algorithm.hash").value)
-        assertEquals("KDF(password, hash)", rows.getValue("local.vault.algorithm.key").value)
+        assertEquals("256", rows.getValue("local.vault.algorithm.key").value)
+        assertEquals("HKDF(KDF(password, salt))", rows.getValue("local.vault.algorithm.kek").value)
+        assertEquals("KDF(password, salt)", rows.getValue("local.vault.algorithm.legacy.hash").value)
+        assertEquals("KDF(password, hash)", rows.getValue("local.vault.algorithm.legacy.key").value)
         assertTrue(items.filterIsInstance<DataSafetyItem.Text>().any { it.text == "KDF versions" })
         assertEquals(items.size, items.map { it.key }.toSet().size)
     }

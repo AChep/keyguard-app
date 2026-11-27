@@ -127,7 +127,6 @@ class VaultSessionScopeTest {
                 withMasterPassword = VaultState.Main.ChangePassword.WithPassword { _, _ ->
                     error("State comparison must not change the password")
                 },
-                withMasterPasswordAndBiometric = null,
             )
             val first = VaultState.Main(key, changePassword, factory.create(key))
             val same = VaultState.Main(key, changePassword, first.session)

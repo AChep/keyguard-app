@@ -86,7 +86,7 @@ class GenerateMasterKeyUseCaseImplTest {
     }
 
     @Test
-    fun `custom master key uses its Argon2id parameters and v2 label`() {
+    fun `custom master key uses its Argon2id parameters`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
             logRepository = LogRepositoryBridge(emptyList()),
@@ -105,7 +105,6 @@ class GenerateMasterKeyUseCaseImplTest {
             ),
         ).bindBlocking()
 
-        assertEquals(MasterKdfVersion.V2, key.version)
         assertEquals(
             Argon2Call(
                 mode = Argon2Mode.ARGON2_ID,

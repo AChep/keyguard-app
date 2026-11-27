@@ -130,6 +130,27 @@ class MasterKdfFormStateProducerTest {
         }
 
     @Test
+    fun `a new test clears the previous result`() =
+        runTest {
+            var gate = CompletableDeferred(1200.milliseconds)
+            val fixture = fixture(measure = { gate.await() })
+            fixture.current().test.onTest!!.invoke()
+            runCurrent()
+            assertEquals(TRANSLATED, fixture.current().test.resultText)
+
+            gate = CompletableDeferred()
+            fixture.current().test.onTest!!.invoke()
+            runCurrent()
+            val running = fixture.current()
+            assertTrue(running.test.isRunning)
+            assertNull(running.test.resultText)
+
+            gate.complete(800.milliseconds)
+            runCurrent()
+            assertEquals(TRANSLATED, fixture.current().test.resultText)
+        }
+
+    @Test
     fun `test failure is reported as a message`() =
         runTest {
             val error = IllegalStateException("Out of memory")

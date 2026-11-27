@@ -12,9 +12,12 @@ class DisableYubiKeyUnlockImpl(
     override fun invoke() = keyReadWriteRepository.get()
         .toIO()
         .flatMap { tokens ->
-            val newTokens = tokens?.copy(yubiKey = null)
-            if (newTokens != tokens) {
-                return@flatMap keyReadWriteRepository.put(newTokens)
+            if (tokens?.yubiKey != null) {
+                // Clear the latest fingerprint: an outdated
+                // copy may hold an old password.
+                return@flatMap keyReadWriteRepository.update { latest ->
+                    latest?.copy(yubiKey = null)
+                }
             }
 
             ioUnit()

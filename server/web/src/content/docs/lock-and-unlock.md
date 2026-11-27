@@ -79,11 +79,7 @@ On desktop, you can also use the lock shortcut from
 1. In **Settings > Security**, select **Change app password**.
 2. In **Current password**, enter your app password.
 3. In **New password**, enter the new password.
-4. To keep biometric unlock, leave **Biometric authentication** selected.
-5. Select **Change password**.
-
-The change removes **YubiKey unlock** and **Security key (FIDO2)** enrollment.
-Turn them on again afterward.
+4. Select **Change password**.
 
 ## Unlock methods
 

@@ -5,7 +5,6 @@ struct ChangePasswordSheetContent: View {
     let s: ChangePasswordSnapshot
     let setCurrentPassword: (String) -> Void
     let setNewPassword: (String) -> Void
-    let setBiometric: (Bool) -> Void
     let submit: () -> Void
     @State private var currentPassword = ""
     @State private var newPassword = ""
@@ -18,7 +17,9 @@ struct ChangePasswordSheetContent: View {
             // Full-height on iOS: two SecureFields plus the software keyboard cramp
             // the .medium detent (detents are a no-op on macOS).
             detents: [.large],
-            dismissLabel: L10n.cancel
+            dismissLabel: L10n.cancel,
+            // The change can not be cancelled once it runs.
+            dismissEnabled: !s.isLoading
         ) {
             Form {
                 Section {
@@ -55,8 +56,6 @@ struct ChangePasswordSheetContent: View {
                         Text(L10n.changepasswordDisclaimerAbuseNote)
                     }
                 }
-                BiometricReenrollSection(
-                    visible: s.biometricVisible, checked: s.biometricChecked, setChecked: setBiometric)
             }
             .formStyle(.grouped)
             .disabled(!s.loaded || s.isLoading)
@@ -69,6 +68,7 @@ struct ChangePasswordSheetContent: View {
                 !s.canConfirm || s.isLoading || s.currentPassword != currentPassword || s.newPassword != newPassword
             )
         }
+        .interactiveDismissDisabled(s.isLoading)
         .onChange(of: s.loaded, initial: true) { _, loaded in
             guard loaded else { return }
             // Seed once from the producer. Later snapshots echo earlier edits

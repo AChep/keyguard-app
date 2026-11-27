@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -65,7 +66,9 @@ class ConfirmAccessByYubiKeyUseCaseImpl(
         fingerprint = fingerprint,
         response = response,
     ).flatMap { restoredMasterKey ->
-        if (restoredMasterKey == session.masterKey) {
+        // Compare the key bytes only: a vault migrated during this session keeps
+        // its old version label until the next unlock.
+        if (restoredMasterKey.byteArray.constantTimeEquals(session.masterKey.byteArray)) {
             ioUnit()
         } else {
             ioRaise(
@@ -92,7 +95,7 @@ class ConfirmAccessByYubiKeyUseCaseImpl(
             symmetricCryptoKey = SymmetricCryptoKey2(wrappingKey),
         ).data
         MasterKey(
-            version = fingerprint.kdf.version,
+            version = fingerprint.version,
             byteArray = plainBytes,
         )
     }.handleErrorWith { e ->

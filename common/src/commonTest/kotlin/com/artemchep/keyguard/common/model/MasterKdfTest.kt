@@ -17,16 +17,28 @@ class MasterKdfTest {
     }
 
     @Test
-    fun `version follows the parameters`() {
-        assertEquals(MasterKdfVersion.V0, MasterKdf.Pbkdf2Legacy.version)
-        assertEquals(MasterKdfVersion.V1, MasterKdf.Argon2id.V1.version)
-        assertEquals(MasterKdfVersion.V1, MasterKdf.Argon2id(3, 65536, 4).version)
-        assertEquals(MasterKdfVersion.V2, MasterKdf.Argon2id(3, 65536, 2).version)
-        assertEquals(MasterKdfVersion.V2, MasterKdf.Argon2id(4, 65536, 4).version)
-        assertEquals(MasterKdfVersion.V2, MasterKdf.Argon2id(3, 131072, 4).version)
+    fun `memory in bytes`() {
+        assertEquals(64L * 1024 * 1024, MasterKdf.Argon2id.V1.memoryBytes)
+    }
+
+    @Test
+    fun `the derived format has the version of its key derivation`() {
+        assertEquals(MasterKdfVersion.V0, FingerprintPassword.Derived.versionOf(MasterKdf.Pbkdf2Legacy))
+        assertEquals(MasterKdfVersion.V1, FingerprintPassword.Derived.versionOf(MasterKdf.Argon2id.V1))
         assertEquals(
             MasterKdfVersion.fromRaw(9),
-            MasterKdf.Unsupported(MasterKdfVersion.fromRaw(9)).version,
+            FingerprintPassword.Derived.versionOf(MasterKdf.Unsupported(MasterKdfVersion.fromRaw(9))),
+        )
+    }
+
+    @Test
+    fun `the wrapped format is version 2 whatever the key derivation`() {
+        val salt = MasterPasswordSalt(byteArrayOf(1))
+        val custom = MasterKdf.Argon2id(3, 65536, 2)
+        assertEquals(MasterKdfVersion.V2, FingerprintPassword.Wrapped(custom, salt, byteArrayOf(2)).version)
+        assertEquals(
+            MasterKdfVersion.V2,
+            FingerprintPassword.Wrapped(MasterKdf.Unsupported(MasterKdfVersion.V2), salt, byteArrayOf(2)).version,
         )
     }
 

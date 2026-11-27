@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.WithBiometric
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
+import com.artemchep.keyguard.common.service.vault.updateIfMaster
 import com.artemchep.keyguard.common.usecase.BiometricKeyEncryptUseCase
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.EnableBiometric
@@ -79,8 +80,9 @@ class EnableBiometricImpl(
                             iv = cipher.iv,
                             encryptedMasterKey = encryptedMasterKey,
                         )
-                        val newTokens = tokens.copy(biometric = biometricTokens)
-                        keyReadWriteRepository.put(newTokens)
+                        keyReadWriteRepository.updateIfMaster(tokens.master) { latest ->
+                            latest.copy(biometric = biometricTokens)
+                        }
                     }
                     .flatten()
             },

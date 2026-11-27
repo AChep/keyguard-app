@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -33,13 +34,14 @@ class GenerateMasterKeyUseCaseImpl(
         )
         .map { bytes ->
             MasterKey(
-                version = salt.kdf.version,
+                version = FingerprintPassword.Derived.versionOf(salt.kdf),
                 byteArray = bytes,
             )
         }
         .measure { ms, _ ->
             val kdf = salt.kdf
-            val msg = "Generated a master key v${kdf.version.raw} ($kdf) in $ms"
+            val version = FingerprintPassword.Derived.versionOf(kdf)
+            val msg = "Generated a master key v${version.raw} ($kdf) in $ms"
             logRepository.add(TAG, msg)
         }
 }

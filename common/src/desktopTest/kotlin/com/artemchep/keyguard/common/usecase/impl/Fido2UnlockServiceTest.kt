@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.exception.MasterPasswordChangedException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.Fingerprint
@@ -23,6 +24,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
@@ -81,7 +83,7 @@ class Fido2UnlockServiceTest {
         for (lock in listOf(true, false)) {
             val fixture = Fixture()
             val secret = ByteArray(32) { 7 }
-            assertFailsWith<IllegalStateException> {
+            val failure = assertFails {
                 fixture.service
                     .enroll { operation ->
                         if (operation is Fido2Operation.Register) byteArrayOf(1)
@@ -91,7 +93,7 @@ class Fido2UnlockServiceTest {
                                 fixture.tokens.value =
                                     fixture.original.copy(
                                         master =
-                                            fixture.original.master.copy(
+                                            (fixture.original.master as FingerprintPassword.Derived).copy(
                                                 salt = MasterPasswordSalt(byteArrayOf(9))
                                             )
                                     )
@@ -99,6 +101,11 @@ class Fido2UnlockServiceTest {
                         }
                     }
                     .bind()
+            }
+            if (lock) {
+                assertIs<IllegalStateException>(failure)
+            } else {
+                assertIs<MasterPasswordChangedException>(failure)
             }
             assertNull(fixture.tokens.value!!.fido2)
             assertContentEquals(ByteArray(32), secret)
@@ -126,8 +133,8 @@ class Fido2UnlockServiceTest {
         val key = MasterKey(MasterKdfVersion.V1, ByteArray(32) { 3 })
         val original =
             Fingerprint(
-                MasterKdf.Argon2id.V1,
-                FingerprintPassword(
+                FingerprintPassword.Derived(
+                    MasterKdf.Argon2id.V1,
                     MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(1)),
                     MasterPasswordSalt(byteArrayOf(2)),
                 ),

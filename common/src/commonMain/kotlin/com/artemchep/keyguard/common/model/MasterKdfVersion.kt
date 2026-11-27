@@ -13,7 +13,10 @@ value class MasterKdfVersion(
         /** Argon2id with the parameters of [MasterKdf.Argon2id.V1]. */
         val V1 = MasterKdfVersion(raw = 1)
 
-        /** Argon2id with custom parameters, see [MasterKdf.Argon2id]. */
+        /**
+         * A random master key, wrapped with a key derived by Argon2id
+         * with any parameters, see [FingerprintPassword.Wrapped].
+         */
         val V2 = MasterKdfVersion(raw = 2)
 
         fun fromRaw(raw: Int) = MasterKdfVersion(raw = raw)

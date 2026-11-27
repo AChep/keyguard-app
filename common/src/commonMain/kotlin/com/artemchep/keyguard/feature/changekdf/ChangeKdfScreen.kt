@@ -14,10 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
-import com.artemchep.keyguard.feature.changepassword.ChangePasswordBiometricItem
-import com.artemchep.keyguard.feature.changepassword.ChangePasswordDisclaimerIconItem
-import com.artemchep.keyguard.feature.changepassword.ChangePasswordDisclaimerTextItem
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordFab
 import com.artemchep.keyguard.feature.changepassword.rememberChangePasswordFabState
 import com.artemchep.keyguard.feature.masterkdf.MasterKdfForm
@@ -124,8 +120,6 @@ private fun ChangeKdfToolbar(
 fun ChangeKdfScreen(
     state: ChangeKdfState,
 ) {
-    BiometricPromptEffect(state.sideEffects.showBiometricPromptFlow)
-
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
@@ -171,37 +165,6 @@ private fun LazyListScope.changeKdfContent(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
             state = state.kdf,
-        )
-    }
-    val biometric = state.biometric
-    if (biometric != null) {
-        item("kdf.biometric.spacer") {
-            Spacer(Modifier.height(8.dp))
-        }
-        item("biometric") {
-            ChangePasswordBiometricItem(
-                biometric = biometric,
-            )
-        }
-    }
-    item("disclaimer.spacer") {
-        Spacer(
-            modifier = Modifier
-                .height(32.dp),
-        )
-    }
-    item("disclaimer.icon") {
-        ChangePasswordDisclaimerIconItem()
-    }
-    item("disclaimer.unlock_methods.spacer") {
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-    }
-    item("disclaimer.unlock_methods") {
-        ChangePasswordDisclaimerTextItem(
-            text = stringResource(Res.string.changekdf_disclaimer_unlock_methods_note),
         )
     }
 }

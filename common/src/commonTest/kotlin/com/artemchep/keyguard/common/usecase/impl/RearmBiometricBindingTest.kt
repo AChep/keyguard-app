@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.exception.MasterPasswordChangedException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
@@ -52,6 +53,24 @@ class RearmBiometricBindingTest {
     }
 
     @Test
+    fun `an outdated fingerprint does not overwrite a newer password`() = runTest {
+        val fixture = Fixture()
+        val outdated = fixture.tokens
+        // Another process changed the password in the meantime.
+        val latest = outdated.copy(
+            master = FingerprintPassword.Derived(
+                kdf = MasterKdf.Argon2id.V1,
+                hash = MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(8)),
+                salt = MasterPasswordSalt(byteArrayOf(9)),
+            ),
+        )
+        fixture.tokens = latest
+        assertFailsWith<MasterPasswordChangedException> { fixture.rearm(tokens = outdated) }
+        assertEquals(latest, fixture.tokens)
+        assertFalse(fixture.keyExists)
+    }
+
+    @Test
     fun `disabled and unavailable biometrics are not rearmed`() = runTest {
         val fixture = Fixture()
         assertFalse(fixture.rearm(BiometricStatus.Unavailable))
@@ -63,8 +82,8 @@ class RearmBiometricBindingTest {
 
     private class Fixture {
         var tokens = Fingerprint(
-            kdf = MasterKdf.Argon2id.V1,
-            master = FingerprintPassword(
+            master = FingerprintPassword.Derived(
+                kdf = MasterKdf.Argon2id.V1,
                 hash = MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(1)),
                 salt = MasterPasswordSalt(byteArrayOf(2)),
             ),
@@ -100,7 +119,10 @@ class RearmBiometricBindingTest {
             },
         )
 
-        suspend fun rearm(biometric: BiometricStatus = status) = rearmBiometricBinding(
+        suspend fun rearm(
+            biometric: BiometricStatus = status,
+            tokens: Fingerprint = this.tokens,
+        ) = rearmBiometricBinding(
             tokens = tokens,
             masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(7)),
             biometric = biometric,

@@ -3,7 +3,9 @@ package com.artemchep.keyguard.common.service.keyvalue.impl
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.util.io.toLocalPath
+import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -68,6 +70,78 @@ class JsonKeyValueStoreTest {
         val store = JsonKeyValueStore(backing)
 
         assertEquals(emptyMap(), store.getAll()())
+    }
+
+    @Test
+    fun `a write by another store over the same file is seen by the next read and update`() = runTest {
+        val root = createTempDirectory("json-store-shared")
+        try {
+            fun backing() = FileJsonKeyValueStoreStore(
+                fileIo = {
+                    AtomicFileDestination(
+                        root = root.toLocalPath(),
+                        relativePath = AtomicRelativePath.fromComponents(
+                            AtomicPathComponent.parse("preferences.json"),
+                        ),
+                    )
+                },
+                json = json,
+            )
+            // Like the app and its AutoFill extension: one store per process.
+            val app = JsonKeyValueStore(backing())
+            val extension = JsonKeyValueStore(backing())
+            val appName = app.getString("name", "")
+            val extensionName = extension.getString("name", "")
+            appName.setAndCommit("alice")()
+            assertEquals("alice", extensionName.first())
+
+            appName.setAndCommit("bob")()
+            assertEquals("bob", extensionName.first())
+            assertEquals(mapOf<String, Any?>("name" to "bob"), extension.getAll()())
+
+            // An update starts from the latest file, so it keeps the other write.
+            appName.setAndCommit("carol")()
+            extension.getBoolean("enabled", false).setAndCommit(true)()
+            val expected = persistentMapOf<String, Any?>("name" to "carol", "enabled" to true)
+            assertEquals(expected, backing().read()())
+            assertEquals(true, app.getBoolean("enabled", false).first())
+        } finally {
+            root.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `own writes do not reload the file`() = runTest {
+        val root = createTempDirectory("json-store-own-writes")
+        try {
+            val backing = FileJsonKeyValueStoreStore(
+                fileIo = {
+                    AtomicFileDestination(
+                        root = root.toLocalPath(),
+                        relativePath = AtomicRelativePath.fromComponents(
+                            AtomicPathComponent.parse("preferences.json"),
+                        ),
+                    )
+                },
+                json = json,
+            )
+            var reads = 0
+            val store = JsonKeyValueStore(object : JsonKeyValueStoreStore by backing {
+                override fun read(): IO<PersistentMap<String, Any?>> = {
+                    reads += 1
+                    backing.read()()
+                }
+            })
+            val name = store.getString("name", "")
+            name.setAndCommit("alice")()
+            name.setAndCommit("bob")()
+            assertEquals("bob", name.first())
+            assertEquals(mapOf<String, Any?>("name" to "bob"), store.getAll()())
+
+            assertEquals(1, reads)
+        } finally {
+            root.toFile().deleteRecursively()
+        }
     }
 
     @Test

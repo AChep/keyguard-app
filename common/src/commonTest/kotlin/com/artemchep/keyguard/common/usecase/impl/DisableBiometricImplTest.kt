@@ -182,8 +182,8 @@ private fun biometricKeyRepository(
 }
 
 private fun fingerprint() = Fingerprint(
-    kdf = MasterKdf.Argon2id.V1,
-    master = FingerprintPassword(
+    master = FingerprintPassword.Derived(
+        kdf = MasterKdf.Argon2id.V1,
         hash = MasterPasswordHash(
             kdf = MasterKdf.Argon2id.V1,
             byteArray = byteArrayOf(1),

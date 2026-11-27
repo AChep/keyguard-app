@@ -19,8 +19,6 @@ class ChangePasswordSession internal constructor(
 
     fun setNewPassword(text: String) = session.withActions { it.setNewPassword?.invoke(text) }
 
-    fun setBiometric(enabled: Boolean) = session.withActions { it.setBiometric?.invoke(enabled) }
-
     fun submit() = session.withActions { it.submit?.invoke() }
 
     fun close() = session.close()
@@ -29,6 +27,5 @@ class ChangePasswordSession internal constructor(
 internal data class ChangePasswordActions(
     val setCurrentPassword: ((String) -> Unit)? = null,
     val setNewPassword: ((String) -> Unit)? = null,
-    val setBiometric: ((Boolean) -> Unit)? = null,
     val submit: (() -> Unit)? = null,
 )

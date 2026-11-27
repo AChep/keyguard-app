@@ -17,12 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.SurfaceTransformation
-import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
 import androidx.wear.compose.material3.lazy.TransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordState
 import com.artemchep.keyguard.feature.changepassword.changePasswordState
 import com.artemchep.keyguard.feature.changepassword.rememberChangePasswordFabState
@@ -70,8 +68,6 @@ fun WearChangePasswordScaffoldSkeleton() {
 fun WearChangePasswordScaffold(
     state: ChangePasswordState,
 ) {
-    BiometricPromptEffect(state.sideEffects.showBiometricPromptFlow)
-
     WearScaffoldScreen(
         title = stringResource(Res.string.changepassword_header_title),
         floatingActionState = rememberChangePasswordFabState(state),
@@ -139,28 +135,6 @@ private fun TransformingLazyColumnScope.WearChangePasswordContent(
                 keyboardType = KeyboardType.NumberPassword,
             ),
         )
-    }
-    val biometric = state.biometric
-    if (biometric != null) {
-        item("biometric") {
-            val surfaceTransformation = SurfaceTransformation(transformationSpec)
-            SwitchButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .transformedHeight(this, transformationSpec),
-                checked = biometric.checked,
-                enabled = biometric.onChange != null,
-                onCheckedChange = { newValue ->
-                    biometric.onChange?.invoke(newValue)
-                },
-                label = {
-                    Text(
-                        text = stringResource(Res.string.changepassword_biometric_auth_checkbox),
-                    )
-                },
-                transformation = surfaceTransformation,
-            )
-        }
     }
     item("disclaimer.local") {
         WearListLabel(

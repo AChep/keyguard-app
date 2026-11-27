@@ -28,20 +28,20 @@ protection.
 
 ## App password
 
-The app password never touches the disk or the network. Keyguard derives a
-secret key from it and a random 512-bit salt with Argon2id. By default it uses
-64 MiB of memory, 3 passes and 4 lanes. To change them, see
-[Key derivation](/docs/security-settings/#key-derivation). Argon2id is
-memory-hard, which makes brute-force guessing expensive.
+The app password never touches the disk or the network. One Argon2id run turns
+it and a random 512-bit salt into a key that encrypts the vault key, a random
+256-bit key. By default Argon2id uses 64 MiB of memory, 3 passes and 4 lanes.
+Memory and passes make each guess expensive; lanes only split the work. See
+[Key derivation](/docs/security-settings/#key-derivation).
 
-App passwords set in older versions of Keyguard use PBKDF2 with 10,000
-iterations, which is far cheaper to guess. Changing the app password moves it
-to Argon2id. See
+Vaults from older versions of Keyguard derive the vault key from the app
+password, some with PBKDF2, which is far cheaper to guess. Changing the app
+password moves them to the new scheme. See
 [Change the app password](/docs/lock-and-unlock/#change-the-app-password).
 
 ## Encrypted database
 
-The derived key encrypts Keyguard's local database in the SQLCipher format.
+The vault key encrypts Keyguard's local database in the SQLCipher format.
 The database holds, among other data:
 
 - vault items

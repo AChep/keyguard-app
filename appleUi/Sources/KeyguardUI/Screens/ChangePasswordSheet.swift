@@ -21,7 +21,6 @@ struct ChangePasswordSheet: View {
                 s: snapshot,
                 setCurrentPassword: { text in perform { $0.setCurrentPassword(text: text) } },
                 setNewPassword: { text in perform { $0.setNewPassword(text: text) } },
-                setBiometric: { enabled in perform { $0.setBiometric(enabled: enabled) } },
                 submit: { perform { $0.submit() } }
             )
         }

@@ -47,15 +47,9 @@ class FingerprintRepositoryImpl(
 
             val entity = kotlin.run {
                 // Convert the model to the entity
-                val masterHashBase64 = base64Service.encodeToString(tokens.master.hash.byteArray)
-                val masterSaltBytes = encodeMasterSalt(
-                    kdf = tokens.kdf,
-                    salt = tokens.master.salt.byteArray,
-                )
-                val masterSaltBase64 = base64Service.encodeToString(masterSaltBytes)
-                val master = FingerprintEntity.Master(
-                    hashBase64 = masterHashBase64,
-                    saltBase64 = masterSaltBase64,
+                val master = encodeMaster(
+                    base64Service = base64Service,
+                    tokens = tokens,
                 )
                 val biometric = tokens.biometric?.let {
                     val ivBase64 = base64Service.encodeToString(it.iv)
@@ -76,7 +70,7 @@ class FingerprintRepositoryImpl(
                     )
                 }
                 FingerprintEntity(
-                    version = tokens.kdf.version.raw,
+                    version = tokens.version.raw,
                     master = master,
                     biometric = biometric,
                     yubiKey = yubiKey,
@@ -158,17 +152,10 @@ private fun parseFingerprintJsonStringOrNull(
     val version = MasterKdfVersion.fromRaw(entity.version)
 
     // Convert the entity back to a domain model
-    val masterHashBytes = base64Service.decode(entity.master.hashBase64)
-    val (kdf, masterSalt) = decodeMasterSalt(
+    val master = decodeMaster(
         version = version,
-        bytes = base64Service.decode(entity.master.saltBase64),
-    )
-    val master = FingerprintPassword(
-        hash = MasterPasswordHash(
-            kdf = kdf,
-            byteArray = masterHashBytes,
-        ),
-        salt = MasterPasswordSalt(masterSalt),
+        hash = base64Service.decode(entity.master.hashBase64),
+        salt = base64Service.decode(entity.master.saltBase64),
     )
     val biometric = entity.biometric?.let {
         val iv = base64Service.decode(it.ivBase64)
@@ -191,7 +178,6 @@ private fun parseFingerprintJsonStringOrNull(
         )
     }
     return Fingerprint(
-        kdf = kdf,
         master = master,
         biometric = biometric,
         yubiKey = yubiKey,
@@ -230,8 +216,8 @@ private fun parseFingerprintRawStringOrNull(
     }
     val kdf = MasterKdf.Pbkdf2Legacy // old format doesn't have a version field
     return Fingerprint(
-        kdf = kdf,
-        master = FingerprintPassword(
+        master = FingerprintPassword.Derived(
+            kdf = kdf,
             hash = MasterPasswordHash(
                 kdf = kdf,
                 byteArray = masterHash,
@@ -243,33 +229,50 @@ private fun parseFingerprintRawStringOrNull(
     )
 }
 
-// The key derivation parameters of version 2 live inside of the
-// `master.saltBase64` field, as a fixed header in front of the random
-// salt:
+// Version 2 wraps a random master key: see [FingerprintPassword.Wrapped].
+// It reuses the two fields of the master password:
+//
+// - `master.hashBase64` holds the wrapped master key;
+// - `master.saltBase64` holds the key derivation parameters, as a fixed
+//   header in front of the random salt:
 //
 //   u32 BE iterations | u32 BE memory, KiB | u32 BE parallelism | salt
 //
-// Why not a separate field: older builds rewrite the fingerprint, for
+// Why not separate fields: older builds rewrite the fingerprint, for
 // example when they enable or disable biometric unlock, through the
 // domain model. That rewrite drops every JSON key the build does not
 // know, so a separate field would vanish and the vault would never
-// unlock again. The salt is copied verbatim, so the parameters survive.
+// unlock again. Both fields are copied verbatim, so the wrapped key and
+// the parameters survive.
 //
-// The vaults with the version 1 parameters keep the version 1 format, so
-// older builds still open them with the password.
+// Versions 0 and 1 derive the master key from the password, and keep
+// their format byte for byte.
 
 private const val ARGON2ID_HEADER_SIZE = 3 * Int.SIZE_BYTES
 
-private fun encodeMasterSalt(
-    kdf: MasterKdf,
-    salt: ByteArray,
-): ByteArray {
-    if (kdf !is MasterKdf.Argon2id || kdf.version != MasterKdfVersion.V2) {
-        // An unsupported derivation keeps the bytes it was
-        // read with, so a rewrite does not change them.
-        return salt
+private fun encodeMaster(
+    base64Service: Base64Service,
+    tokens: Fingerprint,
+): FingerprintEntity.Master {
+    val (hash, salt) = when (val master = tokens.master) {
+        is FingerprintPassword.Derived -> master.hash.byteArray to master.salt.byteArray
+        is FingerprintPassword.Wrapped -> {
+            val salt = when (val kdf = master.kdf) {
+                is MasterKdf.Argon2id -> encodeArgon2idHeader(kdf) + master.salt.byteArray
+                // A header that could not be read keeps the bytes
+                // it was read with, so a rewrite does not change them.
+                else -> master.salt.byteArray
+            }
+            master.wrappedKey to salt
+        }
     }
+    return FingerprintEntity.Master(
+        hashBase64 = base64Service.encodeToString(hash),
+        saltBase64 = base64Service.encodeToString(salt),
+    )
+}
 
+private fun encodeArgon2idHeader(kdf: MasterKdf.Argon2id): ByteArray {
     val header = ByteArray(ARGON2ID_HEADER_SIZE)
     intArrayOf(kdf.iterations, kdf.memoryKib, kdf.parallelism).forEachIndexed { field, value ->
         for (i in 0 until Int.SIZE_BYTES) {
@@ -277,26 +280,44 @@ private fun encodeMasterSalt(
             header[field * Int.SIZE_BYTES + i] = (value ushr shift).toByte()
         }
     }
-    return header + salt
+    return header
 }
 
 /**
- * Splits the stored salt [bytes] into the key derivation and the
- * salt, without any header. Never throws: a derivation it can not
- * read becomes [MasterKdf.Unsupported], so the vault still exists.
+ * Turns the stored [hash] and [salt] fields into the master password. Never
+ * throws: a derivation it can not read becomes [MasterKdf.Unsupported], so
+ * the vault still exists.
  */
-private fun decodeMasterSalt(
+private fun decodeMaster(
     version: MasterKdfVersion,
-    bytes: ByteArray,
-): Pair<MasterKdf, ByteArray> {
+    hash: ByteArray,
+    salt: ByteArray,
+): FingerprintPassword {
     if (version != MasterKdfVersion.V2) {
-        return MasterKdf.fromVersion(version) to bytes
+        val kdf = MasterKdf.fromVersion(version)
+        return FingerprintPassword.Derived(
+            kdf = kdf,
+            hash = MasterPasswordHash(
+                kdf = kdf,
+                byteArray = hash,
+            ),
+            salt = MasterPasswordSalt(salt),
+        )
     }
-    val kdf = decodeArgon2idHeaderOrNull(bytes)
+
+    val kdf = decodeArgon2idHeaderOrNull(salt)
     return if (kdf != null) {
-        kdf to bytes.copyOfRange(ARGON2ID_HEADER_SIZE, bytes.size)
+        FingerprintPassword.Wrapped(
+            kdf = kdf,
+            salt = MasterPasswordSalt(salt.copyOfRange(ARGON2ID_HEADER_SIZE, salt.size)),
+            wrappedKey = hash,
+        )
     } else {
-        MasterKdf.Unsupported(version) to bytes
+        FingerprintPassword.Wrapped(
+            kdf = MasterKdf.Unsupported(version),
+            salt = MasterPasswordSalt(salt),
+            wrappedKey = hash,
+        )
     }
 }
 

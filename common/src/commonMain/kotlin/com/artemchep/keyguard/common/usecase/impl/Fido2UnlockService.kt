@@ -8,8 +8,10 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.withHkdfCipherKey
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
+import com.artemchep.keyguard.common.service.vault.updateIfMaster
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import com.artemchep.keyguard.util.fido2.FIDO2_INPUT_LENGTH
@@ -17,7 +19,7 @@ import com.artemchep.keyguard.util.fido2.FIDO2_SECRET_LENGTH
 import com.artemchep.keyguard.util.fido2.Fido2Operation
 import kotlinx.coroutines.flow.first
 
-private const val FIDO2_HKDF_INFO = "keyguard-fido2-unlock-v1"
+private val FIDO2_HKDF_INFO = "keyguard-fido2-unlock-v1".encodeToByteArray()
 
 /** Vault policy stays here; platform clients only create credentials and evaluate PRF. */
 class Fido2UnlockService(
@@ -47,13 +49,8 @@ class Fido2UnlockService(
             val protector = createProtector(session.masterKey, credential, salt, secret)
             // Validate inside the write transaction, so a password change cannot be overwritten.
             fingerprints
-                .update { current ->
+                .updateIfMaster(before.master) { current ->
                     check(getVaultSession.valueOrNull === session)
-                    check(
-                        current != null &&
-                            current.kdf == before.kdf &&
-                            current.master == before.master
-                    )
                     current.copy(fido2 = protector)
                 }
                 .bind()
@@ -73,7 +70,7 @@ class Fido2UnlockService(
         val protector = requireNotNull(tokens.fido2).also { it.validate(base64) }
         return withWrappingKey(secret, base64.decode(protector.hkdfSalt)) { key ->
             val bytes = cipher.decode2(protector.encryptedMasterKey, key).data
-            MasterKey(version = tokens.kdf.version, byteArray = bytes)
+            MasterKey(version = tokens.version, byteArray = bytes)
         }
     }
 
@@ -105,22 +102,11 @@ class Fido2UnlockService(
         secret: ByteArray,
         salt: ByteArray,
         block: (SymmetricCryptoKey2) -> T,
-    ): T {
-        val bytes =
-            crypto.hkdf(
-                seed = secret,
-                salt = salt,
-                info = FIDO2_HKDF_INFO.encodeToByteArray(),
-                length = 64,
-            )
-        val key = SymmetricCryptoKey2(bytes)
-        val parts = key.requireAesCbc256_HmacSha256_B64()
-        return try {
-            block(key)
-        } finally {
-            bytes.fill(0)
-            parts.encKey.fill(0)
-            parts.macKey.fill(0)
-        }
-    }
+    ): T = crypto.withHkdfCipherKey(
+        seed = secret,
+        salt = salt,
+        info = FIDO2_HKDF_INFO,
+        length = 64,
+        block = block,
+    )
 }

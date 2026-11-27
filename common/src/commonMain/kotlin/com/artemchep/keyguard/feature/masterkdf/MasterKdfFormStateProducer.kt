@@ -150,7 +150,8 @@ fun RememberStateFlowScope.masterKdfFormHandle(
 
 /**
  * Derives a key once with the entered values and remembers how long
- * it took. Only one derivation runs at a time.
+ * it took. Only one derivation runs at a time. Starting a test clears
+ * the result of the previous one.
  */
 private fun RememberStateFlowScope.masterKdfTestAction(
     currentKdf: () -> MasterKdf.Argon2id?,
@@ -163,7 +164,12 @@ private fun RememberStateFlowScope.masterKdfTestAction(
         ?: return@onTest
     if (isBusyFlow.value) return@onTest
     if (!isTestingSink.compareAndSet(expect = false, update = true)) return@onTest
+    // A result of an earlier run must not stand in
+    // for this one while it runs, or if it fails.
+    testResultSink.value = null
 
+    // The test may wait for a measurement of another screen to
+    // finish first: it keeps running until its own one returns.
     val job = screenScope.launch {
         measureMasterKdf(kdf)
             .attempt()

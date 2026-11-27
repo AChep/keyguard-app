@@ -69,21 +69,13 @@ data class SecuritySettingsSnapshot(
     }
 }
 
-/**
- * [canConfirm] is true only when both fields are valid and non-empty.
- *
- * [biometricVisible] mirrors the shared producer's `state.biometric != null` rule: the "Use biometric
- * authentication" re-enroll checkbox shows only when the account has biometric unlock enabled. When it is checked,
- * confirming shows a biometric prompt through the shared native prompt host before the password changes.
- */
+/** [canConfirm] is true only when both fields are valid and non-empty. */
 data class ChangePasswordSnapshot(
     val loaded: Boolean = false,
     val currentPassword: String = "",
     val currentError: String? = null,
     val newPassword: String = "",
     val newError: String? = null,
-    val biometricVisible: Boolean = false,
-    val biometricChecked: Boolean = false,
     val canConfirm: Boolean = false,
     val isLoading: Boolean = false,
 ) {
@@ -94,15 +86,13 @@ data class ChangePasswordSnapshot(
 
 /**
  * [canConfirm] is true only when the current password is entered, the key derivation is valid and differs
- * from the current one. The biometric re-enroll checkbox works like the one of [ChangePasswordSnapshot].
+ * from the current one.
  */
 data class ChangeKdfSnapshot(
     val loaded: Boolean = false,
     val password: String = "",
     val passwordError: String? = null,
     val kdf: MasterKdfSnapshot? = null,
-    val biometricVisible: Boolean = false,
-    val biometricChecked: Boolean = false,
     val canConfirm: Boolean = false,
     val isLoading: Boolean = false,
 ) {

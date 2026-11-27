@@ -114,6 +114,8 @@ import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExte
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingPlaintextDotEnvScanProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingPlaintextSshKeyScanProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
@@ -302,6 +304,8 @@ object Setting {
     const val BROWSER_EXTENSION_PAIRINGS = "browser_extension_pairings"
     const val BROWSER_EXTENSION_HISTORY = "browser_extension_history"
     const val ENVIRONMENTS = "environments"
+    const val PLAINTEXT_SSH_KEY_SCAN = "plaintext_ssh_key_scan"
+    const val PLAINTEXT_DOTENV_SCAN = "plaintext_dotenv_scan"
     const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
     const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
     const val ENVIRONMENTS_MCP_APPROVAL_TIMEOUT = "environments_mcp_approval_timeout"
@@ -474,6 +478,8 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.BROWSER_EXTENSION_PAIRINGS to ::settingBrowserExtensionPairingsProvider,
     Setting.BROWSER_EXTENSION_HISTORY to ::settingBrowserExtensionHistoryProvider,
     Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
+    Setting.PLAINTEXT_SSH_KEY_SCAN to ::settingPlaintextSshKeyScanProvider,
+    Setting.PLAINTEXT_DOTENV_SCAN to ::settingPlaintextDotEnvScanProvider,
     Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_TIMEOUT to ::settingEnvironmentsMcpApprovalTimeoutProvider,

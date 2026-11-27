@@ -37,7 +37,7 @@ internal fun importedSshKeyOrNull(
 
 /**
  * The key pair of the private key in [content], see [importedSshKeyOrNull].
- * The [content] is not cleared.
+ * The [content] is not cleared; `null` if it is over the size limit.
  */
 internal fun importedSshKeyPairOrNull(
     content: ByteArray,
@@ -63,17 +63,26 @@ internal fun KeyPair.toImportedSshKey(): CreateRequest.SshKey = CreateRequest.Ss
     fingerprint = publicKey.fingerprint,
 )
 
-private fun SshKeyImportService.importOrNull(
+/**
+ * Reads the private key in [content] with the [passphrase] only, or `null` if
+ * the [content] is over the size limit or the import fails. The [content] is
+ * not cleared.
+ */
+internal fun SshKeyImportService.importOrNull(
     content: ByteArray,
     passphrase: String?,
-): SshKeyImportResult? = runCatchingNonFatal {
-    import(
-        SshKeyImportRequest(
-            content = content,
-            passphrase = passphrase,
-        ),
-    )
-}.getOrNull()
+): SshKeyImportResult? = if (content.size > MAX_SSH_PRIVATE_KEY_LENGTH) {
+    null
+} else {
+    runCatchingNonFatal {
+        import(
+            SshKeyImportRequest(
+                content = content,
+                passphrase = passphrase,
+            ),
+        )
+    }.getOrNull()
+}
 
 /**
  * The fields that keep an SSH key the vault could not convert. The item

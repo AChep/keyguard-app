@@ -76,6 +76,46 @@ class CommitImportPlanImplTest {
     }
 
     @Test
+    fun `the default folder takes only the items without a planned folder`() = runTest {
+        val plan = plan(
+            folders = listOf(ImportPlan.Folder("work", null, "Work")),
+            items = listOf(
+                item(title = "Filed", folderKey = "work"),
+                item(title = "Root"),
+            ),
+        )
+
+        commit(plan, folder = FolderInfo.Id("existing"))
+
+        val folderId = addFolder.ids.single()
+        assertEquals(
+            listOf(FolderInfo.Id(folderId), FolderInfo.Id("existing")),
+            addCipher.requests.single().map { it.ownership2?.folder },
+        )
+    }
+
+    @Test
+    fun `a new default folder is created for the items without a planned folder`() = runTest {
+        val plan = plan(
+            folders = listOf(ImportPlan.Folder("work", null, "Work")),
+            items = listOf(
+                item(title = "Filed", folderKey = "work"),
+                item(title = "Root"),
+            ),
+        )
+
+        val result = commit(plan, folder = FolderInfo.New("Imported"))
+
+        assertEquals(CommitImportPlanResult(itemCount = 2, folderCount = 2), result)
+        assertEquals(listOf("Work", "Imported"), addFolder.names)
+        val (workId, importedId) = addFolder.ids
+        assertEquals(
+            listOf(FolderInfo.Id(workId), FolderInfo.Id(importedId)),
+            addCipher.requests.single().map { it.ownership2?.folder },
+        )
+    }
+
+    @Test
     fun `archived and trashed items are created archived and trashed in the one write`() = runTest {
         val plan = plan(
             items = listOf(
@@ -135,12 +175,14 @@ class CommitImportPlanImplTest {
     private suspend fun commit(
         plan: ImportPlan,
         attachments: ImportAttachmentSource? = null,
+        folder: FolderInfo = FolderInfo.None,
     ): CommitImportPlanResult = commitImportPlan(
         CommitImportPlanRequest(
             plan = plan,
             accountId = AccountId(ACCOUNT_ID),
             untitledTitle = UNTITLED,
             attachments = attachments,
+            folder = folder,
         ),
     ).bind()
 }
@@ -178,9 +220,14 @@ private class CommitRecordingAddFolder : AddFolder {
 
     val ids = mutableListOf<String>()
 
+    val names = mutableListOf<String>()
+
     override fun invoke(requests: Collection<AddFolderRequest>): IO<List<String>> = {
         check(!fail) { "AddFolder failed" }
-        requests.map { "folder-${ids.size}" }
+        requests.mapIndexed { index, request ->
+            names += request.name
+            "folder-${ids.size + index}"
+        }
             .also { ids += it }
     }
 }

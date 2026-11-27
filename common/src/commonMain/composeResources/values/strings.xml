@@ -3400,4 +3400,26 @@
     <string name="browser_extension_approval_rp_id_note">The passkey belongs to <xliff:g id="rp_id" example="example.org">%1$s</xliff:g>.</string>
     <string name="cli_agent_history_request_browser_passkey_get">Sign in with a passkey</string>
     <string name="cli_agent_history_request_browser_passkey_create">Save a passkey</string>
+    <!-- Find plaintext secrets: screens that scan the disk for SSH private keys or .env files -->
+    <string name="secret_scan_ssh_title">Find plaintext SSH keys</string>
+    <string name="secret_scan_dotenv_title">Find plaintext .env files</string>
+    <string name="secret_scan_scan">Scan</string>
+    <string name="secret_scan_ssh_intro">Find SSH keys saved as files on this computer and import them into your vault.</string>
+    <string name="secret_scan_dotenv_intro">Find .env files on this computer and import them into your vault.</string>
+    <!-- The list of folders is comma-separated, for example "~, /work" -->
+    <string name="secret_scan_intro_where">Searches <xliff:g id="folders" example="~, /work">%1$s</xliff:g>.</string>
+    <string name="secret_scan_ssh_intro_import">Nothing leaves this device, and the files stay where they are. Once the SSH agent is set up, you can delete them.</string>
+    <string name="secret_scan_dotenv_intro_import">Nothing leaves this device, and the files stay where they are.</string>
+    <string name="secret_scan_rescan">Rescan</string>
+    <string name="secret_scan_add_folder">Add folder</string>
+    <string name="secret_scan_import_button">Import selected</string>
+    <string name="secret_scan_chip_no_passphrase">No passphrase</string>
+    <string name="secret_scan_chip_passphrase">Passphrase</string>
+    <string name="secret_scan_chip_in_vault">In vault</string>
+    <string name="secret_scan_empty_title">No plaintext secrets found</string>
+    <string name="secret_scan_scanned_folders">Scanned folders:</string>
+    <string name="secret_scan_flatpak_note">Keyguard can\'t see your home folder here. Use Add folder to choose where to search.</string>
+    <string name="secret_scan_import_account_title">Import into</string>
+    <string name="secret_scan_passphrase_message"><xliff:g id="path" example="~/.ssh/id_ed25519">%1$s</xliff:g> is encrypted. Cancel to skip this key.</string>
+    <string name="secret_scan_passphrase_wrong_message">Wrong passphrase for <xliff:g id="path" example="~/.ssh/id_ed25519">%1$s</xliff:g>. Cancel to skip this key.</string>
 </resources>

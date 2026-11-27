@@ -35,6 +35,13 @@ fun rememberSettingsDeveloperItems(
                 ),
             ),
             SettingPaneItem.Group(
+                key = "plaintext_secrets",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.PLAINTEXT_SSH_KEY_SCAN),
+                    SettingPaneItem.Item(Setting.PLAINTEXT_DOTENV_SCAN),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "request_log",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.AGENT_HISTORY_RETENTION),

@@ -50,6 +50,21 @@ Keyguard keeps the source file. Delete it, and rotate every secret that was
 committed or shared before.
 :::
 
+## Find plaintext secrets
+
+On desktop Keyguard finds `.env` files and SSH
+private keys on disk and imports them.
+
+1. Open **Settings > Developer > Find plaintext .env files**, or **Find
+   plaintext SSH keys**.
+2. Select **Scan**.
+3. Check the files to import. **In vault** marks files already imported.
+4. Select **Import selected**, then choose the account.
+
+The scan covers your home folder, but skips hidden and build folders and, on
+macOS, `Documents`, `Desktop` and `Downloads`. To scan other folders, select
+**Add folder**. On Flatpak, it scans only those.
+
 ## Create a local .env file
 
 1. In the environment's menu, select **Create local .env file**.

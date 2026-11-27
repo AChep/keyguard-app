@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.model.isWatchtowerEligible
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.normalizeSshFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -789,10 +790,6 @@ class CipherDuplicatesCheckImpl(
         ?.trim()
         ?.replace("\r\n", "\n")
         ?.takeIf(String::isNotBlank)
-
-    // Older Keyguard items keep the Base64 padding that OpenSSH omits.
-    private fun String.normalizeSshFingerprint(): String =
-        if (startsWith("SHA256:")) removeSuffix("=") else this
 
     private fun processString(str: String) = str
         .lowercase()

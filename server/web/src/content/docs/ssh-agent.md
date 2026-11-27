@@ -21,7 +21,8 @@ approval.
 
 - An **SSH Key** item in your vault, holding an Ed25519 or RSA key. The
   [Generator](/docs/generator/) creates one, and Keyguard imports OpenSSH and
-  PEM keys, with or without a passphrase.
+  PEM keys, with or without a passphrase. To import the keys in `~/.ssh`, see
+  [Find plaintext secrets](/docs/environments/#find-plaintext-secrets).
 - **SSH agent** turned on in **Settings > Developer > SSH agent**.
 
 ## Set up the agent on desktop

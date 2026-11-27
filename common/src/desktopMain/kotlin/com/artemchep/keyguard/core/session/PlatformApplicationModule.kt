@@ -34,6 +34,8 @@ import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreF
 import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
+import com.artemchep.keyguard.common.service.secretscan.PlaintextSecretScanner
+import com.artemchep.keyguard.common.service.secretscan.impl.PlaintextSecretScannerImpl
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigSyncer
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigStore
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.impl.SshBookmarksConfigStoreImpl
@@ -126,6 +128,7 @@ import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import com.artemchep.keyguard.util.io.resolve
 import com.artemchep.keyguard.util.traverse
 import java.io.File
+import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -279,6 +282,15 @@ class PlatformApplicationModule {
         single<SshBookmarksConfigStoreImpl> {
             SshBookmarksConfigStoreImpl.ofPlatform(CurrentPlatform)
         } bind SshBookmarksConfigStore::class
+        single<PlaintextSecretScanner> {
+            PlaintextSecretScannerImpl(
+                sshKeyImportService = get(),
+                environmentMounts = get(),
+                cryptoGenerator = get(),
+                platform = CurrentPlatform,
+                homeDir = Path.of(System.getProperty("user.home")),
+            )
+        }
         single {
             val dataDirectory: DataDirectory = get()
             PlatformTemporaryArtifactRootRegistry(

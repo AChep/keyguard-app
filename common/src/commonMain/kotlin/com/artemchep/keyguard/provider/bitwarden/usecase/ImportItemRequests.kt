@@ -18,13 +18,19 @@ internal fun ImportPlan.toCreateRequests(
     accountId: AccountId,
     folderIdByKey: Map<String, String>,
     untitledTitle: String,
+    folderId: String? = null,
 ): List<CreateRequest> = items.map { item ->
-    val folderId = item.folderKey?.let(folderIdByKey::get)
+    // The default folder is only for the items without a planned one.
+    val itemFolderId = if (item.folderKey != null) {
+        folderIdByKey[item.folderKey]
+    } else {
+        folderId
+    }
     item.request.copy(
         title = item.request.resolveTitle(untitledTitle),
         ownership2 = CreateRequest.Ownership2(
             accountId = accountId.id,
-            folder = folderId
+            folder = itemFolderId
                 ?.let { FolderInfo.Id(it) }
                 ?: FolderInfo.None,
             organizationId = null,

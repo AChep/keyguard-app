@@ -6,15 +6,17 @@ import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentFolder
-import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import com.artemchep.keyguard.feature.environments.EnvironmentOwnership
 import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.EnvironmentPayloadResult
 import com.artemchep.keyguard.feature.environments.EnvironmentResolutionResult
 import com.artemchep.keyguard.feature.environments.EnvironmentResolvedSnapshot
 import com.artemchep.keyguard.feature.environments.EnvironmentResolver
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.feature.environments.EnvironmentVariable
 import com.artemchep.keyguard.feature.environments.editableDefinition
+import com.artemchep.keyguard.feature.environments.environmentPayloadOf
+import com.artemchep.keyguard.feature.environments.isValidEnvironmentName
 import com.artemchep.keyguard.feature.environments.runnableDefinition
 import com.artemchep.keyguard.feature.environments.toFolderInfo
 import com.artemchep.keyguard.platform.leParseUri
@@ -75,16 +77,8 @@ class EnvironmentRepositoryImpl(
         ownership: EnvironmentOwnership? = null,
     ): String {
         checkEnvironmentOperation()
-        if (name.isBlank() || name.length > MAX_NAME_LENGTH) throw EnvironmentServiceException("invalid_name")
-        if (!EnvironmentResolver.fitsLimits(definition) || EnvironmentResolver.validate(definition).isNotEmpty()) {
-            throw EnvironmentServiceException("invalid_environment")
-        }
-        val payload = try {
-            EnvironmentPayload.Decoded(definition, EnvironmentFormat.encode(definition), lossless = true)
-        } catch (_: IllegalArgumentException) {
-            // The checks above cover everything but the serialized-size bound.
-            throw EnvironmentServiceException("environment_too_large")
-        }
+        if (!isValidEnvironmentName(name)) throw EnvironmentServiceException("invalid_name")
+        val payload = environmentPayload(definition)
         return vault.withVault { dependencies ->
             if (dependencies.getProfiles().first().none { it.accountId == accountId }) {
                 throw EnvironmentServiceException("not_found")
@@ -147,7 +141,17 @@ class EnvironmentRepositoryImpl(
     }
 }
 
-private const val MAX_NAME_LENGTH = 256
+/**
+ * The payload an environment is saved with. Throws an
+ * [EnvironmentServiceException] if the [definition] breaks a limit or a rule.
+ */
+private fun environmentPayload(
+    definition: EnvironmentDefinition,
+): EnvironmentPayload.Decoded = when (val result = environmentPayloadOf(definition)) {
+    is EnvironmentPayloadResult.Ok -> result.payload
+    EnvironmentPayloadResult.Invalid -> throw EnvironmentServiceException("invalid_environment")
+    EnvironmentPayloadResult.TooLarge -> throw EnvironmentServiceException("environment_too_large")
+}
 
 /** An existing environment can not move to another account, organization or collections. */
 private fun checkEditableEnvironment(secret: DSecret, accountId: String, ownership: EnvironmentOwnership?) {

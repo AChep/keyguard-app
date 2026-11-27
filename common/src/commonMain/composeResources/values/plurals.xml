@@ -470,4 +470,20 @@
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> connected</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> connected</item>
     </plurals>
+    <plurals name="secret_scan_checked_plural">
+        <item quantity="one">Checked <xliff:g id="count" example="1">%1$d</xliff:g> file</item>
+        <item quantity="other">Checked <xliff:g id="count" example="1200">%1$d</xliff:g> files</item>
+    </plurals>
+    <plurals name="secret_scan_variables_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> variable</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> variables</item>
+    </plurals>
+    <plurals name="secret_scan_skipped_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> file skipped</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files skipped</item>
+    </plurals>
+    <plurals name="secret_scan_changed_files_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> file changed since the scan and was skipped</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> files changed since the scan and were skipped</item>
+    </plurals>
 </resources>

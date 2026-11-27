@@ -4,6 +4,8 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.mapping.IMPORT_DEFAULT_FOLDER_TITLE
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
@@ -12,6 +14,7 @@ import com.artemchep.keyguard.common.usecase.CommitImportPlanRequest
 import com.artemchep.keyguard.common.usecase.CommitImportPlanResult
 import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.createCiphers
+import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import kotlinx.collections.immutable.toPersistentList
 
@@ -57,16 +60,23 @@ class CommitImportPlanImpl(
                 }
                 staging.stage(plan, source)
             }
+            val targetFolder = request.folder.toPlannedFolderOrNull(plan)
             val folderIdByKey = createPlannedFolders(
-                folders = plan.folders,
+                folders = plan.folders + listOfNotNull(targetFolder),
                 accountId = request.accountId,
                 addFolder = addFolder,
                 hierarchyMode = folderHierarchyMode,
             )
+            val targetFolderId = when (val folder = request.folder) {
+                FolderInfo.None -> null
+                is FolderInfo.New -> folderIdByKey[targetFolder?.key]
+                is FolderInfo.Id -> folder.id
+            }
             val requests = plan.toCreateRequests(
                 accountId = request.accountId,
                 folderIdByKey = folderIdByKey,
                 untitledTitle = request.untitledTitle,
+                folderId = targetFolderId,
             ).zip(stagedAttachments) { createRequest, staged ->
                 if (staged.isEmpty()) {
                     return@zip createRequest
@@ -92,3 +102,25 @@ class CommitImportPlanImpl(
         )
     }
 }
+
+/**
+ * The root folder to create for a [FolderInfo.New] target, under a key
+ * that no folder of the [plan] has.
+ */
+private fun FolderInfo.toPlannedFolderOrNull(
+    plan: ImportPlan,
+): ImportPlan.Folder? {
+    if (this !is FolderInfo.New) return null
+    val keys = plan.folders.mapTo(mutableSetOf()) { it.key }
+    val key = generateSequence(0) { it + 1 }
+        .map { "$TARGET_FOLDER_KEY-$it" }
+        .first { it !in keys }
+    return ImportPlan.Folder(
+        key = key,
+        parentKey = null,
+        title = name.takeIf { it.isNotBlank() }
+            ?: IMPORT_DEFAULT_FOLDER_TITLE,
+    )
+}
+
+private const val TARGET_FOLDER_KEY = "target"

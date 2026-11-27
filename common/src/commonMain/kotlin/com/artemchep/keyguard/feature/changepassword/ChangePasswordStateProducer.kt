@@ -1,15 +1,9 @@
 package com.artemchep.keyguard.feature.changepassword
 
 import androidx.compose.runtime.Composable
-import arrow.core.identity
 import arrow.core.partially1
-import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.effectTap
-import com.artemchep.keyguard.common.io.finally
-import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
@@ -18,27 +12,17 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.modelFlow
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
-import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import org.koin.compose.currentKoinScope
 
 private const val KEY_PASSWORD_OLD = "password.old"
 private const val KEY_PASSWORD_NEW = "password.new"
-
-private const val KEY_BIOMETRIC_ENABLED = "biometric.enabled"
 
 @Composable
 fun changePasswordState(): Loadable<ChangePasswordState> = with(currentKoinScope()) {
@@ -102,14 +86,6 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
             }
         }
 
-    val biometricAvailableFlow = fn
-        .map { it?.changePasswordWithBiometric != null }
-        .distinctUntilChanged()
-    val biometricWasEnabled = true
-    val biometricEnabledSink = mutablePersistedFlow(KEY_BIOMETRIC_ENABLED) {
-        biometricWasEnabled
-    }
-
     val currentFieldFlow = passwordOldHandle.modelFlow { password ->
         validatedPassword(password)
     }
@@ -127,20 +103,9 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
         )
     }
 
-    val biometricFlow = biometricAvailableFlow
-        .flatMapLatest { available ->
-            if (available) {
-                biometricEnabledSink
-                    .map { enabled ->
-                        ChangePasswordState.Biometric(
-                            checked = enabled,
-                            onChange = biometricEnabledSink::value::set,
-                        )
-                    }
-            } else {
-                flowOf(null)
-            }
-        }
+    val biometricFlow = changePasswordBiometricFlow(
+        actionsFlow = fn,
+    )
 
     return combine(
         passwordFlow,
@@ -154,12 +119,12 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
                 password.new.text.isNotEmpty()
         val onConfirm = if (isValid && f != null) {
             if (biometric?.checked == true) {
-                f.changePasswordWithBiometric
+                f.changeWithBiometric
             } else {
-                f.changePassword
+                f.change
             }
                 ?.partially1(password.current.text)
-                ?.partially1(password.new.text)
+                ?.partially1(VaultState.Main.ChangePassword.Change.Password(password.new.text))
         } else {
             null
         }
@@ -175,106 +140,3 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
         Loadable.Ok(state)
     }
 }
-
-private fun RememberStateFlowScope.createChangePasswordActions(
-    state: VaultState.Main,
-    requireConfirmation: Boolean,
-    biometricPromptSink: EventFlow<BiometricAuthPrompt>,
-    windowCoroutineScope: WindowCoroutineScope,
-    loadingSink: MutableStateFlow<Boolean>,
-) = Fn(
-    changePassword = { currentPassword, newPassword ->
-        launchChangePassword(
-            io = state.changePassword.withMasterPassword
-                .getCreateIo(currentPassword, newPassword),
-            windowCoroutineScope = windowCoroutineScope,
-            loadingSink = loadingSink,
-        )
-    },
-    changePasswordWithBiometric = if (state.changePassword.withMasterPasswordAndBiometric != null) {
-        lambda@{ currentPassword, newPassword ->
-            if (loadingSink.value) return@lambda
-            screenScope.launch {
-                val cipher = state.changePassword.withMasterPasswordAndBiometric.getCipher()
-                    .fold(
-                        ifLeft = { e ->
-                            message(e)
-                            return@launch
-                        },
-                        ifRight = ::identity,
-                    )
-
-                val prompt = BiometricAuthPrompt(
-                    title = TextHolder.Res(Res.string.changepassword_biometric_auth_confirm_title),
-                    cipher = cipher,
-                    requireConfirmation = requireConfirmation,
-                    onComplete = { result ->
-                        result.fold(
-                            ifLeft = { e ->
-                                message(e)
-                            },
-                            ifRight = {
-                                launchChangePassword(
-                                    io = state
-                                        .changePassword.withMasterPasswordAndBiometric
-                                        .getCreateIo(currentPassword, newPassword),
-                                    windowCoroutineScope = windowCoroutineScope,
-                                    loadingSink = loadingSink,
-                                )
-                            },
-                        )
-                    },
-                )
-                biometricPromptSink.emit(prompt)
-            }
-        }
-    } else {
-        null
-    },
-)
-
-/**
- * Runs the password change [io], unless one runs already: a second one is ignored. Shows
- * the [loadingSink] meanwhile. Once the password changes, closes the screen and tells what
- * the change did not carry over.
- */
-private fun RememberStateFlowScope.launchChangePassword(
-    io: IO<VaultState.Main.ChangePassword.Report>,
-    windowCoroutineScope: WindowCoroutineScope,
-    loadingSink: MutableStateFlow<Boolean>,
-) {
-    if (!loadingSink.compareAndSet(expect = false, update = true)) {
-        return
-    }
-    io
-        .effectTap { report ->
-            val msg = ToastMessage(
-                title = translate(Res.string.changepassword_password_changed_successfully),
-                type = ToastMessage.Type.SUCCESS,
-            )
-            message(msg)
-            val notResealed = report.authoritiesNotResealed
-            if (notResealed > 0) {
-                val warning = ToastMessage(
-                    title = translate(
-                        Res.plurals.changepassword_authority_not_resealed_plural,
-                        notResealed,
-                        notResealed,
-                    ),
-                    type = ToastMessage.Type.ERROR,
-                )
-                message(warning)
-            }
-            // Pop the screen
-            navigatePopSelf()
-        }
-        .finally {
-            loadingSink.value = false
-        }
-        .launchIn(windowCoroutineScope)
-}
-
-private data class Fn(
-    val changePassword: (String, String) -> Unit,
-    val changePasswordWithBiometric: ((String, String) -> Unit)?,
-)

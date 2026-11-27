@@ -31,7 +31,8 @@ final class WorkspaceSessionModelTests: XCTestCase {
         func snapshot(_ password: String) -> MasterPasswordSnapshot {
             MasterPasswordSnapshot(
                 loaded: true, password: password, passwordError: nil, isLoading: false, canSubmit: true,
-                hasBiometric: true, biometricEnabled: false, crashlyticsEnabled: false)
+                hasBiometric: true, biometricEnabled: false, crashlyticsEnabled: false, kdf: nil,
+                kdfExpanded: false)
         }
         try await exercise(snapshot("first draft"), secondSnapshot: snapshot("second draft"))
     }

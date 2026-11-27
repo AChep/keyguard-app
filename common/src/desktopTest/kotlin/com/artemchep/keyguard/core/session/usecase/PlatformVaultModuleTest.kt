@@ -61,7 +61,7 @@ class PlatformVaultModuleTest {
         }
         try {
             val session = KoinVaultSessionFactory(application)
-                .create(MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1)))
+                .create(MasterKey(MasterKdfVersion.V1, byteArrayOf(1)))
             val getSuggestions = checkNotNull(session.resolve { get<GetSuggestions<Any?>>() })
             assertIs<GetSuggestionsImpl>(getSuggestions)
 

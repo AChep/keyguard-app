@@ -50,13 +50,16 @@ import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
+import com.artemchep.keyguard.feature.masterkdf.MasterKdfForm
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AutofillButton
+import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
+import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
@@ -230,7 +233,7 @@ fun ColumnScope.SetupContent(
     Spacer(Modifier.height(3.dp))
     val updatedCrashlytics by rememberUpdatedState(setupState.crashlytics)
     FlatItemLayoutExpressive(
-        shapeState = ShapeState.END,
+        shapeState = ShapeState.CENTER,
         padding = PaddingValues(0.dp),
         leading = {
             Checkbox(
@@ -250,6 +253,20 @@ fun ColumnScope.SetupContent(
         },
         enabled = updatedCrashlytics.onChange != null,
     )
+    Spacer(Modifier.height(3.dp))
+    SetupKdfToggle(
+        expanded = setupState.kdfExpanded,
+        onExpandedChange = setupState.onKdfExpandedChange,
+    )
+    ExpandedIfNotEmpty(
+        valueOrNull = Unit.takeIf { setupState.kdfExpanded },
+    ) {
+        MasterKdfForm(
+            modifier = Modifier
+                .padding(top = 8.dp),
+            state = setupState.kdf,
+        )
+    }
     Spacer(Modifier.height(24.dp))
     val onCreateButtonClick by rememberUpdatedState(setupState.onCreateVault)
     Button(
@@ -284,6 +301,41 @@ fun ColumnScope.SetupContent(
             text = stringResource(Res.string.setup_button_create_vault),
         )
     }
+}
+
+@Composable
+private fun SetupKdfToggle(
+    expanded: Boolean,
+    onExpandedChange: ((Boolean) -> Unit)?,
+) {
+    val updatedExpanded by rememberUpdatedState(expanded)
+    val updatedOnExpandedChange by rememberUpdatedState(onExpandedChange)
+    FlatItemLayoutExpressive(
+        shapeState = ShapeState.END,
+        padding = PaddingValues(0.dp),
+        content = {
+            Text(
+                text = stringResource(Res.string.advanced_options),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        trailing = {
+            DropdownIcon(
+                expanded = expanded,
+            )
+        },
+        onClick = if (onExpandedChange != null) {
+            // lambda
+            {
+                updatedOnExpandedChange?.invoke(!updatedExpanded)
+            }
+        } else {
+            null
+        },
+        // Forced open while the key derivation is not valid,
+        // which is not a reason to dim it.
+        enabled = true,
+    )
 }
 
 @Composable

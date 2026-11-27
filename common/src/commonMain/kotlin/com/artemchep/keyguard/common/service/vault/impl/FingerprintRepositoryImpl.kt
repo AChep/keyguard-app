@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.FingerprintPassword
 import com.artemchep.keyguard.common.model.FingerprintYubiKey
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
@@ -16,6 +17,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.util.foundation.crypto.KdfLimits
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -46,7 +48,11 @@ class FingerprintRepositoryImpl(
             val entity = kotlin.run {
                 // Convert the model to the entity
                 val masterHashBase64 = base64Service.encodeToString(tokens.master.hash.byteArray)
-                val masterSaltBase64 = base64Service.encodeToString(tokens.master.salt.byteArray)
+                val masterSaltBytes = encodeMasterSalt(
+                    kdf = tokens.kdf,
+                    salt = tokens.master.salt.byteArray,
+                )
+                val masterSaltBase64 = base64Service.encodeToString(masterSaltBytes)
                 val master = FingerprintEntity.Master(
                     hashBase64 = masterHashBase64,
                     saltBase64 = masterSaltBase64,
@@ -70,7 +76,7 @@ class FingerprintRepositoryImpl(
                     )
                 }
                 FingerprintEntity(
-                    version = tokens.version.raw,
+                    version = tokens.kdf.version.raw,
                     master = master,
                     biometric = biometric,
                     yubiKey = yubiKey,
@@ -153,13 +159,16 @@ private fun parseFingerprintJsonStringOrNull(
 
     // Convert the entity back to a domain model
     val masterHashBytes = base64Service.decode(entity.master.hashBase64)
-    val masterSaltBytes = base64Service.decode(entity.master.saltBase64)
+    val (kdf, masterSalt) = decodeMasterSalt(
+        version = version,
+        bytes = base64Service.decode(entity.master.saltBase64),
+    )
     val master = FingerprintPassword(
         hash = MasterPasswordHash(
-            version = version,
+            kdf = kdf,
             byteArray = masterHashBytes,
         ),
-        salt = MasterPasswordSalt(masterSaltBytes),
+        salt = MasterPasswordSalt(masterSalt),
     )
     val biometric = entity.biometric?.let {
         val iv = base64Service.decode(it.ivBase64)
@@ -182,7 +191,7 @@ private fun parseFingerprintJsonStringOrNull(
         )
     }
     return Fingerprint(
-        version = version,
+        kdf = kdf,
         master = master,
         biometric = biometric,
         yubiKey = yubiKey,
@@ -219,12 +228,12 @@ private fun parseFingerprintRawStringOrNull(
     } else {
         null
     }
-    val version = MasterKdfVersion.V0 // old format doesn't have a version field
+    val kdf = MasterKdf.Pbkdf2Legacy // old format doesn't have a version field
     return Fingerprint(
-        version = version,
+        kdf = kdf,
         master = FingerprintPassword(
             hash = MasterPasswordHash(
-                version = version,
+                kdf = kdf,
                 byteArray = masterHash,
             ),
             salt = MasterPasswordSalt(masterSalt),
@@ -232,6 +241,91 @@ private fun parseFingerprintRawStringOrNull(
         biometric = biometric,
         yubiKey = null,
     )
+}
+
+// The key derivation parameters of version 2 live inside of the
+// `master.saltBase64` field, as a fixed header in front of the random
+// salt:
+//
+//   u32 BE iterations | u32 BE memory, KiB | u32 BE parallelism | salt
+//
+// Why not a separate field: older builds rewrite the fingerprint, for
+// example when they enable or disable biometric unlock, through the
+// domain model. That rewrite drops every JSON key the build does not
+// know, so a separate field would vanish and the vault would never
+// unlock again. The salt is copied verbatim, so the parameters survive.
+//
+// The vaults with the version 1 parameters keep the version 1 format, so
+// older builds still open them with the password.
+
+private const val ARGON2ID_HEADER_SIZE = 3 * Int.SIZE_BYTES
+
+private fun encodeMasterSalt(
+    kdf: MasterKdf,
+    salt: ByteArray,
+): ByteArray {
+    if (kdf !is MasterKdf.Argon2id || kdf.version != MasterKdfVersion.V2) {
+        // An unsupported derivation keeps the bytes it was
+        // read with, so a rewrite does not change them.
+        return salt
+    }
+
+    val header = ByteArray(ARGON2ID_HEADER_SIZE)
+    intArrayOf(kdf.iterations, kdf.memoryKib, kdf.parallelism).forEachIndexed { field, value ->
+        for (i in 0 until Int.SIZE_BYTES) {
+            val shift = Byte.SIZE_BITS * (Int.SIZE_BYTES - 1 - i)
+            header[field * Int.SIZE_BYTES + i] = (value ushr shift).toByte()
+        }
+    }
+    return header + salt
+}
+
+/**
+ * Splits the stored salt [bytes] into the key derivation and the
+ * salt, without any header. Never throws: a derivation it can not
+ * read becomes [MasterKdf.Unsupported], so the vault still exists.
+ */
+private fun decodeMasterSalt(
+    version: MasterKdfVersion,
+    bytes: ByteArray,
+): Pair<MasterKdf, ByteArray> {
+    if (version != MasterKdfVersion.V2) {
+        return MasterKdf.fromVersion(version) to bytes
+    }
+    val kdf = decodeArgon2idHeaderOrNull(bytes)
+    return if (kdf != null) {
+        kdf to bytes.copyOfRange(ARGON2ID_HEADER_SIZE, bytes.size)
+    } else {
+        MasterKdf.Unsupported(version) to bytes
+    }
+}
+
+private fun decodeArgon2idHeaderOrNull(bytes: ByteArray): MasterKdf.Argon2id? {
+    if (bytes.size <= ARGON2ID_HEADER_SIZE) {
+        return null
+    }
+
+    // Accept what the native derivation accepts, not the
+    // bounds of the form: those may change.
+    fun readField(field: Int, max: Long): Int? = (0 until Int.SIZE_BYTES)
+        .fold(0L) { acc, i ->
+            (acc shl Byte.SIZE_BITS) or bytes[field * Int.SIZE_BYTES + i].toUByte().toLong()
+        }
+        .takeIf { it in 1L..max }
+        ?.toInt()
+
+    val iterations = readField(0, KdfLimits.MaxArgon2Iterations.toLong())
+    val memoryKib = readField(1, (KdfLimits.MaxArgon2Memory / MasterKdf.Argon2id.KIB_PER_MIB.toULong()).toLong())
+    val parallelism = readField(2, KdfLimits.MaxArgon2Parallelism.toLong())
+    return if (iterations != null && memoryKib != null && parallelism != null) {
+        MasterKdf.Argon2id(
+            iterations = iterations,
+            memoryKib = memoryKib,
+            parallelism = parallelism,
+        )
+    } else {
+        null
+    }
 }
 
 @Serializable

@@ -133,7 +133,7 @@ private fun verifyPackagedKoinGraph() {
         koin.get<CryptoGenerator>()
         koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>())
         val session = koin.get<VaultSessionFactory>()
-            .create(MasterKey(MasterKdfVersion.LATEST, ByteArray(32)))
+            .create(MasterKey(MasterKdfVersion.V1, ByteArray(32)))
         try {
             checkNotNull(session.resolve { get<WindowCoroutineScope>() })
         } finally {

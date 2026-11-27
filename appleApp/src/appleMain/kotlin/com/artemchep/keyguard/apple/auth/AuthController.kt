@@ -306,6 +306,7 @@ internal class AuthController(
                         .setupStateProducer(
                             createVaultWithMasterPassword = state.createWithMasterPassword,
                             createVaultWithMasterPasswordAndBiometric = state.createWithMasterPasswordAndBiometric,
+                            measureMasterKdf = ctx.koin.get(),
                         )
                         .throttleLatest()
                         .shareIn(this, SharingStarted.Eagerly, replay = 1)
@@ -326,6 +327,8 @@ internal class AuthController(
                             setPassword = form?.password?.onChange,
                             setBiometric = form?.biometric?.onChange,
                             setCrashlytics = form?.crashlytics?.onChange,
+                            kdf = form?.kdf?.toMasterKdfHandlers() ?: MasterKdfHandlers(),
+                            setKdfExpanded = form?.onKdfExpandedChange,
                             submit = { perform(form?.onCreateVault) },
                         )
                     }.collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }

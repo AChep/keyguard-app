@@ -29,17 +29,17 @@ class GenerateMasterKeyUseCaseImpl(
         .hash(
             password = password.byteArray,
             salt = salt.byteArray,
-            version = salt.version,
+            kdf = salt.kdf,
         )
         .map { bytes ->
             MasterKey(
-                version = salt.version,
+                version = salt.kdf.version,
                 byteArray = bytes,
             )
         }
         .measure { ms, _ ->
-            val version = salt.version
-            val msg = "Generated a master key v${version.raw} in $ms"
+            val kdf = salt.kdf
+            val msg = "Generated a master key v${kdf.version.raw} ($kdf) in $ms"
             logRepository.add(TAG, msg)
         }
 }

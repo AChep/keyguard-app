@@ -63,7 +63,7 @@ data class P2pDevice(
  * @property publicKeyBase64 the base64url Ed25519 public key.
  * @property saltBase64 the base64url salt the sealing key is derived with.
  * @property kdfVersion the version of the password key derivation, see
- *   [com.artemchep.keyguard.common.model.MasterKdfVersion].
+ *   [com.artemchep.keyguard.common.model.MasterKdf.fromVersion].
  * @property sealedSeed the seed, sealed with AES-256-CBC and HMAC-SHA256.
  */
 @Serializable

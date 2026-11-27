@@ -27,7 +27,7 @@ import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VaultSessionPersisterTest {
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
 
     private val unlocked = MasterSession.Key(
         masterKey = masterKey,

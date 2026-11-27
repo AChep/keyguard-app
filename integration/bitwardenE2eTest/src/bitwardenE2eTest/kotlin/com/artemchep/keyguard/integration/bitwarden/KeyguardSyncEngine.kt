@@ -123,7 +123,7 @@ internal class KeyguardSyncEngine private constructor(
                 json = fixture.json,
                 sqlManager = sqlManager,
                 masterKey = MasterKey(
-                    version = MasterKdfVersion.LATEST,
+                    version = MasterKdfVersion.V1,
                     byteArray = fixture.cryptoGenerator.seed(MASTER_KEY_LENGTH),
                 ),
             )

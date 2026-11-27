@@ -204,7 +204,7 @@ class QuickSearchAutotypeControllerTest {
             scope = scope,
             getVaultSession = object : GetVaultSession {
                 private val sessions = MutableStateFlow<MasterSession>(MasterSession.Key(
-                    masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1)),
+                    masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1)),
                     session = session,
                     origin = MasterSession.Key.Authenticated,
                     createdAt = Instant.fromEpochMilliseconds(0),

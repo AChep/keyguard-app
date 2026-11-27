@@ -6,13 +6,13 @@ import kotlin.test.assertNotEquals
 
 class MasterPasswordHashTest {
     @Test
-    fun `hashes are equal when version and bytes match`() {
+    fun `hashes are equal when kdf and bytes match`() {
         val a = MasterPasswordHash(
-            version = MasterKdfVersion.V0,
+            kdf = MasterKdf.Pbkdf2Legacy,
             byteArray = byteArrayOf(1, 2, 3),
         )
         val b = MasterPasswordHash(
-            version = MasterKdfVersion.V0,
+            kdf = MasterKdf.Pbkdf2Legacy,
             byteArray = byteArrayOf(1, 2, 3),
         )
 
@@ -21,13 +21,13 @@ class MasterPasswordHashTest {
     }
 
     @Test
-    fun `hashes are not equal when versions differ`() {
+    fun `hashes are not equal when kdfs differ`() {
         val a = MasterPasswordHash(
-            version = MasterKdfVersion.V0,
+            kdf = MasterKdf.Pbkdf2Legacy,
             byteArray = byteArrayOf(1, 2, 3),
         )
         val b = MasterPasswordHash(
-            version = MasterKdfVersion.V1,
+            kdf = MasterKdf.Argon2id.V1,
             byteArray = byteArrayOf(1, 2, 3),
         )
 
@@ -38,11 +38,11 @@ class MasterPasswordHashTest {
     @Test
     fun `hashes are not equal when bytes differ`() {
         val a = MasterPasswordHash(
-            version = MasterKdfVersion.LATEST,
+            kdf = MasterKdf.Argon2id.V1,
             byteArray = byteArrayOf(1, 2, 3),
         )
         val b = MasterPasswordHash(
-            version = MasterKdfVersion.LATEST,
+            kdf = MasterKdf.Argon2id.V1,
             byteArray = byteArrayOf(1, 2, 4),
         )
 

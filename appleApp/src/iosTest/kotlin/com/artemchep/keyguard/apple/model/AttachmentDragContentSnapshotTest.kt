@@ -242,7 +242,7 @@ class AttachmentDragContentSnapshotTest {
         val destination = Path(directories.root.value, "destination")
         SystemFileSystem.createDirectories(destination)
         directories.withKoin { koin ->
-            val masterKey = MasterKey(MasterKdfVersion.LATEST, ByteArray(MASTER_KEY_BYTES))
+            val masterKey = MasterKey(MasterKdfVersion.V1, ByteArray(MASTER_KEY_BYTES))
             koin.withVaultSession(masterKey) { session ->
                 val prepare = assertNotNull(session.resolve { get<PrepareAttachmentContent>() })
                 // The public use case copies this trusted local fixture into independent storage.

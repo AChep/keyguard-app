@@ -17,6 +17,11 @@ class MasterPasswordSession internal constructor(
 
     fun setCrashlytics(enabled: Boolean) = session.withActions { it.setCrashlytics?.invoke(enabled) }
 
+    /** The key derivation of a new vault. */
+    val kdf: MasterKdfActions = MasterKdfActions { block -> session.withActions { block(it.kdf) } }
+
+    fun setKdfExpanded(expanded: Boolean) = session.withActions { it.setKdfExpanded?.invoke(expanded) }
+
     fun submit() = session.withActions { it.submit?.invoke() }
 
     fun close() = session.close()
@@ -26,5 +31,7 @@ internal data class MasterPasswordActions(
     val setPassword: ((String) -> Unit)? = null,
     val setBiometric: ((Boolean) -> Unit)? = null,
     val setCrashlytics: ((Boolean) -> Unit)? = null,
+    val kdf: MasterKdfHandlers = MasterKdfHandlers(),
+    val setKdfExpanded: ((Boolean) -> Unit)? = null,
     val submit: (() -> Unit)? = null,
 )

@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.shared
-import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -156,7 +156,7 @@ class ExposedDatabaseManagerImpl(
             .first()
         if (existingMasterKeyBytes != null) {
             val masterKey = MasterKey(
-                version = MasterKdfVersion.V0, // stay forever at v0, this database is public
+                version = MasterKdf.Pbkdf2Legacy.version, // stay forever at v0, this database is public
                 byteArray = existingMasterKeyBytes,
             )
             return@ioEffect masterKey
@@ -186,7 +186,7 @@ class ExposedDatabaseManagerImpl(
         val masterHash = generateMasterHashUseCase(
             masterPassword,
             masterSalt,
-            MasterKdfVersion.V0, // stay forever at v0, this database is public
+            MasterKdf.Pbkdf2Legacy, // stay forever at v0, this database is public
         )
             .bind()
         generateMasterKeyUseCase(masterPassword, masterHash)

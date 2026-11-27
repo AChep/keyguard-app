@@ -99,6 +99,7 @@ internal class ApplicationIntegrationsModule {
                 biometricKeyEncryptUseCase = get(),
                 decryptBiometricKeyUseCase = get(),
                 authConfirmMasterKeyUseCase = get(),
+                generateMasterHashUseCase = get(),
                 authGenerateMasterKeyUseCase = get(),
                 cryptoGenerator = get(),
                 cipherEncryptor = get(),

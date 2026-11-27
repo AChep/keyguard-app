@@ -112,6 +112,19 @@ enum class SettingsSearchTarget(
         Res.string.pref_item_change_master_password_action,
         section = Res.string.password,
     ),
+    MASTER_KDF(
+        SettingsDestination.SECURITY.id,
+        Res.string.masterkdf_title,
+        section = Res.string.password,
+        description = Res.string.masterkdf_note,
+        // The field names, and the legacy key derivation the summary may name.
+        keywords = listOf(
+            Res.string.masterkdf_iterations_label,
+            Res.string.masterkdf_memory_label,
+            Res.string.masterkdf_parallelism_label,
+            Res.string.masterkdf_summary_pbkdf2_legacy,
+        ),
+    ),
     LOCALE(
         SettingsDestination.DISPLAY.id,
         Res.string.pref_item_locale_title,

@@ -103,5 +103,5 @@ class AuthenticatedVaultSessionTest {
             error("Unlock must not change the database password")
     }
 
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
 }

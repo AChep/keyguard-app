@@ -109,7 +109,7 @@ internal class P2pE2eDevice(
         json = json,
         sqlManager = sqlManager,
         masterKey = MasterKey(
-            version = MasterKdfVersion.LATEST,
+            version = MasterKdfVersion.V1,
             byteArray = cryptoGenerator.seed(MASTER_KEY_LENGTH),
         ),
     )

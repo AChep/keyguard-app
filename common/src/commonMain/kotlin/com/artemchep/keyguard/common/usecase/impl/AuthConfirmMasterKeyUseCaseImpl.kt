@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.FingerprintPassword
-import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
@@ -23,11 +23,11 @@ class AuthConfirmMasterKeyUseCaseImpl(
     override fun invoke(
         salt: MasterPasswordSalt,
         hash: MasterPasswordHash,
-        version: MasterKdfVersion,
+        kdf: MasterKdf,
     ) = { password: MasterPassword ->
         // Generate a hash from the given password and known
         // salt, to identify if the password is valid.
-        generateMasterHashUseCase(password, salt, version)
+        generateMasterHashUseCase(password, salt, kdf)
             .flatMap { h ->
                 if (!h.byteArray.contentEquals(hash.byteArray)) {
                     val e = PasswordMismatchException()
@@ -43,7 +43,7 @@ class AuthConfirmMasterKeyUseCaseImpl(
             }
             .map { key ->
                 AuthResult(
-                    version = version,
+                    kdf = kdf,
                     key = key,
                     token = FingerprintPassword(
                         hash = hash,

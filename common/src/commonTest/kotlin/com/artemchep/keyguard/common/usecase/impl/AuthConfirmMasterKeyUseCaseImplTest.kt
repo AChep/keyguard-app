@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -20,16 +21,18 @@ import kotlin.test.assertIs
 import kotlin.test.fail
 
 class AuthConfirmMasterKeyUseCaseImplTest {
+    private val unsupported = MasterKdf.Unsupported(MasterKdfVersion.fromRaw(999))
+
     @Test
     fun `unsupported hash version maps to password mismatch`() {
         val generateMasterHashUseCase = object : GenerateMasterHashUseCase {
             override fun invoke(
                 password: MasterPassword,
                 salt: MasterPasswordSalt,
-                version: MasterKdfVersion,
+                kdf: MasterKdf,
             ): IO<MasterPasswordHash> = ioRaise(
                 UnsupportedMasterKdfVersionException(
-                    version = version,
+                    version = kdf.version,
                     type = "master-hash",
                 ),
             )
@@ -50,10 +53,10 @@ class AuthConfirmMasterKeyUseCaseImplTest {
         val result = useCase(
             salt = MasterPasswordSalt(byteArrayOf(1, 2, 3)),
             hash = MasterPasswordHash(
-                version = MasterKdfVersion.fromRaw(999),
+                kdf = unsupported,
                 byteArray = byteArrayOf(9, 8, 7),
             ),
-            version = MasterKdfVersion.fromRaw(999),
+            kdf = unsupported,
         )(MasterPassword.of("password"))
             .attempt()
             .bindBlocking()
@@ -67,14 +70,14 @@ class AuthConfirmMasterKeyUseCaseImplTest {
     @Test
     fun `unsupported key version maps to password mismatch`() {
         val persistedHash = MasterPasswordHash(
-            version = MasterKdfVersion.fromRaw(999),
+            kdf = unsupported,
             byteArray = byteArrayOf(9, 8, 7),
         )
         val generateMasterHashUseCase = object : GenerateMasterHashUseCase {
             override fun invoke(
                 password: MasterPassword,
                 salt: MasterPasswordSalt,
-                version: MasterKdfVersion,
+                kdf: MasterKdf,
             ): IO<MasterPasswordHash> = io(persistedHash)
         }
         val generateMasterKeyUseCase = object : GenerateMasterKeyUseCase {
@@ -83,7 +86,7 @@ class AuthConfirmMasterKeyUseCaseImplTest {
                 salt: MasterPasswordHash,
             ): IO<MasterKey> = ioRaise(
                 UnsupportedMasterKdfVersionException(
-                    version = salt.version,
+                    version = salt.kdf.version,
                     type = "master-key",
                 ),
             )
@@ -96,7 +99,7 @@ class AuthConfirmMasterKeyUseCaseImplTest {
         val result = useCase(
             salt = MasterPasswordSalt(byteArrayOf(1, 2, 3)),
             hash = persistedHash,
-            version = MasterKdfVersion.fromRaw(999),
+            kdf = unsupported,
         )(MasterPassword.of("password"))
             .attempt()
             .bindBlocking()

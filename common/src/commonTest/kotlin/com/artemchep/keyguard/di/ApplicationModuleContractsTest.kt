@@ -65,7 +65,7 @@ class ApplicationModuleContractsTest {
         )
         try {
             val factory = KoinVaultSessionFactory(koin)
-            val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+            val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
             val first = factory.create(masterKey)
             val second = factory.create(masterKey)
             val firstWindow = checkNotNull(first.resolve { get<WindowCoroutineScope>() })

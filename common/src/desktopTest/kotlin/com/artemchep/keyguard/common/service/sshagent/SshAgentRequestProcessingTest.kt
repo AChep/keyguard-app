@@ -2138,7 +2138,7 @@ class SshAgentRequestProcessingTest {
         ciphers: Flow<List<DSecret>> = flowOf(secrets.toList()),
     ): MasterSession.Key = MasterSession.Key(
         masterKey = MasterKey(
-            version = MasterKdfVersion.LATEST,
+            version = MasterKdfVersion.V1,
             byteArray = byteArrayOf(1, 2, 3),
         ),
         session = testVaultSession {

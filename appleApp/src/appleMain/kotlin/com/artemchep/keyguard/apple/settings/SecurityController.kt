@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistoryRetention
 import com.artemchep.keyguard.common.usecase.GetGravatar
+import com.artemchep.keyguard.common.usecase.GetMasterKdf
 import com.artemchep.keyguard.common.usecase.GetHistoryRetentionVariants
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
@@ -38,6 +39,7 @@ import com.artemchep.keyguard.common.usecase.PutVaultPersist
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.feature.home.settings.component.formatHistoryRetention
+import com.artemchep.keyguard.feature.home.settings.component.formatMasterKdfSummary
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
@@ -52,6 +54,7 @@ import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /** Items the common providers hide on Apple are intentionally not surfaced. */
@@ -85,6 +88,7 @@ internal class SecurityController(
     private val enableBiometric: EnableBiometric by lazy { ctx.koin.get() }
     private val disableBiometric: DisableBiometric by lazy { ctx.koin.get() }
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability by lazy { ctx.koin.get() }
+    private val getMasterKdf: GetMasterKdf by lazy { ctx.koin.get() }
 
     private var latestLockTimeoutVariants: List<Duration> = emptyList()
     private var latestHistoryRetentionVariants: List<Duration> = emptyList()
@@ -106,9 +110,12 @@ internal class SecurityController(
         onChange: (SecuritySettingsSnapshot) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
-        val vaultFlow = combine(getVaultPersist(), getVaultLockAfterReboot()) { persist, lockAfterReboot ->
-            persist to lockAfterReboot
-        }
+        val vaultFlow = combine(
+            getVaultPersist(),
+            getVaultLockAfterReboot(),
+            getMasterKdf().map { kdf -> formatMasterKdfSummary(kdf, leContext) },
+            ::Triple,
+        )
         val historyRetentionFlow = combine(
             getGeneratorHistoryRetention(),
             getHistoryRetentionVariants(),
@@ -155,7 +162,7 @@ internal class SecurityController(
                 lockFlow,
                 clipFlow,
                 visualsAndBiometricFlow,
-            ) { (persist, lockAfterReboot), (retention, variants), lock, clip, (visuals, biometric) ->
+            ) { (persist, lockAfterReboot, masterKdfSummary), (retention, variants), lock, clip, (visuals, biometric) ->
                 latestHistoryRetentionVariants = variants
                 latestLockTimeoutVariants = lock.second
                 latestClipboardAutoClearVariants = clip.second
@@ -202,6 +209,7 @@ internal class SecurityController(
                     yubiKeyUnlockEnabled = biometric.yubiKeyEnabled,
                     fido2UnlockSupported = biometric.fido2Supported,
                     fido2UnlockEnabled = biometric.fido2Enabled,
+                    masterKdfSummary = masterKdfSummary,
                 )
             }.collect { onChange(it) }
         }

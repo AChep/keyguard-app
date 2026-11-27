@@ -48,6 +48,8 @@ final class SessionFactory {
 
     func makeChangePasswordSession() -> ChangePasswordSession { core.makeChangePasswordSession() }
 
+    func makeChangeKdfSession() -> ChangeKdfSession { core.makeChangeKdfSession() }
+
     func makeFeedbackSession() -> FeedbackSession { core.makeFeedbackSession() }
 
     func makeAppLinkSession() -> AppLinkSession { core.makeAppLinkSession() }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.settings
 
+import com.artemchep.keyguard.apple.auth.MasterKdfHandlers
 import com.artemchep.keyguard.apple.core.AgentFilterActions
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.AgentFiltersSession
@@ -66,6 +67,55 @@ class SettingsFormSessionTest {
         completions[0]()
         sessions[0].setNewPassword("stale")
         assertEquals(listOf("0:current:old A", "1:new:new B", "1:biometric:false", "1:submit"), edits)
+        assertEquals(listOf(1), closed)
+    }
+
+    @Test
+    fun `key derivation editors route each field and completion to their owner`() {
+        val edits = mutableListOf<String>()
+        val completions = mutableListOf<() -> Unit>()
+        val closed = mutableListOf<Int>()
+        val sessions = (0..1).map { index ->
+            ChangeKdfSession { publish, complete ->
+                completions += complete
+                publish(
+                    ChangeKdfSnapshot(loaded = true),
+                    ChangeKdfActions(
+                        setPassword = { edits += "$index:password:$it" },
+                        kdf = MasterKdfHandlers(
+                            setIterations = { edits += "$index:iterations:$it" },
+                            setMemory = { edits += "$index:memory:$it" },
+                            setParallelism = { edits += "$index:parallelism:$it" },
+                            reset = { edits += "$index:reset" },
+                            test = { edits += "$index:test" },
+                        ),
+                        setBiometric = { edits += "$index:biometric:$it" },
+                        submit = { edits += "$index:submit" },
+                    ),
+                )
+                KeyguardCancellable {}
+            }.also { it.observe({}, { closed += index }) }
+        }
+        sessions[0].setPassword("current A")
+        sessions[1].kdf.setIterations("4")
+        sessions[1].kdf.setMemory("128")
+        sessions[0].kdf.setParallelism("2")
+        sessions[0].kdf.test()
+        sessions[1].kdf.reset()
+        sessions[1].setBiometric(false)
+        sessions[1].submit()
+        completions[1]()
+        sessions[1].submit()
+        sessions[0].close()
+        completions[0]()
+        sessions[0].kdf.setMemory("stale")
+        assertEquals(
+            listOf(
+                "0:password:current A", "1:iterations:4", "1:memory:128", "0:parallelism:2",
+                "0:test", "1:reset", "1:biometric:false", "1:submit",
+            ),
+            edits,
+        )
         assertEquals(listOf(1), closed)
     }
 

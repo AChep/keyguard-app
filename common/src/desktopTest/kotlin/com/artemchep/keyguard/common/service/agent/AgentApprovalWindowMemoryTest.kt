@@ -426,7 +426,7 @@ class AgentApprovalWindowMemoryTest {
 
     private fun createVaultSession() = MasterSession.Key(
         masterKey = MasterKey(
-            version = MasterKdfVersion.LATEST,
+            version = MasterKdfVersion.V1,
             byteArray = byteArrayOf(1, 2, 3),
         ),
         session = testVaultSession {},

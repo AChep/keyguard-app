@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
@@ -26,21 +26,21 @@ class GenerateMasterHashUseCaseImpl(
     override fun invoke(
         password: MasterPassword,
         salt: MasterPasswordSalt,
-        version: MasterKdfVersion,
+        kdf: MasterKdf,
     ): IO<MasterPasswordHash> = utils
         .hash(
             password = password.byteArray,
             salt = salt.byteArray,
-            version = version,
+            kdf = kdf,
         )
         .map { bytes ->
             MasterPasswordHash(
-                version = version,
+                kdf = kdf,
                 byteArray = bytes,
             )
         }
         .measure { ms, _ ->
-            val msg = "Generated a master hash v${version.raw} in $ms"
+            val msg = "Generated a master hash v${kdf.version.raw} ($kdf) in $ms"
             logRepository.add(TAG, msg)
         }
 }

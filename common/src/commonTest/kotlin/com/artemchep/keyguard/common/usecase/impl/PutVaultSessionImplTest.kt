@@ -135,7 +135,7 @@ class PutVaultSessionImplTest {
             val repository = SessionRepositoryImpl()
             val previous = factory.create(masterKey)
             repository.put(previous.asMasterSession())
-            val rotatedKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(2))
+            val rotatedKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(2))
             val candidate = factory.create(rotatedKey)
             val completion = mutableListOf<String>()
             val rotation = applicationScope.async {
@@ -174,5 +174,5 @@ class PutVaultSessionImplTest {
         createdAt = Instant.DISTANT_PAST,
     )
 
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
 }

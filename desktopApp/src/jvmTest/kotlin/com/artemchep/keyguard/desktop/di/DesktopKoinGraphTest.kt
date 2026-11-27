@@ -84,7 +84,7 @@ class DesktopKoinGraphTest {
         val application = createDesktopKoinApplication()
         try {
             val factory = application.koin.get<VaultSessionFactory>()
-            val session = factory.create(MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1)))
+            val session = factory.create(MasterKey(MasterKdfVersion.V1, byteArrayOf(1)))
             assertNotNull(session.resolve { get<KeyguardSessionRegistry>() })
             assertNotNull(session.resolve { get<KeyguardSyncExchange>() })
             assertNotNull(session.resolve { get<KeyguardEnrollmentCoordinator>() })
@@ -107,7 +107,7 @@ class DesktopKoinGraphTest {
     fun `the browser extension reaches the vault through the shared login matcher`() {
         val application = createDesktopKoinApplication()
         try {
-            val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+            val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
             val session = application.koin.get<VaultSessionFactory>().create(masterKey)
             assertIs<GetSuggestionsImpl>(session.resolve { get<GetSuggestions<Any?>>() })
             val key = MasterSession.Key(

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import arrow.core.compose
+import com.artemchep.keyguard.common.exception.PasswordMismatchException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.fold
@@ -24,14 +25,19 @@ class ConfirmAccessByPasswordUseCaseImpl(
             }
             val salt = fingerprint.master.salt
             val hash = fingerprint.master.hash
-            val version = fingerprint.version
-            authConfirmMasterKeyUseCase(salt, hash, version)
+            val kdf = fingerprint.kdf
+            authConfirmMasterKeyUseCase(salt, hash, kdf)
                 .compose { password: String ->
                     MasterPassword.of(password)
                 }
                 .invoke(password)
                 .fold(
-                    ifLeft = { false },
+                    // Only a wrong password is a negative answer: other
+                    // failures, such as running out of memory, are errors.
+                    ifLeft = { e ->
+                        if (e !is PasswordMismatchException) throw e
+                        false
+                    },
                     ifRight = { true },
                 )
         }

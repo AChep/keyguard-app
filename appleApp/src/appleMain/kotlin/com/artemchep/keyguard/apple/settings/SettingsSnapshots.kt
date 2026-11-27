@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.settings
 
+import com.artemchep.keyguard.apple.auth.MasterKdfSnapshot
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 
 enum class SettingsItemKind {
@@ -60,6 +61,8 @@ data class SecuritySettingsSnapshot(
     val yubiKeyUnlockEnabled: Boolean = false,
     val fido2UnlockSupported: Boolean = false,
     val fido2UnlockEnabled: Boolean = false,
+    /** The key derivation of the vault, for example "Argon2id · 64 MiB · 3 iterations · 4 lanes". */
+    val masterKdfSummary: String? = null,
 ) {
     companion object {
         val empty = SecuritySettingsSnapshot()
@@ -86,6 +89,25 @@ data class ChangePasswordSnapshot(
 ) {
     companion object {
         val empty = ChangePasswordSnapshot()
+    }
+}
+
+/**
+ * [canConfirm] is true only when the current password is entered, the key derivation is valid and differs
+ * from the current one. The biometric re-enroll checkbox works like the one of [ChangePasswordSnapshot].
+ */
+data class ChangeKdfSnapshot(
+    val loaded: Boolean = false,
+    val password: String = "",
+    val passwordError: String? = null,
+    val kdf: MasterKdfSnapshot? = null,
+    val biometricVisible: Boolean = false,
+    val biometricChecked: Boolean = false,
+    val canConfirm: Boolean = false,
+    val isLoading: Boolean = false,
+) {
+    companion object {
+        val empty = ChangeKdfSnapshot()
     }
 }
 

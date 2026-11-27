@@ -10,7 +10,7 @@ import kotlin.time.Clock
 internal fun testMasterSessionKey(
     origin: MasterSession.Key.Origin = MasterSession.Key.Authenticated,
 ) = MasterSession.Key(
-    masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1)),
+    masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1)),
     session = testVaultSession {},
     origin = origin,
     createdAt = Clock.System.now(),

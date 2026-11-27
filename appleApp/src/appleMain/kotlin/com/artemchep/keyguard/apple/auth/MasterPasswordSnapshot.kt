@@ -3,7 +3,12 @@ package com.artemchep.keyguard.apple.auth
 import com.artemchep.keyguard.feature.keyguard.setup.SetupState
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 
-/** Form fields are owned by a presentation; authentication activity is shared. */
+/**
+ * Form fields are owned by a presentation; authentication activity is shared.
+ *
+ * [kdf] is the key derivation of a new vault, `null` while unlocking. Its section stays
+ * [kdfExpanded] while the values are not valid; collapsing it then does nothing.
+ */
 data class MasterPasswordSnapshot(
     val loaded: Boolean,
     val password: String,
@@ -13,9 +18,15 @@ data class MasterPasswordSnapshot(
     val hasBiometric: Boolean,
     val biometricEnabled: Boolean,
     val crashlyticsEnabled: Boolean,
+    val kdf: MasterKdfSnapshot?,
+    val kdfExpanded: Boolean,
 ) {
     companion object {
-        val empty = MasterPasswordSnapshot(false, "", null, false, false, false, false, false)
+        val empty = MasterPasswordSnapshot(
+            false, "", null, false, false, false, false, false,
+            kdf = null,
+            kdfExpanded = false,
+        )
     }
 }
 
@@ -29,6 +40,8 @@ internal fun UnlockState?.toMasterPasswordSnapshot(busy: Boolean): MasterPasswor
         hasBiometric = false,
         biometricEnabled = false,
         crashlyticsEnabled = false,
+        kdf = null,
+        kdfExpanded = false,
     )
 
 internal fun SetupState?.toMasterPasswordSnapshot(busy: Boolean): MasterPasswordSnapshot =
@@ -41,4 +54,6 @@ internal fun SetupState?.toMasterPasswordSnapshot(busy: Boolean): MasterPassword
         hasBiometric = biometric != null,
         biometricEnabled = biometric?.checked == true,
         crashlyticsEnabled = crashlytics.checked,
+        kdf = kdf.toMasterKdfSnapshot(),
+        kdfExpanded = kdfExpanded,
     )

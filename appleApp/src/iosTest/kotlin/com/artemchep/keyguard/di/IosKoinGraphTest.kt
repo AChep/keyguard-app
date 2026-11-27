@@ -77,7 +77,7 @@ class IosKoinGraphTest {
     fun `attachment export resolves inside the native vault scope`() = runTest {
         withTestAppleStorage { directories ->
             directories.withKoin { koin ->
-                val key = MasterKey(MasterKdfVersion.LATEST, ByteArray(32))
+                val key = MasterKey(MasterKdfVersion.V1, ByteArray(32))
                 koin.withVaultSession(key) { session ->
                     assertNotNull(session.resolve { get<PrepareAttachmentContent>() })
                     assertNotNull(session.resolve { get<RequestEmailTfa>() })
@@ -106,7 +106,7 @@ class IosKoinGraphTest {
         val application = createIosKoinApplication()
         try {
             val factory = application.koin.get<VaultSessionFactory>()
-            val key = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+            val key = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
             val first = factory.create(key)
             val second = factory.create(key)
             val rootWindow = application.koin.get<WindowCoroutineScope>()
@@ -146,7 +146,7 @@ class IosKoinGraphTest {
     fun `Linked devices and P2P sync services resolve in a vault scope`() = runTest {
         withTestAppleStorage { directories ->
             directories.withKoin { koin ->
-                val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+                val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
                 koin.withVaultSession(masterKey) { session ->
                     assertNotNull(session.resolve { get<KeyguardSessionRegistry>() })
                     assertNotNull(session.resolve { get<KeyguardSyncExchange>() })

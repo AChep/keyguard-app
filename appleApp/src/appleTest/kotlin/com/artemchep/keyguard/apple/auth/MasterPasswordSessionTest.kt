@@ -20,8 +20,17 @@ class MasterPasswordSessionTest {
         first.session.setPassword("edited")
         second.session.setBiometric(true)
         first.session.setCrashlytics(false)
+        first.session.kdf.setMemory("128")
+        second.session.kdf.test()
+        second.session.setKdfExpanded(true)
         second.session.submit()
-        assertEquals(listOf("A:password:edited", "B:biometric:true", "A:crashlytics:false", "B:submit"), calls)
+        assertEquals(
+            listOf(
+                "A:password:edited", "B:biometric:true", "A:crashlytics:false",
+                "A:kdf.memory:128", "B:kdf.test", "B:kdf.expanded:true", "B:submit",
+            ),
+            calls,
+        )
         assertEquals("first", firstFrames.last().password)
         assertEquals("second", secondFrames.last().password)
 
@@ -31,7 +40,7 @@ class MasterPasswordSessionTest {
         second.session.setPassword("still open")
         assertEquals(1, firstFrames.size)
         assertEquals("B:password:still open", calls.last())
-        assertEquals(5, calls.size)
+        assertEquals(8, calls.size)
         assertEquals(1, first.cancellations)
         assertEquals(0, second.cancellations)
         second.session.close()
@@ -75,6 +84,12 @@ class MasterPasswordSessionTest {
         session.setPassword("late")
         session.setBiometric(true)
         session.setCrashlytics(true)
+        session.kdf.setIterations("4")
+        session.kdf.setMemory("128")
+        session.kdf.setParallelism("2")
+        session.kdf.reset()
+        session.kdf.test()
+        session.setKdfExpanded(true)
         session.submit()
     }
 
@@ -82,6 +97,14 @@ class MasterPasswordSessionTest {
         setPassword = { calls += "$owner:password:$it" },
         setBiometric = { calls += "$owner:biometric:$it" },
         setCrashlytics = { calls += "$owner:crashlytics:$it" },
+        kdf = MasterKdfHandlers(
+            setIterations = { calls += "$owner:kdf.iterations:$it" },
+            setMemory = { calls += "$owner:kdf.memory:$it" },
+            setParallelism = { calls += "$owner:kdf.parallelism:$it" },
+            reset = { calls += "$owner:kdf.reset" },
+            test = { calls += "$owner:kdf.test" },
+        ),
+        setKdfExpanded = { calls += "$owner:kdf.expanded:$it" },
         submit = { calls += "$owner:submit" },
     )
 

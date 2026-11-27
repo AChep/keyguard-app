@@ -29,9 +29,10 @@ protection.
 ## App password
 
 The app password never touches the disk or the network. Keyguard derives a
-secret key from it and a random 512-bit salt with Argon2id: 64 MB of memory,
-3 passes and 4 lanes. Argon2id is memory-hard, which makes brute-force
-guessing expensive.
+secret key from it and a random 512-bit salt with Argon2id. By default it uses
+64 MiB of memory, 3 passes and 4 lanes. To change them, see
+[Key derivation](/docs/security-settings/#key-derivation). Argon2id is
+memory-hard, which makes brute-force guessing expensive.
 
 App passwords set in older versions of Keyguard use PBKDF2 with 10,000
 iterations, which is far cheaper to guess. Changing the app password moves it

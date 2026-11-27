@@ -903,6 +903,8 @@
     <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">This account is already added to Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
+    <string name="error_master_kdf_out_of_memory">Not enough memory to derive the key. Lower the memory of the key derivation.</string>
+    <string name="error_master_password_changed_meanwhile">The app password changed in the meantime. Try again.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_create_password">Failed to create a password</string>
@@ -1135,6 +1137,26 @@
     <string name="setup_action_erase_data_title">Erase app data</string>
     <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
     <string name="setup_erase_vault_confirmation_text">This permanently deletes the local vault on this device. This cannot be undone.</string>
+    <!-- Key derivation (Argon2id) of the app password -->
+    <string name="masterkdf_note">Argon2id key derivation. Higher values make the app password harder to guess and unlocking slower.</string>
+    <string name="masterkdf_iterations_label">Iterations</string>
+    <string name="masterkdf_memory_label">Memory (MiB)</string>
+    <string name="masterkdf_parallelism_label">Parallelism</string>
+    <string name="masterkdf_error_out_of_range">Must be between <xliff:g id="min" example="2">%1$s</xliff:g> and <xliff:g id="max" example="100">%2$s</xliff:g></string>
+    <!-- A button that derives a key once with the entered values and shows how long it took -->
+    <string name="masterkdf_test_button">Test</string>
+    <!-- The result of the test; the placeholder is a number of seconds, such as 1.2 -->
+    <string name="masterkdf_test_result">Unlocking takes about <xliff:g id="seconds" example="1.2">%1$s</xliff:g> s on this device.</string>
+    <string name="masterkdf_memory_warning_ios">AutoFill may fail to unlock the vault with more than <xliff:g id="memory" example="64">%1$s</xliff:g> MiB of memory.</string>
+    <string name="masterkdf_title">Key derivation</string>
+    <!-- The key derivation of the vault in the settings; the placeholders are the localized memory, iterations and parallelism, such as 64 MiB, 3 iterations and 4 lanes -->
+    <string name="masterkdf_summary_argon2id">Argon2id · <xliff:g id="memory" example="64 MiB">%1$s</xliff:g> · <xliff:g id="iterations" example="3 iterations">%2$s</xliff:g> · <xliff:g id="parallelism" example="4 lanes">%3$s</xliff:g></string>
+    <string name="masterkdf_summary_memory"><xliff:g id="memory" example="64">%1$s</xliff:g> MiB</string>
+    <!-- The key derivation of a vault created by an older version of the app -->
+    <string name="masterkdf_summary_pbkdf2_legacy">PBKDF2 (legacy)</string>
+    <string name="changekdf_biometric_auth_confirm_title">Change key derivation</string>
+    <string name="changekdf_disclaimer_unlock_methods_note">The change removes YubiKey unlock and Security key (FIDO2) unlock. Turn them on again afterward.</string>
+    <string name="changekdf_changed_successfully">Key derivation changed</string>
 
     <string name="unlock_header_text">The vault is locked. Enter your app password to continue.</string>
     <string name="unlock_button_unlock">Unlock</string>
@@ -2474,7 +2496,7 @@
     <string name="datasafety_local_encryption_algorithm_outro">The Salt and Hash are then stored locally on a device, to later generate a master key to unlock the vault.</string>
     <string name="datasafety_local_unlocking_vault">Unlocking a Vault means storing a correct Key in a device's RAM, gaining an ability to read and modify encrypted Vault.</string>
     <string name="datasafety_local_stored_on_device_text">Local data includes downloads, user settings, and the vault stored on this device.</string>
-    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id for version 1 and PBKDF2 for legacy version 0.</string>
+    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id with the default parameters for version 1, Argon2id with custom parameters for version 2 and PBKDF2 for legacy version 0.</string>
     <string name="datasafety_remote_section">Remote data</string>
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
 

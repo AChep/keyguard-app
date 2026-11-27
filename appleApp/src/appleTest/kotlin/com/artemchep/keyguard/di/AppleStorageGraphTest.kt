@@ -140,7 +140,7 @@ class AppleStorageGraphTest {
         withTestAppleStorage { directories ->
             directories.withKoin { koin ->
                 assertNotNull(koin.get<ExposedDatabaseManager>())
-                koin.withVaultSession(MasterKey(MasterKdfVersion.LATEST, ByteArray(32))) { session ->
+                koin.withVaultSession(MasterKey(MasterKdfVersion.V1, ByteArray(32))) { session ->
                     assertNotNull(session.resolve { get<VaultDatabaseManager>() })
                 }
             }

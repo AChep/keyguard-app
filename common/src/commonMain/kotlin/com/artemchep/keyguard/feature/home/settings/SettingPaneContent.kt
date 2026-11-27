@@ -125,6 +125,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingLicensePurc
 import com.artemchep.keyguard.feature.home.settings.component.settingLocalizationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingMasterKdfProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMinimizeOnCopyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
@@ -221,6 +222,7 @@ object Setting {
     const val COLOR_SCHEME_EXPRESSIVE = "color_scheme_expressive"
     const val COLOR_ACCENT = "color_accent"
     const val MASTER_PASSWORD = "master_password"
+    const val MASTER_KDF = "master_kdf"
     const val PERMISSION_DETAILS = "permission_details" // screen
     const val PERMISSION_OTHER = "permission_other"
     const val PERMISSION_CAMERA = "permission_camera"
@@ -392,6 +394,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.COLOR_SCHEME_EXPRESSIVE to ::settingThemeExpressiveProvider,
     Setting.COLOR_ACCENT to ::settingColorAccentProvider,
     Setting.MASTER_PASSWORD to ::settingMasterPasswordProvider,
+    Setting.MASTER_KDF to ::settingMasterKdfProvider,
     Setting.PERMISSION_DETAILS to ::settingPermissionDetailsProvider,
     Setting.PERMISSION_OTHER to ::settingPermissionOtherProvider,
     Setting.PERMISSION_CAMERA to ::settingPermissionCameraProvider,

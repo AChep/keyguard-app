@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -122,12 +123,12 @@ class Fido2UnlockServiceTest {
     }
 
     private class Fixture {
-        val key = MasterKey(MasterKdfVersion.LATEST, ByteArray(32) { 3 })
+        val key = MasterKey(MasterKdfVersion.V1, ByteArray(32) { 3 })
         val original =
             Fingerprint(
-                MasterKdfVersion.LATEST,
+                MasterKdf.Argon2id.V1,
                 FingerprintPassword(
-                    MasterPasswordHash(MasterKdfVersion.LATEST, byteArrayOf(1)),
+                    MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(1)),
                     MasterPasswordSalt(byteArrayOf(2)),
                 ),
                 biometric = null,

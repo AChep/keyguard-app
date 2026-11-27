@@ -55,16 +55,8 @@ struct ChangePasswordSheetContent: View {
                         Text(L10n.changepasswordDisclaimerAbuseNote)
                     }
                 }
-                if s.biometricVisible {
-                    Section {
-                        Toggle(
-                            L10n.changepasswordBiometricAuthCheckbox,
-                            isOn: Binding(
-                                get: { s.biometricChecked },
-                                set: { setBiometric($0) }
-                            ))
-                    }
-                }
+                BiometricReenrollSection(
+                    visible: s.biometricVisible, checked: s.biometricChecked, setChecked: setBiometric)
             }
             .formStyle(.grouped)
             .disabled(!s.loaded || s.isLoading)

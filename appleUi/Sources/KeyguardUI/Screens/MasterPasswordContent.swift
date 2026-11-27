@@ -35,6 +35,11 @@ struct MasterPasswordContent: View {
         Binding(get: { snapshot.crashlyticsEnabled }, set: actions.setCrashlytics)
     }
 
+    /// Stays open while the key derivation is not valid: collapsing it then does nothing.
+    private var kdfExpandedBinding: Binding<Bool> {
+        Binding(get: { snapshot.kdfExpanded }, set: actions.setKdfExpanded)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -91,6 +96,15 @@ struct MasterPasswordContent: View {
                         .frame(maxWidth: 320)
                     }
 
+                    if mode == .create, let kdf = snapshot.kdf {
+                        DisclosureGroup(L10n.advancedOptions, isExpanded: kdfExpandedBinding) {
+                            MasterKdfFields(kdf: kdf, perform: actions.kdf)
+                                .padding(.top, 8)
+                        }
+                        .disabled(isBusy)
+                        .frame(maxWidth: 320)
+                    }
+
                     #if os(macOS)
                     if mode == .unlock {
                         if isBusy {
@@ -140,6 +154,8 @@ struct MasterPasswordContent: View {
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
+            // The number pad of the key derivation fields has no return key.
+            .scrollDismissesKeyboard(.interactively)
         }
         .background {
             VisualEffectBackground()

@@ -39,7 +39,7 @@ class PreparedContentModuleTest {
         )
         try {
             val session = KoinVaultSessionFactory(koin).create(
-                MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1)),
+                MasterKey(MasterKdfVersion.V1, byteArrayOf(1)),
             )
             try {
                 // Deliberately resolve the singleton from the vault before the root.

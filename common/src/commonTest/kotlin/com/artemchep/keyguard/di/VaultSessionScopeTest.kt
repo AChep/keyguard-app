@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
@@ -122,6 +123,7 @@ class VaultSessionScopeTest {
             val factory = KoinVaultSessionFactory(application)
             val changePassword = VaultState.Main.ChangePassword(
                 key = key,
+                kdf = MasterKdf.Argon2id.V1,
                 withMasterPassword = VaultState.Main.ChangePassword.WithPassword { _, _ ->
                     error("State comparison must not change the password")
                 },
@@ -213,7 +215,7 @@ class VaultSessionScopeTest {
         }
     }
 
-    private fun masterKey(value: Byte) = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(value))
+    private fun masterKey(value: Byte) = MasterKey(MasterKdfVersion.V1, byteArrayOf(value))
 
     private class SharedService
     private class VaultService(val masterKey: MasterKey, val shared: SharedService)

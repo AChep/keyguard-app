@@ -28,6 +28,8 @@ struct MasterPasswordForm<Content: View>: View {
                         setBiometric: { enabled in perform { $0.setBiometric(enabled: enabled) } },
                         setCrashlytics: { enabled in perform { $0.setCrashlytics(enabled: enabled) }
                         },
+                        kdf: { edit in perform { edit($0.kdf) } },
+                        setKdfExpanded: { expanded in perform { $0.setKdfExpanded(expanded: expanded) } },
                         submit: { perform { $0.submit() } }
                     ))
             } else {

@@ -113,6 +113,8 @@ import com.artemchep.keyguard.apple.settings.AppearanceSettingsSnapshot
 import com.artemchep.keyguard.apple.settings.BackupSettingsSnapshot
 import com.artemchep.keyguard.apple.settings.BackupSetupSession
 import com.artemchep.keyguard.apple.settings.BackupsController
+import com.artemchep.keyguard.apple.settings.ChangeKdfController
+import com.artemchep.keyguard.apple.settings.ChangeKdfSession
 import com.artemchep.keyguard.apple.settings.ChangePasswordController
 import com.artemchep.keyguard.apple.settings.ChangePasswordSession
 import com.artemchep.keyguard.apple.settings.DataSafetyItemSnapshot
@@ -1497,6 +1499,12 @@ class KeyguardCore(runtime: KeyguardRuntime, initialScenePhase: KeyguardScenePha
     private val changePasswordController by lazy { ChangePasswordController(context, authPromptHost) }
 
     fun makeChangePasswordSession(): ChangePasswordSession = changePasswordController.makeChangePasswordSession()
+
+    // Change key derivation
+
+    private val changeKdfController by lazy { ChangeKdfController(context, authPromptHost) }
+
+    fun makeChangeKdfSession(): ChangeKdfSession = changeKdfController.makeChangeKdfSession()
 
     // Development settings. Debug overrides are unavailable in Release builds.
 

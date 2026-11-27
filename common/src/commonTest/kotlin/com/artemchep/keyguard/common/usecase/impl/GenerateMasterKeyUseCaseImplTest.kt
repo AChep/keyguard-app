@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.exception.UnsupportedMasterKdfVersionExcept
 import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -25,7 +26,7 @@ class GenerateMasterKeyUseCaseImplTest {
         useCase(
             password = MasterPassword.of("password"),
             salt = MasterPasswordHash(
-                version = MasterKdfVersion.V0,
+                kdf = MasterKdf.Pbkdf2Legacy,
                 byteArray = byteArrayOf(1, 2, 3, 4),
             ),
         ).bindBlocking()
@@ -46,7 +47,7 @@ class GenerateMasterKeyUseCaseImplTest {
         val key = useCase(
             password = MasterPassword.of("password"),
             salt = MasterPasswordHash(
-                version = MasterKdfVersion.V0,
+                kdf = MasterKdf.Pbkdf2Legacy,
                 byteArray = byteArrayOf(9, 8, 7),
             ),
         ).bindBlocking()
@@ -65,7 +66,7 @@ class GenerateMasterKeyUseCaseImplTest {
         val key = useCase(
             password = MasterPassword.of("password"),
             salt = MasterPasswordHash(
-                version = MasterKdfVersion.V1,
+                kdf = MasterKdf.Argon2id.V1,
                 byteArray = byteArrayOf(5, 6, 7, 8),
             ),
         ).bindBlocking()
@@ -85,6 +86,38 @@ class GenerateMasterKeyUseCaseImplTest {
     }
 
     @Test
+    fun `custom master key uses its Argon2id parameters and v2 label`() {
+        val cryptoGenerator = RecordingCryptoGenerator()
+        val useCase = GenerateMasterKeyUseCaseImpl(
+            logRepository = LogRepositoryBridge(emptyList()),
+            cryptoGenerator = cryptoGenerator,
+        )
+
+        val key = useCase(
+            password = MasterPassword.of("password"),
+            salt = MasterPasswordHash(
+                kdf = MasterKdf.Argon2id(
+                    iterations = 4,
+                    memoryKib = 32768,
+                    parallelism = 8,
+                ),
+                byteArray = byteArrayOf(5, 6, 7, 8),
+            ),
+        ).bindBlocking()
+
+        assertEquals(MasterKdfVersion.V2, key.version)
+        assertEquals(
+            Argon2Call(
+                mode = Argon2Mode.ARGON2_ID,
+                iterations = 4,
+                memoryKb = 32768,
+                parallelism = 8,
+            ),
+            cryptoGenerator.argon2Calls.single(),
+        )
+    }
+
+    @Test
     fun `unsupported key version fails with typed exception`() {
         val cryptoGenerator = RecordingCryptoGenerator()
         val useCase = GenerateMasterKeyUseCaseImpl(
@@ -96,7 +129,7 @@ class GenerateMasterKeyUseCaseImplTest {
             useCase(
                 password = MasterPassword.of("password"),
                 salt = MasterPasswordHash(
-                    version = MasterKdfVersion.fromRaw(999),
+                    kdf = MasterKdf.Unsupported(MasterKdfVersion.fromRaw(999)),
                     byteArray = byteArrayOf(5, 6, 7, 8),
                 ),
             ).bindBlocking()
@@ -116,7 +149,7 @@ internal data class Argon2Call(
     val parallelism: Int,
 )
 
-internal class RecordingCryptoGenerator : TestCryptoGenerator() {
+internal open class RecordingCryptoGenerator : TestCryptoGenerator() {
     val pbkdf2Calls = mutableListOf<Pbkdf2Call>()
     val argon2Calls = mutableListOf<Argon2Call>()
 

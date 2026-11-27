@@ -92,7 +92,7 @@ class ConfirmAccessByYubiKeyUseCaseImpl(
             symmetricCryptoKey = SymmetricCryptoKey2(wrappingKey),
         ).data
         MasterKey(
-            version = fingerprint.version,
+            version = fingerprint.kdf.version,
             byteArray = plainBytes,
         )
     }.handleErrorWith { e ->

@@ -113,7 +113,7 @@ class HybridVaultAdapterTest {
         val current =
             MutableStateFlow<MasterSession>(
                 MasterSession.Key(
-                    MasterKey(MasterKdfVersion.LATEST, ByteArray(32)),
+                    MasterKey(MasterKdfVersion.V1, ByteArray(32)),
                     object : VaultSession {
                         override val id = "test"
                         override val active = this@Fixture.active

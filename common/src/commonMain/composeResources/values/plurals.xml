@@ -441,6 +441,15 @@
         <item quantity="one">Relay storage is off on <xliff:g id="count" example="1">%1$d</xliff:g> device</item>
         <item quantity="other">Relay storage is off on <xliff:g id="count" example="2">%1$d</xliff:g> devices</item>
     </plurals>
+    <plurals name="masterkdf_summary_iterations_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> iteration</item>
+        <item quantity="other"><xliff:g id="count" example="3">%1$d</xliff:g> iterations</item>
+    </plurals>
+    <!-- The parallelism of the Argon2id key derivation: the number of lanes of its memory -->
+    <plurals name="masterkdf_summary_parallelism_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> lane</item>
+        <item quantity="other"><xliff:g id="count" example="4">%1$d</xliff:g> lanes</item>
+    </plurals>
     <plurals name="changepassword_authority_not_resealed_plural">
         <item quantity="one">This device can no longer add, remove or unlink linked devices.</item>
         <item quantity="other">This device can no longer add, remove or unlink linked devices in <xliff:g id="count" example="2">%1$d</xliff:g> groups.</item>

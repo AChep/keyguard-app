@@ -12,12 +12,20 @@ sealed interface VaultState {
         val createWithMasterPasswordAndBiometric: WithBiometric?,
     ) : VaultState {
         class WithPassword(
-            val getCreateIo: (String) -> IO<Unit>,
+            /**
+             * Creates the vault with the password and the key derivation
+             * of the master key.
+             */
+            val getCreateIo: (password: String, kdf: MasterKdf.Argon2id) -> IO<Unit>,
         )
 
         class WithBiometric(
             val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
-            val getCreateIo: (String) -> IO<Unit>,
+            /**
+             * Creates the vault with the password and the key derivation
+             * of the master key.
+             */
+            val getCreateIo: (password: String, kdf: MasterKdf.Argon2id) -> IO<Unit>,
             val requireConfirmation: Boolean,
         )
     }
@@ -68,18 +76,49 @@ sealed interface VaultState {
         val changePassword: ChangePassword,
         val session: VaultSession,
     ) : VaultState {
+        /**
+         * Changes the master password or the key derivation of the vault.
+         *
+         * The getters take the current password and the [Change] to apply.
+         */
         class ChangePassword(
             private val key: Any,
+            /**
+             * The current key derivation, from the same fingerprint as
+             * the getters. A change of it always changes the [key] too.
+             */
+            val kdf: MasterKdf,
             val withMasterPassword: WithPassword,
             val withMasterPasswordAndBiometric: WithBiometric?,
         ) {
+            sealed interface Change {
+                /**
+                 * A new app password. Keeps the current [kdf]: an [MasterKdf.Argon2id]
+                 * stays as is, any other derivation moves to [MasterKdf.Argon2id.DEFAULT].
+                 */
+                data class Password(
+                    val newPassword: String,
+                ) : Change
+
+                /** A new key derivation. Keeps the app password. */
+                data class Kdf(
+                    val kdf: MasterKdf.Argon2id,
+                ) : Change
+            }
+
             class WithPassword(
-                val getCreateIo: (String, String) -> IO<Report>,
+                val getCreateIo: (
+                    currentPassword: String,
+                    change: Change,
+                ) -> IO<Report>,
             )
 
             class WithBiometric(
                 val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
-                val getCreateIo: (String, String) -> IO<Report>,
+                val getCreateIo: (
+                    currentPassword: String,
+                    change: Change,
+                ) -> IO<Report>,
             )
 
             /**

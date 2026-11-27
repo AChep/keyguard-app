@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.FingerprintPassword
-import com.artemchep.keyguard.common.model.MasterKdfVersion
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
@@ -182,10 +182,10 @@ private fun biometricKeyRepository(
 }
 
 private fun fingerprint() = Fingerprint(
-    version = MasterKdfVersion.LATEST,
+    kdf = MasterKdf.Argon2id.V1,
     master = FingerprintPassword(
         hash = MasterPasswordHash(
-            version = MasterKdfVersion.LATEST,
+            kdf = MasterKdf.Argon2id.V1,
             byteArray = byteArrayOf(1),
         ),
         salt = MasterPasswordSalt(byteArrayOf(2)),

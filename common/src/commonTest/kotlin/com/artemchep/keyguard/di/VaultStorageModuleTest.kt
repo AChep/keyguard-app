@@ -37,7 +37,7 @@ class VaultStorageModuleTest {
         }
         try {
             val factory = KoinVaultSessionFactory(koin)
-            val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+            val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
             val first = factory.create(masterKey)
             val second = factory.create(masterKey)
             val firstStore = assertNotNull(first.resolve { get<VaultSettingsKeyValueStore>() })

@@ -187,5 +187,5 @@ class VaultSessionComposeTest {
         override fun onClear() = Unit
     }
 
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
 }

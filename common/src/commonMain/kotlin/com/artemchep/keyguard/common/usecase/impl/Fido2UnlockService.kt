@@ -51,7 +51,7 @@ class Fido2UnlockService(
                     check(getVaultSession.valueOrNull === session)
                     check(
                         current != null &&
-                            current.version == before.version &&
+                            current.kdf == before.kdf &&
                             current.master == before.master
                     )
                     current.copy(fido2 = protector)
@@ -73,7 +73,7 @@ class Fido2UnlockService(
         val protector = requireNotNull(tokens.fido2).also { it.validate(base64) }
         return withWrappingKey(secret, base64.decode(protector.hkdfSalt)) { key ->
             val bytes = cipher.decode2(protector.encryptedMasterKey, key).data
-            MasterKey(version = tokens.version, byteArray = bytes)
+            MasterKey(version = tokens.kdf.version, byteArray = bytes)
         }
     }
 

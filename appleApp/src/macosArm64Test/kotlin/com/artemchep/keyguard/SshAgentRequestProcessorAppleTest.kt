@@ -413,9 +413,9 @@ class SshAgentRequestProcessorAppleTest {
         )
 
         fun createSession() = MasterSession.Key(
-            masterKey = MasterKey(MasterKdfVersion.LATEST, ByteArray(32)),
+            masterKey = MasterKey(MasterKdfVersion.V1, ByteArray(32)),
             session = sessionKoin.get<VaultSessionFactory>()
-                .create(MasterKey(MasterKdfVersion.LATEST, ByteArray(32))),
+                .create(MasterKey(MasterKdfVersion.V1, ByteArray(32))),
             origin = MasterSession.Key.Authenticated,
             createdAt = Instant.parse("2024-01-01T00:00:00Z"),
         )

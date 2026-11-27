@@ -208,7 +208,7 @@ class VaultSessionRetirementTest {
                 assertEquals(0, previousManager.openCount)
                 assertSame(masterKey, previousManager.masterKey)
                 val sessionIds = mutableSetOf(previous.id)
-                val rotatedKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(2))
+                val rotatedKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(2))
 
                 for (key in listOf(masterKey, rotatedKey, rotatedKey.copy(byteArray = byteArrayOf(2)))) {
                     val previousSource = graph.source(previous)
@@ -301,5 +301,5 @@ class VaultSessionRetirementTest {
         createdAt = Instant.DISTANT_PAST,
     )
 
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
 }

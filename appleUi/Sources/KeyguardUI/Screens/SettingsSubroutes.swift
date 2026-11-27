@@ -223,6 +223,7 @@ struct SecuritySettingsView: View {
     let item: SettingsItemSnapshot
 
     @State private var changingPassword = false
+    @State private var changingKdf = false
     @State private var choosingYubiKeySlot = false
     /// Set to the chosen slot once we've probed it and found it already
     /// configured, which presents the "use existing vs overwrite" dialog.
@@ -374,6 +375,8 @@ struct SecuritySettingsView: View {
             Section(L10n.password) {
                 Button(L10n.prefItemChangeMasterPasswordAction) { changingPassword = true }
                     .settingsSearchTarget(.changePassword)
+                masterKdfRow
+                    .settingsSearchTarget(.masterKdf)
             }
         }
         .navigationTitle(item.title)
@@ -383,6 +386,9 @@ struct SecuritySettingsView: View {
         )
         .sheet(isPresented: $changingPassword) {
             ChangePasswordSheet(makeSession: sessions.makeChangePasswordSession)
+        }
+        .sheet(isPresented: $changingKdf) {
+            ChangeKdfSheet(makeSession: sessions.makeChangeKdfSession)
         }
         .confirmationDialog(
             L10n.yubikeySlotPickerTitle,
@@ -415,6 +421,18 @@ struct SecuritySettingsView: View {
         } message: {
             Text(L10n.yubikeySlotOverwriteWarning)
         }
+    }
+
+    /// Opens the key derivation editor; the summary names the current key derivation.
+    private var masterKdfRow: some View {
+        SheetEditRow(title: L10n.masterkdfTitle, action: { changingKdf = true }) {
+            if let summary = s.masterKdfSummary {
+                Text(summary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityValue(s.masterKdfSummary ?? "")
     }
 
     private func beginYubiKeyEnroll(slot: Int) {
@@ -755,40 +773,21 @@ struct WatchtowerSettingsView: View {
         }
     }
 
-    @ViewBuilder
     private var hibpTokenRow: some View {
-        Button {
-            editingToken = true
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.apiKey)
-                        .foregroundStyle(.primary)
-                    if let token = s.hibpApiToken, !token.isEmpty {
-                        HStack(spacing: 6) {
-                            Text(Self.maskedToken(token))
-                                .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
-                            hibpStatusBadge
-                        }
-                    } else {
-                        Text(L10n.prefItemHibpApiTokenNote)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+        SheetEditRow(title: L10n.apiKey, action: { editingToken = true }) {
+            if let token = s.hibpApiToken, !token.isEmpty {
+                HStack(spacing: 6) {
+                    Text(Self.maskedToken(token))
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                    hibpStatusBadge
                 }
-                Spacer()
-                // The row opens a sheet (not a push), so a navigation chevron would
-                // mislead (and chevron.right points the wrong way in RTL). A pencil
-                // glyph signals an editable value and is direction-neutral.
-                Image(systemName: "pencil")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+            } else {
+                Text(L10n.prefItemHibpApiTokenNote)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(L10n.apiKey)
         .accessibilityHint(L10n.prefItemHibpApiTokenNote)
     }
 

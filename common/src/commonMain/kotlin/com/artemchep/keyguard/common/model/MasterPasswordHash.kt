@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 data class MasterPasswordHash(
-    val version: MasterKdfVersion,
+    val kdf: MasterKdf,
     val byteArray: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
@@ -10,14 +10,14 @@ data class MasterPasswordHash(
 
         other as MasterPasswordHash
 
-        if (version != other.version) return false
+        if (kdf != other.kdf) return false
         if (!byteArray.contentEquals(other.byteArray)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = version.hashCode()
+        var result = kdf.hashCode()
         result = 31 * result + byteArray.contentHashCode()
         return result
     }

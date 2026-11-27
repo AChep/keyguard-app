@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.model
 
 data class Fingerprint(
-    val version: MasterKdfVersion,
+    val kdf: MasterKdf,
     val master: FingerprintPassword,
     val biometric: FingerprintBiometric?,
     val yubiKey: FingerprintYubiKey? = null,

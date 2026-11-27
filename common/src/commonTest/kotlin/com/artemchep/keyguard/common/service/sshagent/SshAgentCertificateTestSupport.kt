@@ -35,7 +35,7 @@ internal val lockedVaultSession = object : GetVaultSession {
 internal fun unlockedVaultSession(vararg secrets: DSecret): GetVaultSession {
     val session = MasterSession.Key(
         masterKey = MasterKey(
-            version = MasterKdfVersion.LATEST,
+            version = MasterKdfVersion.V1,
             byteArray = byteArrayOf(1, 2, 3),
         ),
         session = testVaultSession {

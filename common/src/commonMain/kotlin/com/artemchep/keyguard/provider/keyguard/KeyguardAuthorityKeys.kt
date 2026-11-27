@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.exception.DecodeException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.P2pGroupId
@@ -53,8 +54,9 @@ class KeyguardAuthorityKey(
 
 /**
  * Creates, opens and re-seals the authority keys of this device, see [P2pAuthority]. The
- * sealing key is derived from the master password with the key derivation of the master
- * key, under a salt of its own, so the master key never opens it.
+ * sealing key is derived from the master password with the version 1 key derivation of the
+ * master key ([MasterKdf.Argon2id.V1]), under a salt of its own, so the master key never
+ * opens it.
  */
 class KeyguardAuthorityKeys(
     private val cryptoGenerator: CryptoGenerator,
@@ -72,7 +74,7 @@ class KeyguardAuthorityKeys(
         private const val HKDF_INFO = "keyguard-p2p-authority/v1"
     }
 
-    private val kdf = GenerateMasterHashUtils(cryptoGenerator)
+    private val hashUtils = GenerateMasterHashUtils(cryptoGenerator)
 
     /** Creates a new authority key sealed under the master [password]. */
     fun create(password: String): IO<KeyguardAuthorityKey> = ioEffect(Dispatchers.Default) {
@@ -89,7 +91,8 @@ class KeyguardAuthorityKeys(
     fun open(authority: P2pAuthority, password: String): IO<KeyguardAuthorityKey?> = ioEffect(Dispatchers.Default) {
         val salt = P2pEncoding.base64UrlOrNull(authority.saltBase64)
         val seed = salt?.let {
-            withSealingKey(password, it, MasterKdfVersion.fromRaw(authority.kdfVersion)) { key ->
+            val kdf = MasterKdf.fromVersion(MasterKdfVersion.fromRaw(authority.kdfVersion))
+            withSealingKey(password, it, kdf) { key ->
                 try {
                     cipherEncryptor.decode2(authority.sealedSeed, key).data
                 } catch (expected: DecodeException) {
@@ -158,14 +161,16 @@ class KeyguardAuthorityKeys(
         password: String,
     ): P2pAuthority {
         val salt = cryptoGenerator.seed(SALT_SIZE)
-        val version = MasterKdfVersion.LATEST
-        val sealed = withSealingKey(password, salt, version) { key ->
+        // Authority keys use their own fixed key derivation, apart
+        // from the one of the vault.
+        val kdf = MasterKdf.Argon2id.V1
+        val sealed = withSealingKey(password, salt, kdf) { key ->
             cipherEncryptor.encode2(CipherEncryptor.Type.AesCbc256_HmacSha256_B64, seed, key)
         }
         return P2pAuthority(
             publicKeyBase64 = publicKeyBase64,
             saltBase64 = P2pEncoding.base64Url(salt),
-            kdfVersion = version.raw,
+            kdfVersion = MasterKdfVersion.V1.raw,
             sealedSeed = sealed,
         )
     }
@@ -173,10 +178,10 @@ class KeyguardAuthorityKeys(
     private suspend fun <T> withSealingKey(
         password: String,
         salt: ByteArray,
-        version: MasterKdfVersion,
+        kdf: MasterKdf,
         block: (SymmetricCryptoKey2) -> T,
     ): T {
-        val bytes = kdf.hash(MasterPassword.of(password).byteArray, salt, version).bind()
+        val bytes = hashUtils.hash(MasterPassword.of(password).byteArray, salt, kdf).bind()
             .useAndClear { secret ->
                 cryptoGenerator.hkdf(
                     seed = secret,

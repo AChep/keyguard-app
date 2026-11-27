@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPasswordHash
@@ -62,9 +63,9 @@ class RearmBiometricBindingTest {
 
     private class Fixture {
         var tokens = Fingerprint(
-            version = MasterKdfVersion.LATEST,
+            kdf = MasterKdf.Argon2id.V1,
             master = FingerprintPassword(
-                hash = MasterPasswordHash(MasterKdfVersion.LATEST, byteArrayOf(1)),
+                hash = MasterPasswordHash(MasterKdf.Argon2id.V1, byteArrayOf(1)),
                 salt = MasterPasswordSalt(byteArrayOf(2)),
             ),
             biometric = FingerprintBiometric(byteArrayOf(3), byteArrayOf(4)),
@@ -101,7 +102,7 @@ class RearmBiometricBindingTest {
 
         suspend fun rearm(biometric: BiometricStatus = status) = rearmBiometricBinding(
             tokens = tokens,
-            masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(7)),
+            masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(7)),
             biometric = biometric,
             biometricKeyRepository = keyRepository,
             keyReadWriteRepository = repository,

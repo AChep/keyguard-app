@@ -5,6 +5,7 @@ import arrow.optics.optics
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -15,6 +16,12 @@ data class SetupState(
     val password: TextFieldModel,
     val crashlytics: SwitchFieldModel,
     val biometric: Biometric? = null,
+    /** The key derivation of the app password. */
+    val kdf: MasterKdfFormState,
+    /** `true` if the key derivation section is open; forced while it is not valid. */
+    val kdfExpanded: Boolean = false,
+    /** `null` while the section is forced open. */
+    val onKdfExpandedChange: ((Boolean) -> Unit)? = null,
     val isLoading: Boolean = false,
     val onCreateVault: (() -> Unit)? = null,
 ) {

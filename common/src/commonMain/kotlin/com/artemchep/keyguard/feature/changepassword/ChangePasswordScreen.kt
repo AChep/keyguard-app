@@ -204,7 +204,7 @@ private fun ChangePasswordNewPasswordItem(
 }
 
 @Composable
-private fun ChangePasswordBiometricItem(
+internal fun ChangePasswordBiometricItem(
     biometric: ChangePasswordState.Biometric,
 ) {
     FlatItemLayout(
@@ -228,7 +228,7 @@ private fun ChangePasswordBiometricItem(
 }
 
 @Composable
-private fun ChangePasswordDisclaimerIconItem() {
+internal fun ChangePasswordDisclaimerIconItem() {
     Icon(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
@@ -240,7 +240,7 @@ private fun ChangePasswordDisclaimerIconItem() {
 }
 
 @Composable
-private fun ChangePasswordDisclaimerTextItem(
+internal fun ChangePasswordDisclaimerTextItem(
     text: String,
 ) {
     Text(
@@ -281,7 +281,8 @@ fun ChangePasswordScreen(
         floatingActionState = rememberChangePasswordFabState(state),
         floatingActionButton = {
             ChangePasswordFab(
-                state = state,
+                isLoading = state.isLoading,
+                text = stringResource(Res.string.changepassword_change_password_button),
             )
         },
     ) {
@@ -294,11 +295,17 @@ fun ChangePasswordScreen(
 @Composable
 fun rememberChangePasswordFabState(
     state: ChangePasswordState,
+): State<FabState?> = rememberChangePasswordFabState(
+    onConfirm = state.onConfirm,
+)
+
+@Composable
+internal fun rememberChangePasswordFabState(
+    onConfirm: (() -> Unit)?,
 ): State<FabState?> {
-    val fabOnClick = state.onConfirm
-    val fabState = if (fabOnClick != null) {
+    val fabState = if (onConfirm != null) {
         FabState(
-            onClick = fabOnClick,
+            onClick = onConfirm,
             model = null,
         )
     } else {
@@ -308,13 +315,14 @@ fun rememberChangePasswordFabState(
 }
 
 @Composable
-fun FabScope.ChangePasswordFab(
-    state: ChangePasswordState,
+internal fun FabScope.ChangePasswordFab(
+    isLoading: Boolean,
+    text: String,
 ) {
     DefaultFab(
         icon = {
             Crossfade(
-                targetState = state.isLoading,
+                targetState = isLoading,
             ) { isLoading ->
                 if (isLoading) {
                     KeyguardLoadingIndicator()
@@ -328,7 +336,7 @@ fun FabScope.ChangePasswordFab(
         },
         text = {
             Text(
-                text = stringResource(Res.string.changepassword_change_password_button),
+                text = text,
             )
         },
     )

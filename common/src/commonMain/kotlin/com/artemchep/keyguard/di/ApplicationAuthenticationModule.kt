@@ -37,12 +37,14 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
+import com.artemchep.keyguard.common.usecase.GetMasterKdf
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.MeasureMasterKdfUseCase
 import com.artemchep.keyguard.common.usecase.PutBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
@@ -67,12 +69,14 @@ import com.artemchep.keyguard.common.usecase.impl.GetBiometricRemainingDurationI
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBiometricTimeoutVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetMasterKdfImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterRebootImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterScreenOffImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultLockAfterTimeoutVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultPersistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionImpl
+import com.artemchep.keyguard.common.usecase.impl.MeasureMasterKdfUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBiometricRequireConfirmationImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBiometricTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutVaultLockAfterRebootImpl
@@ -91,6 +95,10 @@ internal class ApplicationAuthenticationModule {
         single<AuthConfirmMasterKeyUseCaseImpl>() bind AuthConfirmMasterKeyUseCase::class
 
         single<AuthGenerateMasterKeyUseCaseImpl>() bind AuthGenerateMasterKeyUseCase::class
+
+        single<GetMasterKdfImpl>() bind GetMasterKdf::class
+
+        single<MeasureMasterKdfUseCaseImpl>() bind MeasureMasterKdfUseCase::class
 
         single<BiometricKeyDecryptUseCaseImpl>() bind BiometricKeyDecryptUseCase::class
 

@@ -233,7 +233,7 @@ internal class GpgAgentRequestTestFixture(
             history: MutableList<AddGpgUsageHistoryRequest> = mutableListOf(),
         ): MasterSession.Key {
             return MasterSession.Key(
-                masterKey = MasterKey(version = MasterKdfVersion.LATEST, byteArray = ByteArray(32)),
+                masterKey = MasterKey(version = MasterKdfVersion.V1, byteArray = ByteArray(32)),
                 session = testVaultSession {
                     scoped<AddGpgUsageHistory> {
                         object : AddGpgUsageHistory {

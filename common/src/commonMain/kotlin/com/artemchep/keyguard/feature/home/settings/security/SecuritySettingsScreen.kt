@@ -67,6 +67,7 @@ fun rememberSettingsSecurityItems(
                 key = "password",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.MASTER_PASSWORD),
+                    SettingPaneItem.Item(Setting.MASTER_KDF),
                     SettingPaneItem.Item(Setting.VAULT_CLEAR),
                 ),
             ),

@@ -13,15 +13,21 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.MasterKdf
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.usecase.MeasureMasterKdfUseCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword as validateMasterPassword
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormHandle
+import com.artemchep.keyguard.feature.masterkdf.MasterKdfFormState
+import com.artemchep.keyguard.feature.masterkdf.masterKdfFormHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.LeBiometricCipher
@@ -38,15 +44,33 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.compose.currentKoinScope
 
 private const val DEFAULT_PASSWORD = ""
 private const val DEFAULT_BIOMETRIC = false
 private const val DEFAULT_CRASHLYTICS = false
+private const val DEFAULT_KDF_EXPANDED = false
+
+private const val KEY_KDF = "kdf"
+private const val KEY_KDF_EXPANDED = "kdf.expanded"
 
 @Composable
 fun setupScreenState(
     createVaultWithMasterPassword: VaultState.Create.WithPassword,
     createVaultWithMasterPasswordAndBiometric: VaultState.Create.WithBiometric?,
+): Loadable<SetupState> = with(currentKoinScope()) {
+    setupScreenState(
+        createVaultWithMasterPassword = createVaultWithMasterPassword,
+        createVaultWithMasterPasswordAndBiometric = createVaultWithMasterPasswordAndBiometric,
+        measureMasterKdf = get(),
+    )
+}
+
+@Composable
+fun setupScreenState(
+    createVaultWithMasterPassword: VaultState.Create.WithPassword,
+    createVaultWithMasterPasswordAndBiometric: VaultState.Create.WithBiometric?,
+    measureMasterKdf: MeasureMasterKdfUseCase,
 ): Loadable<SetupState> = produceScreenState<Loadable<SetupState>>(
     key = "setup",
     initial = Loadable.Loading,
@@ -58,12 +82,14 @@ fun setupScreenState(
     setupStateProducer(
         createVaultWithMasterPassword = createVaultWithMasterPassword,
         createVaultWithMasterPasswordAndBiometric = createVaultWithMasterPasswordAndBiometric,
+        measureMasterKdf = measureMasterKdf,
     )
 }
 
 suspend fun RememberStateFlowScope.setupStateProducer(
     createVaultWithMasterPassword: VaultState.Create.WithPassword,
     createVaultWithMasterPasswordAndBiometric: VaultState.Create.WithBiometric?,
+    measureMasterKdf: MeasureMasterKdfUseCase,
 ): Flow<Loadable<SetupState>> {
     val executor = screenExecutor()
 
@@ -76,6 +102,20 @@ suspend fun RememberStateFlowScope.setupStateProducer(
     }
 
     val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
+
+    // Only one key derivation runs at a time: a test does not start
+    // while the vault is being created, and the other way round.
+    val kdfForm = masterKdfFormHandle(
+        prefix = KEY_KDF,
+        initial = MasterKdf.Argon2id.DEFAULT,
+        measureMasterKdf = measureMasterKdf,
+        isBusyFlow = executor.isExecutingFlow,
+    )
+    val kdfExpandedSink = mutablePersistedFlow(KEY_KDF_EXPANDED) { DEFAULT_KDF_EXPANDED }
+    val kdfSectionFlow = setupKdfSectionFlow(
+        kdfForm = kdfForm,
+        kdfExpandedSink = kdfExpandedSink,
+    )
 
     // Clear the password field when the screen
     // moves into background. Goes through the command path so the UI
@@ -97,6 +137,13 @@ suspend fun RememberStateFlowScope.setupStateProducer(
             CreateVaultWithBiometric(executor, it)
         }
 
+    val createVaultWithPasswordAction = createVaultWithPasswordAction(
+        createVaultFn = createVaultByMasterPasswordFn,
+        passwordHandle = passwordHandle,
+        kdfForm = kdfForm,
+        crashlyticsSink = crashlyticsSink,
+    )
+
     val biometricStateFlow = biometricStateFlow(
         biometricSink = biometricSink,
         // True if the device is capable of performing a
@@ -109,11 +156,18 @@ suspend fun RememberStateFlowScope.setupStateProducer(
         crashlyticsSink,
         biometricStateFlow,
         executor.isExecutingFlow,
-    ) { (passwordCell, validatedPassword), crashlytics, biometric, taskIsExecuting ->
+        kdfSectionFlow,
+    ) { (passwordCell, validatedPassword), crashlytics, biometric, taskIsExecuting, kdfSection ->
         val validationError = (validatedPassword as? Validated.Failure)?.error
-        val canCreateVault = validationError == null && !taskIsExecuting
+        val canCreateVault = validationError == null &&
+                kdfSection.state.kdf != null &&
+                !kdfSection.state.test.isRunning &&
+                !taskIsExecuting
         val state = SetupState(
             biometric = biometric,
+            kdf = kdfSection.state,
+            kdfExpanded = kdfSection.expanded,
+            onKdfExpandedChange = kdfSection.onExpandedChange,
             password = TextFieldModel.of(
                 cell = passwordCell,
                 handle = passwordHandle,
@@ -131,53 +185,15 @@ suspend fun RememberStateFlowScope.setupStateProducer(
                 // If the biometric is checked & possible, then ask user to
                 // confirm his identity.
                 if (createVaultWithMasterPasswordAndBiometricFn != null && biometric?.checked == true) {
-                    var promptWrapper: Option<BiometricAuthPrompt?> = None
-                    var promptPassword: String? = null
-                    val promptMutex by lazy {
-                        Mutex()
-                    }
-
-                    // An action should trigger the biometric prompt upon
-                    // execution.
-                    fun() {
-                        val password = passwordHandle.sink.value.text
-                        screenScope.launch {
-                            val currentPassword = validateMasterPassword(password)
-                            if (currentPassword !is Validated.Success) return@launch
-                            // Get or create the prompt and remember
-                            // it for the future invocations.
-                            val prompt = promptMutex.withLock {
-                                if (promptPassword != currentPassword.model) {
-                                    promptWrapper = None
-                                    promptPassword = currentPassword.model
-                                }
-                                promptWrapper.getOrElse {
-                                    createPromptOrNull(
-                                        executor = executor,
-                                        createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn,
-                                        password = currentPassword.model,
-                                        crashlytics = crashlytics,
-                                    )
-                                }.also {
-                                    promptWrapper = it.some()
-                                }
-                            }
-                            // Send it down the sink
-                            prompt?.let(biometricPromptSink::emit)
-                        }
-                    }
+                    createVaultWithBiometricAction(
+                        createVaultFn = createVaultWithMasterPasswordAndBiometricFn,
+                        passwordHandle = passwordHandle,
+                        kdfForm = kdfForm,
+                        crashlyticsSink = crashlyticsSink,
+                        biometricPromptSink = biometricPromptSink,
+                    )
                 } else {
-                    fun() {
-                        // Submit the canonical input even when the UI still
-                        // holds a callback from the previous state emission.
-                        val password = passwordHandle.sink.value.text
-                        screenScope.launch {
-                            val currentPassword = validateMasterPassword(password)
-                            if (currentPassword is Validated.Success) {
-                                createVaultByMasterPasswordFn(currentPassword.model, crashlytics)
-                            }
-                        }
-                    }
+                    createVaultWithPasswordAction
                 }
             } else {
                 null
@@ -187,13 +203,119 @@ suspend fun RememberStateFlowScope.setupStateProducer(
     }
 }
 
+/**
+ * Creates the vault with the password, reading the input when the user
+ * submits: the UI may still hold a callback of an older state.
+ */
+private fun RememberStateFlowScope.createVaultWithPasswordAction(
+    createVaultFn: CreateVaultWithPassword,
+    passwordHandle: TextFieldHandle,
+    kdfForm: MasterKdfFormHandle,
+    crashlyticsSink: MutableStateFlow<Boolean>,
+): () -> Unit = fun() {
+    val password = passwordHandle.sink.value.text
+    val kdf = kdfForm.currentKdf()
+        ?: return
+    val crashlytics = crashlyticsSink.value
+    screenScope.launch {
+        val currentPassword = validateMasterPassword(password)
+        if (currentPassword !is Validated.Success) return@launch
+        // Only one key derivation runs at a time.
+        if (kdfForm.isTestingFlow.value) return@launch
+        createVaultFn(currentPassword.model, kdf, crashlytics)
+    }
+}
+
+/**
+ * Asks the user to confirm their identity, then creates the vault
+ * with the password and the biometric unlock.
+ */
+private fun RememberStateFlowScope.createVaultWithBiometricAction(
+    createVaultFn: CreateVaultWithBiometric,
+    passwordHandle: TextFieldHandle,
+    kdfForm: MasterKdfFormHandle,
+    crashlyticsSink: MutableStateFlow<Boolean>,
+    biometricPromptSink: EventFlow<BiometricAuthPrompt>,
+): () -> Unit {
+    var promptWrapper: Option<BiometricAuthPrompt?> = None
+    var promptKey: Pair<String, MasterKdf.Argon2id>? = null
+    val promptMutex by lazy {
+        Mutex()
+    }
+
+    // An action should trigger the biometric prompt upon
+    // execution.
+    return fun() {
+        val password = passwordHandle.sink.value.text
+        val kdf = kdfForm.currentKdf()
+            ?: return
+        screenScope.launch {
+            val currentPassword = validateMasterPassword(password)
+            if (currentPassword !is Validated.Success) return@launch
+            // Only one key derivation runs at a time.
+            if (kdfForm.isTestingFlow.value) return@launch
+            // Get or create the prompt and remember
+            // it for the future invocations.
+            val prompt = promptMutex.withLock {
+                val key = currentPassword.model to kdf
+                if (promptKey != key) {
+                    promptWrapper = None
+                    promptKey = key
+                }
+                promptWrapper.getOrElse {
+                    createPromptOrNull(
+                        createVaultWithMasterPasswordAndBiometricFn = createVaultFn,
+                        password = currentPassword.model,
+                        kdf = kdf,
+                        // The vault is created after the prompt, so
+                        // read the latest choice then.
+                        getCrashlytics = crashlyticsSink::value,
+                    )
+                }.also {
+                    promptWrapper = it.some()
+                }
+            }
+            // Send it down the sink
+            prompt?.let(biometricPromptSink::emit)
+        }
+    }
+}
+
+private class SetupKdfSection(
+    val state: MasterKdfFormState,
+    val expanded: Boolean,
+    val onExpandedChange: ((Boolean) -> Unit)?,
+)
+
+private fun setupKdfSectionFlow(
+    kdfForm: MasterKdfFormHandle,
+    kdfExpandedSink: MutableStateFlow<Boolean>,
+): Flow<SetupKdfSection> {
+    val onExpandedChange: (Boolean) -> Unit = kdfExpandedSink::value::set
+    return combine(
+        kdfForm.stateFlow,
+        kdfExpandedSink,
+    ) { kdf, expanded ->
+        val isValid = kdf.kdf != null
+        SetupKdfSection(
+            state = kdf,
+            // The section stays open until the values are valid.
+            expanded = expanded || !isValid,
+            onExpandedChange = onExpandedChange.takeIf { isValid },
+        )
+    }
+}
+
 private suspend fun createPromptOrNull(
-    executor: LoadingTask,
     createVaultWithMasterPasswordAndBiometricFn: CreateVaultWithBiometric,
     password: String,
-    crashlytics: Boolean,
+    kdf: MasterKdf.Argon2id,
+    getCrashlytics: () -> Boolean,
 ): BiometricAuthPrompt? = run {
-    val createVault = { createVaultWithMasterPasswordAndBiometricFn(password, crashlytics) }
+    val executor = createVaultWithMasterPasswordAndBiometricFn.executor
+    val createVault = {
+        createVaultWithMasterPasswordAndBiometricFn(password, kdf, getCrashlytics())
+    }
     // Creating a cipher may fail with:
     // Fatal Exception:
     //     java.security.ProviderException
@@ -226,8 +348,8 @@ private suspend fun createPromptOrNull(
 }
 
 private open class CreateVaultWithPassword(
-    private val executor: LoadingTask,
-    private val getCreateIo: (String) -> IO<Unit>,
+    val executor: LoadingTask,
+    private val getCreateIo: (String, MasterKdf.Argon2id) -> IO<Unit>,
 ) {
     // Create from vault state options
     constructor(
@@ -238,10 +360,14 @@ private open class CreateVaultWithPassword(
         getCreateIo = options.getCreateIo,
     )
 
-    operator fun invoke(password: String, crashlytics: Boolean) {
+    operator fun invoke(
+        password: String,
+        kdf: MasterKdf.Argon2id,
+        crashlytics: Boolean,
+    ) {
         val io = ioEffect {
             crashlyticsSetEnabled(crashlytics)
-            getCreateIo(password).bind()
+            getCreateIo(password, kdf).bind()
         }
         executor.execute(io, password)
     }
@@ -254,7 +380,7 @@ private class CreateVaultWithBiometric(
      * authentication.
      */
     val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
-    getCreateIo: (String) -> IO<Unit>,
+    getCreateIo: (String, MasterKdf.Argon2id) -> IO<Unit>,
     val requireConfirmation: Boolean,
 ) : CreateVaultWithPassword(executor, getCreateIo) {
     // Create from vault state options

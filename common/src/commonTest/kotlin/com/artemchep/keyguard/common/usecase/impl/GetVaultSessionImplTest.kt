@@ -181,7 +181,7 @@ class GetVaultSessionImplTest {
             error("Restoration must not write the persisted key")
     }
 
-    private val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+    private val masterKey = MasterKey(MasterKdfVersion.V1, byteArrayOf(1))
     private val persistedSession = PersistedSession(
         masterKey = masterKey,
         createdAt = Instant.DISTANT_PAST,

@@ -63,9 +63,13 @@ The sandbox hides the connector's process from Keyguard. Prompts show
 2. Select a login.
 3. If Keyguard asks, select **Approve**.
 
+![The inline menu under an email field, with the selected login's details beside it](../../assets/screenshots/browser-extension-inline-menu.png)
+
 You can also select a login in the popup, then **Fill**. Or press
 Ctrl+Shift+L (Cmd+Shift+L on macOS). The browser's shortcut settings change
 the key.
+
+![The popup with the site's logins, the selected login's details and its actions](../../assets/screenshots/browser-extension-popup.png)
 
 Matching logins come first, then **Suggested** ones, whose name or username
 looks like the site. **Last used** marks the login filled in this tab and
@@ -90,6 +94,8 @@ fills the code too. In the popup, **Copy one-time password** copies it.
 
 After you sign in or sign up, the extension asks "Save this login in
 Keyguard?".
+
+![The save bar on a page after sign-up, with Never for this site, Not now and Save](../../assets/screenshots/browser-extension-save-bar.png)
 
 1. Select **Save**, or **New login** in the popup or inline menu. The **Save
    login** window shows a new login, or the matching one with the new password.

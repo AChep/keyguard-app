@@ -82,6 +82,10 @@ Read more about implementation details:
 |:---------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
 | ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_list.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info_2fa.png) | 
 
+|                                                                                         |
+|:---------------------------------------------------------------------------------------:|
+| ![1](https://github.com/AChep/keyguard-app/blob/master/server/web/src/assets/screenshots/browser.png) |
+
 ## Localisation
 
  [Help us to translate the app](https://crowdin.com/project/keyguard). Even a short glance is helpful. 

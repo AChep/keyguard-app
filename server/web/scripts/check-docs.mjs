@@ -120,7 +120,7 @@ for (const doc of docs) {
     });
   }
 
-  // Length, counted on prose only.
+  // Length, counted on prose only: not code, nor the alt text of images.
   const limit = WORD_LIMITS[data.type];
   if (limit && !data.generated) {
     const words = body
@@ -130,7 +130,7 @@ for (const doc of docs) {
         visit(copy, 'code', (code) => {
           code.value = '';
         });
-        return toString(copy);
+        return toString(copy, { includeImageAlt: false });
       })
       .join(' ')
       .split(/\s+/)

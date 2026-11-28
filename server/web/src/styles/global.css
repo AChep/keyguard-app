@@ -293,6 +293,10 @@ html[data-theme-setting="dark"] .theme-icon-dark {
   background: var(--surface-container);
   font-weight: 600;
 }
+/* Markdown images, framed as the Screenshot component's (src/components/Screenshot.astro). */
+.prose-doc p > img {
+  @apply my-2 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10;
+}
 
 /* Callouts: `:::note` and `:::caution` (src/lib/remark-asides.mjs). */
 .prose-doc .callout {

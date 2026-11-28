@@ -9,13 +9,15 @@ import watchShot from '../assets/screenshots/watch.png';
 import phoneShot from '../assets/screenshots/phone.png';
 import tabletShot from '../assets/screenshots/tablet.png';
 import linuxShot from '../assets/screenshots/linux.png';
+import browserShot from '../assets/screenshots/browser.png';
 
 // One entry per device drives both the tab bar and the carousel slides.
 // `width` must stay a complete class literal so the Tailwind scanner sees it.
 // Widths follow real hardware proportions (watch ~41mm, phone ~72mm, tablet
 // ~258mm, laptop ~310mm), anchored to the laptop at 52rem; the base sizes are
 // compressed so small devices stay legible on phone screens. `short` is the
-// tab label on narrow screens, where the full labels do not fit in one row.
+// tab label on narrow screens, where the full labels do not fit in one row;
+// `shortIcon`, an icon path in place of a label that wouldn't fit.
 const devices = [
   {
     id: 'watch',
@@ -73,12 +75,22 @@ const devices = [
     Frame: LaptopFrame,
     props: { variant: 'linux', src: linuxShot, alt: 'Keyguard on Linux' },
   },
+  {
+    id: 'browser',
+    label: 'Browser extension',
+    // Material's "extension" puzzle piece.
+    shortIcon:
+      'M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17c1.1 0 2-.9 2-2v-4h1.5c1.38 0 2.5-1.12 2.5-2.5S21.88 11 20.5 11z',
+    width: 'w-[20rem] sm:w-[52rem]',
+    Frame: LaptopFrame,
+    props: { variant: 'mac', src: browserShot, alt: 'The Keyguard browser extension filling a login' },
+  },
 ] as const;
 
 // The tabs and their highlighted copy share these classes, so the copy lines
 // up with the real tabs pixel for pixel.
 const tabClass =
-  'flex-auto whitespace-nowrap rounded-full px-1 py-2 text-center text-[0.8125rem]/5 font-medium md:flex-none md:px-4 md:text-sm';
+  'flex-auto whitespace-nowrap rounded-full px-0.5 py-2 text-center text-[0.8125rem]/5 font-medium md:flex-none md:px-4 md:text-sm';
 ---
 
 {/* The carousel bleeds the full viewport width so neighboring devices stay
@@ -110,7 +122,13 @@ const tabClass =
                 'cursor-pointer text-on-surface-variant transition-colors hover:bg-on-surface/5 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
               ]}
             >
-              <span class="md:hidden">{d.short}</span>
+              {'shortIcon' in d ? (
+                <svg class="mx-auto block size-5 md:hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d={d.shortIcon} />
+                </svg>
+              ) : (
+                <span class="md:hidden">{d.short}</span>
+              )}
               <span class="hidden md:inline">{d.label}</span>
             </button>
           ))
@@ -124,7 +142,13 @@ const tabClass =
         {
           devices.map((d) => (
             <span class={tabClass}>
-              <span class="md:hidden">{d.short}</span>
+              {'shortIcon' in d ? (
+                <svg class="mx-auto block size-5 md:hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d={d.shortIcon} />
+                </svg>
+              ) : (
+                <span class="md:hidden">{d.short}</span>
+              )}
               <span class="hidden md:inline">{d.label}</span>
             </span>
           ))

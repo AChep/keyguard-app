@@ -9,8 +9,12 @@ interface Props {
   src?: ImageMetadata;
   alt?: string;
   caption?: string;
+  /** A desktop screenshot: as wide as the text, in place of a phone's 312px. */
+  wide?: boolean;
 }
-const { src, alt, caption } = Astro.props;
+const { src, alt, caption, wide = false } = Astro.props;
+// The text column of FeatureLayout: max-w-3xl less its padding.
+const width = wide ? 720 : 312;
 ---
 
 <figure class="my-8">
@@ -19,11 +23,11 @@ const { src, alt, caption } = Astro.props;
       // Cap the width on a plain wrapper, not the <Image>: Astro injects an
       // unlayered `max-width:100%` on [data-astro-image] that would beat a
       // (layered) Tailwind max-w-* utility on the image itself.
-      <div class="mx-auto max-w-[312px]">
+      <div class:list={['mx-auto', wide ? 'max-w-[720px]' : 'max-w-[312px]']}>
         <Image
           src={src}
           alt={alt ?? caption ?? ''}
-          width={312}
+          width={width}
           class="block h-auto w-full rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10"
         />
       </div>

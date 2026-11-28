@@ -1,0 +1,199 @@
+<!doctype html>
+<!-- The save bar, on the page after a sign-up. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="frame.css" />
+    <script src="data.js"></script>
+    <script src="logo.js"></script>
+    <script src="frame.js"></script>
+    <style>
+      .site {
+        position: absolute;
+        inset: 0;
+        background: #fbf7f4;
+        color: #2a1f1b;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        height: 56px;
+        padding: 0 36px;
+        background: #fff;
+        border-bottom: 1px solid #efe6e0;
+        font-size: 14px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 17px;
+        color: #b8462a;
+      }
+      .brand img {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+      .links {
+        display: flex;
+        gap: 26px;
+        color: #6b5a52;
+      }
+      .hero {
+        position: absolute;
+        top: 92px;
+        left: 64px;
+        width: 560px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        background: #e3f4ea;
+        color: #1f7a4a;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .hero h1 {
+        margin: 16px 0 0;
+        font-size: 40px;
+        line-height: 48px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .hero p {
+        margin: 10px 0 0;
+        font-size: 16px;
+        line-height: 24px;
+        color: #6b5a52;
+      }
+      .search {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 52px;
+        margin-top: 26px;
+        padding: 0 6px 0 18px;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow:
+          0 1px 2px rgb(0 0 0 / 0.06),
+          0 6px 18px rgb(120 60 30 / 0.08);
+        color: #9b8a82;
+        font-size: 15px;
+      }
+      .search span {
+        flex: 1;
+      }
+      .search b {
+        padding: 10px 18px;
+        border-radius: 10px;
+        background: #e8613c;
+        color: #fff;
+        font-size: 14px;
+      }
+      .trips {
+        position: absolute;
+        top: 352px;
+        left: 64px;
+        display: flex;
+        gap: 20px;
+      }
+      .trip {
+        width: 236px;
+        height: 180px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow:
+          0 1px 2px rgb(0 0 0 / 0.05),
+          0 6px 18px rgb(120 60 30 / 0.07);
+      }
+      .trip i {
+        display: block;
+        height: 116px;
+      }
+      .trip div {
+        padding: 12px 14px;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .trip small {
+        display: block;
+        margin-top: 2px;
+        font-size: 13px;
+        font-weight: 400;
+        color: #8a7a72;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="headline">
+      <span class="kicker">New account?</span>
+      <span class="title"><span>Save it as you sign up.</span></span>
+    </div>
+
+    <div class="window">
+      <script>
+        document.currentScript.insertAdjacentHTML(
+          "afterend",
+          browserChrome({
+            tabs: [
+              { title: "Welcome · Fernway", icon: SITE_ICONS.fernway, active: true },
+              { title: "Inbox · Driftmail", icon: SITE_ICONS.driftmail },
+            ],
+            host: "fernway.app",
+            path: "/welcome",
+          }),
+        );
+      </script>
+      <div class="viewport">
+        <div class="site">
+          <div class="nav">
+            <span class="brand"><img class="site-icon" alt="" />Fernway</span>
+            <span class="links"><span>Trips</span><span>Stays</span><span>Deals</span></span>
+          </div>
+          <div class="hero">
+            <span class="badge">✓ Account created</span>
+            <h1>Welcome aboard, Alex</h1>
+            <p>Your account is ready. Where do you want to go next?</p>
+            <div class="search"><span>Search destinations</span><b>Explore</b></div>
+          </div>
+          <div class="trips">
+            <div class="trip">
+              <i style="background: linear-gradient(160deg, #7ec8e3, #3a7bd5)"></i>
+              <div>Lisbon<small>3 nights · from €240</small></div>
+            </div>
+            <div class="trip">
+              <i style="background: linear-gradient(160deg, #f7b267, #e8613c)"></i>
+              <div>Marrakesh<small>4 nights · from €310</small></div>
+            </div>
+            <div class="trip">
+              <i style="background: linear-gradient(160deg, #9ad1a6, #2e7d5b)"></i>
+              <div>Bergen<small>2 nights · from €280</small></div>
+            </div>
+            <div class="trip">
+              <i style="background: linear-gradient(160deg, #c3a6f2, #6a4bd8)"></i>
+              <div>Kyoto<small>6 nights · from €890</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SAVE_BAR_WIDTH wide, SAVE_BAR_MARGIN from the top and the right, SAVE_BAR_HEIGHT until the page tells its own. -->
+        <div class="popup-frame elevation-3 save-bar" style="top: 16px; right: 16px; width: 400px; height: 204px">
+          <iframe src="/save-bar.html#stub=save"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.querySelector(".site-icon").src = SITE_ICONS.fernway;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<!-- The popup, open from the toolbar on a sign-in page: its Quick search. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="frame.css" />
+    <script src="data.js"></script>
+    <script src="logo.js"></script>
+    <script src="frame.js"></script>
+    <style>
+      .site {
+        position: absolute;
+        inset: 0;
+        background: #121318;
+        color: #e6e6ef;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 60px;
+        padding: 0 36px;
+        border-bottom: 1px solid #262833;
+        font-weight: 700;
+        font-size: 17px;
+      }
+      .nav img {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+      .form {
+        position: absolute;
+        top: 100px;
+        left: 80px;
+        width: 320px;
+      }
+      .form h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 36px;
+        font-weight: 700;
+      }
+      .form p {
+        margin: 6px 0 0;
+        font-size: 14px;
+        line-height: 20px;
+        color: #9a9db0;
+      }
+      .label {
+        display: block;
+        margin: 24px 0 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #c3c5d4;
+      }
+      .field {
+        height: 44px;
+        padding: 0 14px;
+        border: 1px solid #3a3d4c;
+        border-radius: 10px;
+        background: #1a1c23;
+        font-size: 15px;
+        line-height: 42px;
+        color: #6f7386;
+      }
+      .button {
+        margin-top: 28px;
+        height: 44px;
+        border-radius: 10px;
+        background: #6a4bd8;
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
+        line-height: 44px;
+        text-align: center;
+      }
+      .alt {
+        margin-top: 16px;
+        font-size: 13px;
+        color: #9a9db0;
+        text-align: center;
+      }
+      .alt b {
+        color: #b8a6ff;
+        font-weight: 600;
+      }
+
+      /* The popup, 600 by 480 (entrypoints/popup/style.css), in a bubble under Keyguard's button. */
+      .extension-popup {
+        position: absolute;
+        top: 90px;
+        right: 114px;
+        width: 600px;
+        height: 480px;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow:
+          0 0 0 1px rgb(255 255 255 / 0.1),
+          0 12px 40px rgb(0 0 0 / 0.45),
+          0 4px 12px rgb(0 0 0 / 0.3);
+      }
+      .extension-popup iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="headline">
+      <span class="kicker">Search your whole vault</span>
+      <span class="title"><span>Right in the toolbar.</span></span>
+    </div>
+
+    <div class="window">
+      <script>
+        document.currentScript.insertAdjacentHTML(
+          "afterend",
+          browserChrome({
+            tabs: [
+              { title: "Sign in · Driftmail", icon: SITE_ICONS.driftmail, active: true },
+              { title: "Pinewick · Projects", icon: SITE_ICONS.pinewick },
+            ],
+            host: "driftmail.io",
+            path: "/signin",
+            pressed: true,
+          }),
+        );
+      </script>
+      <div class="viewport">
+        <div class="site">
+          <div class="nav"><img class="site-icon" alt="" />Driftmail</div>
+          <div class="form">
+            <h1>Welcome back</h1>
+            <p>Sign in to your Driftmail account.</p>
+            <span class="label">Email address</span>
+            <div class="field">name@example.com</div>
+            <span class="label">Password</span>
+            <div class="field">Password</div>
+            <div class="button">Continue</div>
+            <div class="alt">New here? <b>Create an account</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="extension-popup"><iframe src="/popup.html#stub=popup"></iframe></div>
+    </div>
+
+    <script>
+      document.querySelector(".site-icon").src = SITE_ICONS.driftmail;
+    </script>
+  </body>
+</html>

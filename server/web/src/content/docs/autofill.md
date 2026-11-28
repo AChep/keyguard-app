@@ -4,7 +4,7 @@ description: "Fill logins in other apps and browsers with Keyguard: turn it on, 
 section: autofill
 type: feature
 order: 10
-platforms: [android]
+platforms: all
 related: [url-matching, troubleshoot-autofill, passkey-provider, totp]
 ---
 
@@ -30,6 +30,11 @@ installed browsers that have this setting, marked **Enabled** or **Disabled**.
 2. Choose to autofill using another service. In Chrome, select
    **Autofill using another service**.
 3. Restart the browser.
+
+### Linux, macOS and Windows
+
+Set up the [browser extension](/docs/browser-extension/). It fills logins in
+Chrome, Edge, Firefox and other browsers.
 
 ## Verify
 

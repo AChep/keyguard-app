@@ -23,7 +23,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "render:icons": "node scripts/render-icons.ts"
+    "render:icons": "node scripts/render-icons.ts",
+    "render:screenshots": "pnpm build && node scripts/render-screenshots.ts"
   },
   "dependencies": {
     "@bufbuild/protobuf": "2.17.0",

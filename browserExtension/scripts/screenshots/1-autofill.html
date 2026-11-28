@@ -1,0 +1,184 @@
+<!doctype html>
+<!-- The inline menu under a sign-in form's email field, and the card beside it. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="frame.css" />
+    <script src="data.js"></script>
+    <script src="logo.js"></script>
+    <script src="frame.js"></script>
+    <style>
+      .site {
+        position: absolute;
+        inset: 0;
+        background: #f4f6f3;
+        color: #1d2421;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        height: 56px;
+        padding: 0 36px;
+        background: #fff;
+        border-bottom: 1px solid #e3e8e4;
+        font-size: 14px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 17px;
+        color: #1f4f3a;
+      }
+      .brand img {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+      }
+      .links {
+        display: flex;
+        gap: 26px;
+        color: #4d5a54;
+      }
+      .spacer {
+        flex: 1;
+      }
+      .cta {
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #2e7d5b;
+        color: #fff;
+        font-weight: 600;
+      }
+      .signin {
+        position: absolute;
+        top: 80px;
+        left: calc(50% - 200px);
+        width: 400px;
+        padding: 28px 32px 32px;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow:
+          0 1px 3px rgb(0 0 0 / 0.06),
+          0 8px 24px rgb(30 60 45 / 0.08);
+      }
+      .signin h1 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 32px;
+        font-weight: 700;
+      }
+      .label {
+        display: block;
+        margin: 18px 0 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #34413b;
+      }
+      .field {
+        position: relative;
+        height: 44px;
+        padding: 0 14px;
+        border: 1px solid #cdd6d1;
+        border-radius: 10px;
+        font-size: 15px;
+        line-height: 42px;
+        color: #8a9690;
+      }
+      .field.focused {
+        border-color: #2e7d5b;
+        box-shadow: 0 0 0 3px rgb(46 125 91 / 0.18);
+        color: #1d2421;
+      }
+      .field .inline-icon {
+        top: 11px;
+        right: 12px;
+      }
+      .caret {
+        display: inline-block;
+        width: 1.5px;
+        height: 20px;
+        margin-top: 11px;
+        background: #1d2421;
+        vertical-align: top;
+      }
+      .button {
+        margin-top: 24px;
+        height: 44px;
+        border-radius: 10px;
+        background: #2e7d5b;
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
+        line-height: 44px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="headline">
+      <span class="kicker">Autofill from the Keyguard desktop app</span>
+      <span class="title"><span>One click to sign in.</span></span>
+    </div>
+
+    <div class="window">
+      <script>
+        document.currentScript.insertAdjacentHTML(
+          "afterend",
+          browserChrome({
+            tabs: [
+              { title: "Sign in · Pinewick", icon: SITE_ICONS.pinewick, active: true },
+              { title: "Inbox · Driftmail", icon: SITE_ICONS.driftmail },
+            ],
+            host: "pinewick.app",
+            path: "/login",
+          }),
+        );
+      </script>
+      <div class="viewport">
+        <div class="site">
+          <div class="nav">
+            <span class="brand"><img class="site-icon" alt="" />Pinewick</span>
+            <span class="links"><span>Product</span><span>Pricing</span><span>Docs</span></span>
+            <span class="spacer"></span>
+            <span class="cta">Start free</span>
+          </div>
+          <div class="signin">
+            <h1>Sign in to Pinewick</h1>
+            <span class="label">Email</span>
+            <div class="field focused"><span class="caret"></span><span class="inline-icon"></span></div>
+            <span class="label">Password</span>
+            <div class="field">Password<span class="inline-icon"></span></div>
+            <div class="button">Sign in</div>
+          </div>
+        </div>
+
+        <!-- MENU_WIDTH wide, as the card beside it, at the height the content script starts them at. -->
+        <div class="popup-frame" id="menu" style="width: 320px; height: 96px">
+          <iframe src="/inline-menu.html#stub=menu"></iframe>
+        </div>
+        <div class="popup-frame elevation-3" id="card" style="width: 320px; height: 96px">
+          <iframe src="/menu-details.html#stub=card"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.querySelector(".site-icon").src = SITE_ICONS.pinewick;
+      // The menu MENU_GAP under the email field; the card DETAILS_GAP beside
+      // it, level with its first row, past the menu's padding: detailsBox of
+      // src/lib/content/detailsCard.ts, in a window high enough for it.
+      (() => {
+        const viewport = document.querySelector(".viewport").getBoundingClientRect();
+        const field = document.querySelector(".field.focused").getBoundingClientRect();
+        const top = field.bottom - viewport.top + 4;
+        const left = field.left - viewport.left;
+        Object.assign(document.getElementById("menu").style, { top: `${top}px`, left: `${left}px` });
+        Object.assign(document.getElementById("card").style, { top: `${top + 4}px`, left: `${left + 320 + 16}px` });
+      })();
+    </script>
+  </body>
+</html>

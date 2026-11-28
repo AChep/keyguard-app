@@ -139,6 +139,23 @@ pnpm render:icons
 
 To use another Chrome or Chromium, set `CHROME_PATH` to its executable.
 
+## Screenshots
+
+The screenshots of the extension are checked in: the Chrome Web Store's, with
+a headline, in `../screenshots/chrome-web-store/`, and the website's, the
+browser window alone, as `browser-extension-*.png` and, for the home page's
+device carousel, `browser.png` in `../server/web/src/assets/screenshots/`.
+They show the built pages with sample
+data, in the scenes of `scripts/screenshots/`. After you change those pages,
+build and render them again on macOS, whose system font and shortcut keys they
+show:
+
+```sh
+pnpm render:screenshots
+```
+
+`CHROME_PATH` works as for the icons.
+
 ## Checks
 
 ```sh

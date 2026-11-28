@@ -9,6 +9,7 @@ doc: autofill
 ---
 
 import autofillKeyboard from '../../assets/screenshots/autofill-keyboard.png';
+import browserInlineMenu from '../../assets/screenshots/browser-extension-inline-menu.png';
 
 Keyguard fills your logins in other apps and in browsers through the system
 autofill service. Suggestions match the app or website you're on, and can
@@ -16,5 +17,8 @@ appear in your keyboard.
 
 <Screenshot src={autofillKeyboard} caption="An inline autofill suggestion in the keyboard above a login form" />
 
+On desktop, the Keyguard browser extension fills your logins in the browser.
 When nothing matches, you can search the vault instead. After you fill a
 login, Keyguard can copy its one-time password, ready to paste.
+
+<Screenshot src={browserInlineMenu} wide caption="The browser extension's inline menu on a sign-in page, with a login's details beside it" />

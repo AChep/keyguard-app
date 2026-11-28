@@ -3,6 +3,7 @@
 // absent version. Reads the API key from AMO_JWT_ISSUER and AMO_JWT_SECRET.
 // `node scripts/amo-version.ts <add-on ID> <version>`
 import { AmoError, amoHasVersion } from "./amo.ts";
+import { fail } from "./cli.ts";
 
 const HINTS: Record<number, string> = {
   401: "Check AMO_JWT_ISSUER, AMO_JWT_SECRET and the clock.",
@@ -24,9 +25,5 @@ if (!issuer || !secret) {
 try {
   console.log((await amoHasVersion(guid, version, { issuer, secret })) ? "exists" : "absent");
 } catch (error) {
-  const hint = error instanceof AmoError ? HINTS[error.status] : undefined;
-  // A failed fetch() names the network error in its cause.
-  const cause = error instanceof Error && error.cause instanceof Error ? `: ${error.cause.message}` : "";
-  console.error([`${error instanceof Error ? error.message : String(error)}${cause}`, hint].filter(Boolean).join("\n"));
-  process.exit(1);
+  fail(error, error instanceof AmoError ? HINTS[error.status] : undefined);
 }

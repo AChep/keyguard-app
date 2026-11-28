@@ -954,7 +954,8 @@ jobs:
           retention-days: 1
   # The extension's zips for Chromium and Firefox, kept as workflow artifacts:
   # `deploy-firefox-add-ons` submits the Firefox zip to addons.mozilla.org,
-  # and the Chromium zip is uploaded to the stores by hand
+  # and `deploy-chrome-web-store` and `deploy-edge-add-ons` submit the
+  # Chromium zip to the Chrome Web Store and Edge Add-ons
   # (browserExtension/BUILDING.md).
   # They are not attached to the release: an unpacked Chromium extension can't
   # reach the app, and the Firefox zip is unsigned. `dist` still waits for
@@ -1445,28 +1446,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: "Download zips"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
-        with:
-          name: app-browser-extension
-          path: artifacts-browser-extension
-      - name: "Read the add-on ID and version"
+      - name: "Download the Firefox zip"
         id: manifest
-        run: |
-          shopt -s nullglob
-          zips=("$PWD"/artifacts-browser-extension/keyguard-*-firefox.zip)
-          if [ "${#zips[@]}" -ne 1 ]; then
-            echo "::error::Expected one Firefox zip, found ${#zips[@]}."
-            exit 1
-          fi
-          manifest=$(unzip -p "${zips[0]}" manifest.json)
-          id=$(jq -er '.browser_specific_settings.gecko.id' <<< "$manifest")
-          version=$(jq -er '.version' <<< "$manifest")
-          {
-            echo "zip=${zips[0]}"
-            echo "id=$id"
-            echo "version=$version"
-          } >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/download_browser_extension_zip
+        with:
+          browser: firefox
       - name: "Set up Node"
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
@@ -1529,6 +1513,196 @@ jobs:
           {
             echo "## Firefox Add-ons submission"
             echo "Version $ADDON_VERSION was submitted for review."
+          } >> "$GITHUB_STEP_SUMMARY"
+  # Submits the Chromium zip to the Chrome Web Store for review once the
+  # release is out, signed as a CRX when the `chrome-web-store` environment has
+  # the key of the verified CRX uploads. Runs when the environment has the
+  # service account and the store doesn't have the version yet
+  # (browserExtension/BUILDING.md). If the store fails, re-run this job.
+  deploy-chrome-web-store:
+    name: "Submit Chrome Web Store"
+    if: startsWith(github.ref, 'refs/tags/r')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs:
+      - dist
+    environment: chrome-web-store
+    permissions:
+      contents: read
+    # Another tag of the same version waits, then finds the version on the store.
+    concurrency:
+      group: chrome-web-store-submission
+      cancel-in-progress: false
+    env:
+      # The extension's ID on the Chrome Web Store, from
+      # URL_BROWSER_EXTENSION_CHROME in
+      # common/src/commonMain/kotlin/com/artemchep/keyguard/Urls.kt.
+      EXTENSION_ID: pbgoonibllaljhcpadklliddccmhdehh
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Download the Chromium zip"
+        id: manifest
+        uses: ./.github/actions/download_browser_extension_zip
+        with:
+          browser: chrome
+      - name: "Set up Node"
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: browserExtension/.nvmrc
+          package-manager-cache: false
+      # The store refuses a version that isn't newer than the published one,
+      # and a new submission while an older version is in review or staged.
+      - name: "Look up the version on the Chrome Web Store"
+        id: cws
+        working-directory: browserExtension
+        env:
+          CWS_SERVICE_ACCOUNT_EMAIL: ${{ secrets.CWS_SERVICE_ACCOUNT_EMAIL }}
+          CWS_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CWS_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          EXTENSION_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          if [ -z "$CWS_SERVICE_ACCOUNT_EMAIL" ] || [ -z "$CWS_SERVICE_ACCOUNT_PRIVATE_KEY" ] || [ -z "$CWS_PUBLISHER_ID" ]; then
+            echo "::notice title=Chrome Web Store::The chrome-web-store environment needs CWS_SERVICE_ACCOUNT_EMAIL, CWS_SERVICE_ACCOUNT_PRIVATE_KEY and CWS_PUBLISHER_ID: $EXTENSION_VERSION is not submitted."
+            exit 0
+          fi
+          status=$(node scripts/cws-version.ts "$CWS_PUBLISHER_ID" "$EXTENSION_ID" "$EXTENSION_VERSION")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          case "$status" in
+            exists)
+              echo "::notice title=Chrome Web Store::The Chrome Web Store already has $EXTENSION_VERSION: it is not submitted again."
+              ;;
+            pending)
+              echo "::warning title=Chrome Web Store::An older version is in review or staged, so $EXTENSION_VERSION is not submitted. Once the review ends, or after you publish or cancel the staged version in the Developer Dashboard, re-run this job."
+              {
+                echo "## Chrome Web Store submission"
+                echo "Version $EXTENSION_VERSION was not submitted: an older version is in review or staged."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+              ;;
+          esac
+      # With the verified CRX uploads on, the store takes only a CRX signed
+      # with the key on file. The key stays in the environment.
+      - name: "Package"
+        id: package
+        if: steps.cws.outputs.status == 'absent'
+        working-directory: browserExtension
+        env:
+          CWS_CRX_PRIVATE_KEY: ${{ secrets.CWS_CRX_PRIVATE_KEY }}
+          EXTENSION_ZIP: ${{ steps.manifest.outputs.zip }}
+          EXTENSION_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          if [ -n "$CWS_CRX_PRIVATE_KEY" ]; then
+            package="$RUNNER_TEMP/keyguard-$EXTENSION_VERSION-chrome.crx"
+            node scripts/crx.ts "$EXTENSION_ZIP" "$package"
+          else
+            echo "::notice title=Chrome Web Store::The chrome-web-store environment has no CWS_CRX_PRIVATE_KEY: the zip is uploaded, which the store refuses if verified CRX uploads are on."
+            package=$EXTENSION_ZIP
+          fi
+          echo "path=$package" >> "$GITHUB_OUTPUT"
+      - name: "Submit for review"
+        if: steps.cws.outputs.status == 'absent'
+        working-directory: browserExtension
+        env:
+          CWS_SERVICE_ACCOUNT_EMAIL: ${{ secrets.CWS_SERVICE_ACCOUNT_EMAIL }}
+          CWS_SERVICE_ACCOUNT_PRIVATE_KEY: ${{ secrets.CWS_SERVICE_ACCOUNT_PRIVATE_KEY }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          EXTENSION_PACKAGE: ${{ steps.package.outputs.path }}
+          EXTENSION_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          state=$(node scripts/cws-submit.ts "$CWS_PUBLISHER_ID" "$EXTENSION_ID" "$EXTENSION_PACKAGE")
+          {
+            echo "## Chrome Web Store submission"
+            echo "Version $EXTENSION_VERSION was submitted as ${EXTENSION_PACKAGE##*/}. Its state: $state."
+          } >> "$GITHUB_STEP_SUMMARY"
+  # Submits the Chromium zip to Microsoft Edge Add-ons for certification once
+  # the release is out, when the `edge-web-store` environment has the API key
+  # and the Edge Add-ons website doesn't show the version yet
+  # (browserExtension/BUILDING.md). If Edge Add-ons fails, re-run this job.
+  deploy-edge-add-ons:
+    name: "Submit Edge Add-ons"
+    if: startsWith(github.ref, 'refs/tags/r')
+    runs-on: ubuntu-24.04
+    # More than the script's own limits, about 25 minutes, so that its error,
+    # with the operation's ID, ends a slow run.
+    timeout-minutes: 45
+    needs:
+      - dist
+    environment: edge-web-store
+    permissions:
+      contents: read
+    # One submission at a time: two would replace each other's draft.
+    concurrency:
+      group: edge-add-ons-submission
+      cancel-in-progress: false
+    env:
+      # The extension's CRX ID on Edge Add-ons, from URL_BROWSER_EXTENSION_EDGE
+      # in common/src/commonMain/kotlin/com/artemchep/keyguard/Urls.kt.
+      CRX_ID: jmiinenokkmkljkgaahelgacgkjemebb
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Download the Chromium zip"
+        id: manifest
+        uses: ./.github/actions/download_browser_extension_zip
+        with:
+          browser: chrome
+      - name: "Set up Node"
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: browserExtension/.nvmrc
+          package-manager-cache: false
+      # The API can't read the version, so this asks the public website, which
+      # shows the published version only.
+      - name: "Look up the version on Edge Add-ons"
+        id: edge
+        working-directory: browserExtension
+        env:
+          # Whether the key is set: edge-version.ts needs no key.
+          HAS_EDGE_KEY: ${{ secrets.EDGE_CLIENT_ID != '' && secrets.EDGE_API_KEY != '' }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          EXTENSION_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          if [ "$HAS_EDGE_KEY" != true ] || [ -z "$EDGE_PRODUCT_ID" ]; then
+            echo "::notice title=Edge Add-ons::The edge-web-store environment needs EDGE_CLIENT_ID, EDGE_API_KEY and EDGE_PRODUCT_ID: $EXTENSION_VERSION is not submitted."
+            exit 0
+          fi
+          status=$(node scripts/edge-version.ts "$CRX_ID" "$EXTENSION_VERSION")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          case "$status" in
+            exists)
+              echo "::notice title=Edge Add-ons::Edge Add-ons already has $EXTENSION_VERSION: it is not submitted again."
+              ;;
+            unknown)
+              echo "::warning title=Edge Add-ons::The Edge Add-ons website's version check failed: $EXTENSION_VERSION is submitted anyway."
+              ;;
+          esac
+      - name: "Submit for certification"
+        if: steps.edge.outputs.status == 'absent' || steps.edge.outputs.status == 'unknown'
+        working-directory: browserExtension
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          EXTENSION_ZIP: ${{ steps.manifest.outputs.zip }}
+          EXTENSION_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          status=$(node scripts/edge-submit.ts "$EDGE_PRODUCT_ID" "$EXTENSION_ZIP" edge-certification-notes.txt)
+          # The API doesn't tell which version is in review: it may be this
+          # one, from an earlier tag of the same version.
+          if [ "$status" = in-review ]; then
+            echo "::warning title=Edge Add-ons::A submission is in review, so $EXTENSION_VERSION stays the draft in Partner Center. If the version in review is $EXTENSION_VERSION, there's nothing to do. If not, re-run this job once that review ends."
+            result="Version $EXTENSION_VERSION was uploaded as the draft, not submitted: a submission is in review. If the version in review is $EXTENSION_VERSION, there's nothing to do. If not, re-run this job once that review ends."
+          else
+            result="Version $EXTENSION_VERSION was submitted for certification."
+          fi
+          {
+            echo "## Edge Add-ons submission"
+            echo "$result"
           } >> "$GITHUB_STEP_SUMMARY"
   deploy-flathub:
     name: Deploy Flathub

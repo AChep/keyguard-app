@@ -1,0 +1,56 @@
+name: "Download browser extension zip"
+description: "Download the release's browser extension zips, then find the one zip of a browser and read its manifest"
+inputs:
+  browser:
+    description: "The zip's browser: `chrome` for the Chromium zip, or `firefox`"
+    required: true
+outputs:
+  zip:
+    description: "The zip's absolute path"
+    value: ${{ steps.read.outputs.zip }}
+  version:
+    description: "The extension's version, from the zip's manifest"
+    value: ${{ steps.read.outputs.version }}
+  id:
+    description: "The add-on ID of the Firefox zip, from browser_specific_settings.gecko.id; empty for `chrome`"
+    value: ${{ steps.read.outputs.id }}
+runs:
+  using: "composite"
+  steps:
+    # The `app-browser-extension` artifact of the `build-browser-extension` job.
+    - name: "Download zips"
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      with:
+        name: app-browser-extension
+        path: artifacts-browser-extension
+    - name: "Read the manifest"
+      id: read
+      shell: bash
+      env:
+        BROWSER: ${{ inputs.browser }}
+      run: |
+        case "$BROWSER" in
+          chrome) name=Chromium ;;
+          firefox) name=Firefox ;;
+          *)
+            echo "::error::The browser must be chrome or firefox, not '$BROWSER'."
+            exit 1
+            ;;
+        esac
+        shopt -s nullglob
+        zips=("$PWD"/artifacts-browser-extension/keyguard-*-"$BROWSER".zip)
+        if [ "${#zips[@]}" -ne 1 ]; then
+          echo "::error::Expected one $name zip, found ${#zips[@]}."
+          exit 1
+        fi
+        manifest=$(unzip -p "${zips[0]}" manifest.json)
+        id=
+        if [ "$BROWSER" = firefox ]; then
+          id=$(jq -er '.browser_specific_settings.gecko.id' <<< "$manifest")
+        fi
+        version=$(jq -er '.version' <<< "$manifest")
+        {
+          echo "zip=${zips[0]}"
+          echo "id=$id"
+          echo "version=$version"
+        } >> "$GITHUB_OUTPUT"

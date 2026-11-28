@@ -17,6 +17,13 @@ static void kg_lal_open_settings(void) {
     if (@available(macOS 13.0, *)) [SMAppService openSystemSettingsLoginItems];
 }
 
+// The system has no record of a main app that was never registered: it reports NotFound,
+// not NotRegistered. NotRegistered only follows an unregistration. Both read as disabled.
+// A failed status lookup also reports NotFound, so it is not proof that nothing is registered.
+static BOOL kg_lal_is_unregistered(SMAppServiceStatus status) {
+    return status == SMAppServiceStatusNotRegistered || status == SMAppServiceStatusNotFound;
+}
+
 // `KGLoginService` lets the test fixture run this logic without ServiceManagement.
 static int32_t kg_lal_perform(id<KGLoginService> service, int32_t operation,
     char *diagnostic, size_t capacity, void (*openSettings)(void)) {
@@ -34,11 +41,17 @@ static int32_t kg_lal_perform(id<KGLoginService> service, int32_t operation,
         snprintf(diagnostic, capacity, "%s", error.localizedDescription.UTF8String ?: "ServiceManagement failed");
         return -3;
     }
-    switch (service.status) {
+    const SMAppServiceStatus status = service.status;
+    // Report a registration the system did not record, so the switch does not silently turn off.
+    if (operation == 1 && kg_lal_is_unregistered(status)) {
+        snprintf(diagnostic, capacity, "ServiceManagement did not record the login item");
+        return -3;
+    }
+    switch (status) {
         case SMAppServiceStatusEnabled: return 0;
-        case SMAppServiceStatusNotRegistered: return 1;
+        case SMAppServiceStatusNotRegistered:
+        case SMAppServiceStatusNotFound: return 1;
         case SMAppServiceStatusRequiresApproval: return 2;
-        case SMAppServiceStatusNotFound: return 4;
         default: return 6;
     }
 }

@@ -12,7 +12,7 @@ is `UNKNOWN`.
 
 | Target | Backend | Status limitations |
 | --- | --- | --- |
-| `MacOSMainApp` | `SMAppService.mainAppService` | macOS 13+; actual bundle/signing and approval rules apply. |
+| `MacOSMainApp` | `SMAppService.mainAppService` | macOS 13+; actual bundle/signing and approval rules apply. A never-registered app can report `NotFound`, read as `DISABLED`; a failed status lookup reports it too, so disabling still unregisters. A registration whose immediate status read still shows the app unregistered is a system error. |
 | `WindowsStartup`, packaged | WinRT `StartupTask` (`taskId`) | Used when the process has package identity. Requires a declared disabled-by-default task. Query and enable require Windows build 19041+ for startup arguments; disable remains available on older supported versions. User disabling is preserved. `ENABLED_BY_POLICY` and `DISABLED_BY_POLICY` are distinct read-only states; `setEnabled` returns them without attempting a change. |
 | `WindowsStartup`, unpackaged | Per-user Startup folder shortcut | Reads, and never writes, the shortcut's `StartupApproved\StartupFolder` value: an odd first byte (disabled in Task Manager or Settings) reports `DISABLED_BY_USER`, checked before staleness. |
 | `XdgAutostart` | Owned per-user XDG desktop entry | Reports `Hidden` and GNOME-disabled entries as `DISABLED`, since enabling rewrites them. Use the persistent AppImage path, never its mounted executable. Refuses a launcher path that contains `%`: desktop environments look it up without undoing the `%%` escape. |

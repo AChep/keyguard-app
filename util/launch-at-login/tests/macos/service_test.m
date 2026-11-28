@@ -43,7 +43,7 @@ int main(void) {
         char diagnostic[128] = {0};
         const SMAppServiceStatus states[] = {SMAppServiceStatusEnabled, SMAppServiceStatusNotRegistered,
             SMAppServiceStatusRequiresApproval, SMAppServiceStatusNotFound, (SMAppServiceStatus)99};
-        const int32_t expected[] = {0, 1, 2, 4, 6};
+        const int32_t expected[] = {0, 1, 2, 1, 6};
         for (NSUInteger i = 0; i < 5; i++) {
             service.status = states[i];
             assert(kg_lal_perform(service, 0, diagnostic, sizeof(diagnostic), settings) == expected[i]);
@@ -87,6 +87,33 @@ int main(void) {
         assert(kg_lal_perform(service, 1, diagnostic, sizeof(diagnostic), settings) == 0);
         assert(kg_lal_perform(service, 3, diagnostic, sizeof(diagnostic), settings) == 0);
         assert(settingsCalls == 1);
+
+        // A main app that was never registered reports NotFound: disabled, and registrable.
+        service.status = SMAppServiceStatusNotFound;
+        const NSUInteger registrations = service.registrations;
+        service.registeredStatus = SMAppServiceStatusEnabled;
+        assert(kg_lal_perform(service, 1, diagnostic, sizeof(diagnostic), settings) == 0);
+        assert(service.registrations == registrations + 1);
+        // A registration the system did not record is a failure.
+        const SMAppServiceStatus unrecorded[] = {SMAppServiceStatusNotFound, SMAppServiceStatusNotRegistered};
+        for (NSUInteger i = 0; i < 2; i++) {
+            service.status = unrecorded[i];
+            service.registeredStatus = unrecorded[i];
+            assert(kg_lal_perform(service, 1, diagnostic, sizeof(diagnostic), settings) == -3);
+            assert(strcmp(diagnostic, "ServiceManagement did not record the login item") == 0);
+        }
+        assert(service.registrations == registrations + 3);
+        // A failed status lookup also reports NotFound: disabling still unregisters, and reports a failure.
+        const NSUInteger removals = service.removals;
+        service.status = SMAppServiceStatusNotFound;
+        assert(kg_lal_perform(service, 2, diagnostic, sizeof(diagnostic), settings) == 1);
+        service.status = SMAppServiceStatusNotFound;
+        service.fail = YES;
+        service.omitError = NO;
+        assert(kg_lal_perform(service, 2, diagnostic, sizeof(diagnostic), settings) == -3);
+        assert(strcmp(diagnostic, "unregister denied by fixture") == 0);
+        assert(service.removals == removals + 2);
+        service.fail = NO;
 
         NSAppleEventDescriptor *event = [NSAppleEventDescriptor appleEventWithEventClass:'aevt'
             eventID:'oapp' targetDescriptor:nil returnID:-1 transactionID:0];

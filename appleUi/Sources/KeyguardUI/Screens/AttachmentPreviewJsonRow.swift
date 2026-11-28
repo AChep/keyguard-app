@@ -1,12 +1,24 @@
 import SwiftUI
 import KeyguardShared
 
+/// A context menu, or an accessibility action, copies the row's full value.
 struct AttachmentPreviewJsonRow: View {
     let row: AttachmentPreviewJsonNodeSnapshot
     let expanded: Bool
     let toggle: () -> Void
+    let copy: () -> Void
 
     var body: some View {
+        let title = copyTitle
+        content
+            .contextMenu {
+                Button(title, systemImage: "doc.on.doc", action: copy)
+            }
+            .accessibilityAction(named: title, copy)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         if row.expandable {
             Button(action: toggle) {
                 label
@@ -45,6 +57,11 @@ struct AttachmentPreviewJsonRow: View {
                     .lineLimit(2)
             }
         }
+    }
+
+    /// Objects and arrays copy as JSON, other values as plain text.
+    private var copyTitle: String {
+        row.type == .object || row.type == .array ? L10n.copyJson : L10n.copyValue
     }
 
     private var typeName: String {

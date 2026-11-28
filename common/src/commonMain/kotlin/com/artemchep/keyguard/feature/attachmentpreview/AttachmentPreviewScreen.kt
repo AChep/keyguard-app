@@ -299,7 +299,7 @@ private fun AttachmentPreviewToolbarActions(
         IconButton(onClick = onCopy) {
             Icon(
                 imageVector = Icons.Outlined.ContentCopy,
-                contentDescription = stringResource(Res.string.attachment_preview_action_copy_all),
+                contentDescription = stringResource(Res.string.copy_all),
             )
         }
         val showWrapLines = state.content !is AttachmentPreviewContent.Json ||

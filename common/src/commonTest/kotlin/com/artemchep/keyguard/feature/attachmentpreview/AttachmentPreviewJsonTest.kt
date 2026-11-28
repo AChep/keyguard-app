@@ -171,17 +171,59 @@ class AttachmentPreviewJsonTest {
     }
 
     @Test
+    fun `nodes copy full plain values and containers copy as JSON`() {
+        val long = "x".repeat(2_000)
+        val source = """
+            {"token":"quoted\n\"value\"","long":"$long","quota":12.5,"big":1e3,"enabled":true,
+            "expires":null,"empty":[],"none":{},"account":{"z":1,"a":[true,null]}}
+        """.trimIndent()
+        val tree = tree(source)
+        val rows = tree.visibleRows(setOf(tree.rootId)).associateBy { it.key }
+        fun copied(key: String) = tree.copyText(rows.getValue(key).id)
+
+        assertEquals("quoted\n\"value\"", copied("token"))
+        assertEquals(long, copied("long"))
+        assertTrue(rows.getValue("long").value!!.length < long.length)
+        assertEquals("12.5", copied("quota"))
+        assertEquals("1e3", copied("big"))
+        assertEquals("true", copied("enabled"))
+        assertEquals("null", copied("expires"))
+        assertEquals("[]", copied("empty"))
+        assertEquals("{}", copied("none"))
+        assertEquals(
+            """
+                {
+                    "z": 1,
+                    "a": [
+                        true,
+                        null
+                    ]
+                }
+            """.trimIndent(),
+            copied("account"),
+        )
+        assertNull(tree.copyText("10000"))
+        assertNull(tree.copyText("token"))
+    }
+
+    @Test
+    fun `copying a node conceals the clipboard`() {
+        val copied = mutableListOf<String>()
+        val clipboard = concealedClipboard { copied += it }
+        val content = assertIs<AttachmentPreviewContent.Json>(
+            decodeTextPreview("data.json", """{"token":"secret"}""".encodeToByteArray(), testCopyText(clipboard)),
+        )
+        val tree = assertNotNull(content.preview.tree)
+        content.onCopyNode(tree.visibleRows(setOf(tree.rootId)).single { it.key == "token" }.id)
+        content.onCopyNode("unknown")
+        assertEquals(listOf("secret"), copied)
+    }
+
+    @Test
     fun `JSON and JSON LD copy exact source including whitespace when tree unavailable`() {
         val source = "  {\n \"a\": 1, \"a\": 2\n}\n"
         var copied: String? = null
-        val clipboard = object : ClipboardService {
-            override fun setPrimaryClip(value: String, concealed: Boolean) {
-                copied = value
-                assertTrue(concealed)
-            }
-            override fun clearPrimaryClip() = Unit
-            override fun hasCopyNotification() = true
-        }
+        val clipboard = concealedClipboard { copied = it }
         for (name in listOf("data.json", "DATA.JSONLD")) {
             val content = assertIs<AttachmentPreviewContent.Json>(
                 decodeTextPreview(name, source.encodeToByteArray(), testCopyText(clipboard)),
@@ -195,6 +237,15 @@ class AttachmentPreviewJsonTest {
         listOf("data.jsonc", "data.json5", "data.txt").forEach { name ->
             assertIs<AttachmentPreviewContent.Text>(decodeTextPreview(name, "{}".encodeToByteArray(), testCopyText()))
         }
+    }
+
+    private fun concealedClipboard(onCopy: (String) -> Unit) = object : ClipboardService {
+        override fun setPrimaryClip(value: String, concealed: Boolean) {
+            assertTrue(concealed)
+            onCopy(value)
+        }
+        override fun clearPrimaryClip() = Unit
+        override fun hasCopyNotification() = true
     }
 
     private fun parse(source: String) = parseAttachmentPreviewJson(source, source.encodeToByteArray().size)

@@ -152,7 +152,8 @@ struct AttachmentPreviewView: View {
                     AttachmentPreviewJsonView(
                         tree: snapshot.jsonTree,
                         errorMessage: snapshot.jsonErrorMessage,
-                        showTree: textMode == 0
+                        showTree: textMode == 0,
+                        copy: { dialogsModel.copyAttachmentPreviewJsonNode($0) }
                     ) {
                         textPane(snapshot)
                     }

@@ -27,6 +27,7 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import org.jetbrains.skia.EncodedImageFormat
 
+@Suppress("TooManyFunctions")
 class AttachmentPreviewJsonScreenTest {
     private var frameTime = 0L
 
@@ -62,7 +63,7 @@ class AttachmentPreviewJsonScreenTest {
                     val empty = row(scene, "empty")
                     assertTrue(description(empty).contains("Array · 0 items"))
                     assertNull(empty.config.getOrNull(SemanticsProperties.Disabled))
-                    assertNull(empty.config.getOrNull(SemanticsActions.OnClick))
+                    assertNull(empty.config.getOrNull(SemanticsProperties.StateDescription))
                     assertTrue(description(row(scene, "token")).contains("String"))
                     assertTrue(account.config[SemanticsActions.OnClick].action!!.invoke())
                     settle(scene)
@@ -103,7 +104,7 @@ class AttachmentPreviewJsonScreenTest {
                 val treeIndex = state.treeScrollState.firstVisibleItemIndex
                 assertTrue(treeIndex > 0)
 
-                clickTab(scene, "Source")
+                clickText(scene, "Source")
                 settle(scene)
                 state.sourceScrollState.requestScrollToItem(24)
                 settle(scene)
@@ -123,10 +124,10 @@ class AttachmentPreviewJsonScreenTest {
                 assertEquals(expandedIds, state.expandedIds)
                 assertEquals(sourceIndex, state.sourceScrollState.firstVisibleItemIndex)
 
-                clickTab(scene, "Tree")
+                clickText(scene, "Tree")
                 settle(scene)
                 assertEquals(treeIndex, state.treeScrollState.firstVisibleItemIndex)
-                clickTab(scene, "Source")
+                clickText(scene, "Source")
                 settle(scene)
                 assertEquals(sourceIndex, state.sourceScrollState.firstVisibleItemIndex)
                 assertEquals(horizontalOffset, state.sourceHorizontalScrollState.value)
@@ -138,6 +139,36 @@ class AttachmentPreviewJsonScreenTest {
                 assertEquals(setOf(current.value.preview.tree!!.rootId), state.expandedIds)
                 assertEquals(0, state.treeScrollState.firstVisibleItemIndex)
                 assertEquals(0, state.sourceScrollState.firstVisibleItemIndex)
+            }
+        }
+    }
+
+    @Test
+    fun `rows copy their node through the menu and the accessibility action`() {
+        val copied = mutableListOf<String>()
+        val content = content("""{"account":{"enabled":true},"token":"secret"}""") { copied += it }
+        val tree = content.preview.tree!!
+        val ids = tree.visibleRows(setOf(tree.rootId)).associate { it.key to it.id }
+        SwingUtilities.invokeAndWait {
+            val state = AttachmentPreviewJsonViewState(content.preview)
+            ImageComposeScene(width = 390, height = 700) {
+                WizardPreview {
+                    AttachmentPreviewJsonContent(content, state, false, PaddingValues())
+                }
+            }.use { scene ->
+                settle(scene)
+                val account = copyAction(row(scene, "account"))
+                assertEquals("Copy JSON", account.label)
+                assertEquals("Copy value", copyAction(row(scene, "token")).label)
+                assertTrue(account.action())
+                assertEquals(listOf(ids.getValue("account")), copied)
+                assertEquals(setOf(tree.rootId), state.expandedIds)
+
+                assertTrue(row(scene, "token").config[SemanticsActions.OnClick].action!!.invoke())
+                settle(scene)
+                clickText(scene, "Copy value")
+                settle(scene)
+                assertEquals(listOf(ids.getValue("account"), ids.getValue("token")), copied)
             }
         }
     }
@@ -163,7 +194,10 @@ class AttachmentPreviewJsonScreenTest {
         }
     }
 
-    private fun content(text: String) = AttachmentPreviewContent.Json(
+    private fun content(
+        text: String,
+        onCopyNode: (String) -> Unit = {},
+    ) = AttachmentPreviewContent.Json(
         code = AttachmentPreviewCode(
             text = text,
             lineIndex = AttachmentPreviewLineIndex.of(text),
@@ -172,15 +206,18 @@ class AttachmentPreviewJsonScreenTest {
         ),
         preview = parseAttachmentPreviewJson(text, text.encodeToByteArray().size),
         onCopy = {},
+        onCopyNode = onCopyNode,
     )
 
-    private fun clickTab(scene: ImageComposeScene, label: String) {
-        val tab = nodes(scene).first {
+    private fun clickText(scene: ImageComposeScene, label: String) {
+        val node = nodes(scene).first {
             it.config.getOrNull(SemanticsProperties.Text)?.any { text -> text.text == label } == true &&
                 it.config.getOrNull(SemanticsActions.OnClick) != null
         }
-        assertTrue(tab.config[SemanticsActions.OnClick].action!!.invoke())
+        assertTrue(node.config[SemanticsActions.OnClick].action!!.invoke())
     }
+
+    private fun copyAction(row: SemanticsNode) = row.config[SemanticsActions.CustomActions].single()
 
     private fun settle(scene: ImageComposeScene) {
         repeat(5) {

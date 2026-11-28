@@ -6,6 +6,7 @@ struct AttachmentPreviewJsonView<Source: View>: View {
     let tree: AttachmentPreviewJsonTreeSnapshot?
     let errorMessage: String?
     let showTree: Bool
+    let copy: (String) -> Void
     @ViewBuilder let source: () -> Source
     @State private var expandedIds: Set<String>
     @State private var hasShownSource = false
@@ -14,11 +15,13 @@ struct AttachmentPreviewJsonView<Source: View>: View {
         tree: AttachmentPreviewJsonTreeSnapshot?,
         errorMessage: String?,
         showTree: Bool,
+        copy: @escaping (String) -> Void,
         @ViewBuilder source: @escaping () -> Source
     ) {
         self.tree = tree
         self.errorMessage = errorMessage
         self.showTree = showTree
+        self.copy = copy
         self.source = source
         _expandedIds = State(initialValue: tree.map { [$0.rootId] } ?? [])
     }
@@ -36,7 +39,8 @@ struct AttachmentPreviewJsonView<Source: View>: View {
                                 AttachmentPreviewJsonRow(
                                     row: row,
                                     expanded: expandedIds.contains(row.id),
-                                    toggle: { toggle(row.id) }
+                                    toggle: { toggle(row.id) },
+                                    copy: { copy(row.id) }
                                 )
                                 .padding(.leading, CGFloat(min(row.depth, 3)) * 16)
                                 .padding(.vertical, 4)

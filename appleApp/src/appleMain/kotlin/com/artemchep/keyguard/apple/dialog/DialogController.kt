@@ -798,6 +798,11 @@ internal class DialogController(
         attachmentPreviewDialog.handlers?.content?.onCopy?.invoke()
     }
 
+    fun invokeAttachmentPreviewJsonCopy(id: String) {
+        val content = attachmentPreviewDialog.handlers?.content as? AttachmentPreviewContent.Json ?: return
+        content.onCopyNode(id)
+    }
+
     /** Cancels a running archive operation, otherwise goes up a folder. */
     fun attachmentPreviewBack() {
         attachmentPreviewDialog.handlers?.onNavigateBack?.invoke()

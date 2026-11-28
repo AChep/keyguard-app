@@ -34,8 +34,28 @@ data class AttachmentPreviewJsonNode(
 
 /** Preorder index: collapsed subtrees can be skipped without visiting their children. */
 @Immutable
-class AttachmentPreviewJsonTree internal constructor(private val nodes: List<AttachmentPreviewJsonNode>) {
+class AttachmentPreviewJsonTree internal constructor(
+    private val nodes: List<AttachmentPreviewJsonNode>,
+    /** Parsed values, by node index. They share the parsed document. */
+    private val elements: List<JsonElement>,
+) {
     val rootId: String get() = nodes.first().id
+
+    /**
+     * Returns the full value of a node, or `null` if there is no such node:
+     * a primitive as plain text, such as a string without quotes, and an
+     * object or an array as JSON.
+     */
+    fun copyText(id: String): String? {
+        val element = id.toIntOrNull()
+            ?.let(elements::getOrNull)
+            ?: return null
+        return when (element) {
+            is JsonPrimitive -> element.content
+            is JsonObject,
+            is JsonArray -> JSON_PRETTY_PRINT.encodeToString(JsonElement.serializer(), element)
+        }
+    }
 
     fun visibleRows(expandedIds: Set<String>): List<AttachmentPreviewJsonNode> = buildList {
         var index = 0
@@ -53,6 +73,7 @@ internal const val JSON_TREE_MAX_NODES = 10_000
 private const val VALUE_PREVIEW_CHARS = 512
 private const val PATH_PREVIEW_CHARS = 256
 private val JSON_NUMBER = Regex("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?")
+private val JSON_PRETTY_PRINT = Json { prettyPrint = true }
 
 /** Replacement decoding is useful for source, but must not repair a malformed JSON document. */
 internal fun parseAttachmentPreviewJsonBytes(
@@ -94,7 +115,12 @@ fun parseAttachmentPreviewJson(
         if (builder.memberCount != memberCount) {
             AttachmentPreviewJsonPreview(error = AttachmentPreviewJsonError.DuplicateKeys)
         } else {
-            AttachmentPreviewJsonPreview(tree = AttachmentPreviewJsonTree(builder.nodes.toList()))
+            AttachmentPreviewJsonPreview(
+                tree = AttachmentPreviewJsonTree(
+                    nodes = builder.nodes.toList(),
+                    elements = builder.elements.toList(),
+                ),
+            )
         }
     } catch (_: SerializationException) {
         AttachmentPreviewJsonPreview(error = AttachmentPreviewJsonError.Invalid)
@@ -173,6 +199,7 @@ private class JsonStructureInspector {
 
 private class JsonTreeBuilder(private val checkCancellation: () -> Unit) {
     val nodes = mutableListOf<AttachmentPreviewJsonNode>()
+    val elements = mutableListOf<JsonElement>()
     var memberCount = 0
         private set
 
@@ -196,6 +223,7 @@ private class JsonTreeBuilder(private val checkCancellation: () -> Unit) {
             subtreeEnd = index + 1,
         )
         nodes += node
+        elements += element
         val path = (if (depth == 0) key else "$parentPath / ${node.key}").previewSummary(PATH_PREVIEW_CHARS)
         when (element) {
             is JsonObject -> element.forEach { (name, value) -> add(value, name, path, depth + 1) }

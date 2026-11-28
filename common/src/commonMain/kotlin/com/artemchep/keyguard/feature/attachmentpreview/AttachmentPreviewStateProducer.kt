@@ -400,13 +400,13 @@ internal fun decodeTextPreview(
         syntaxLanguage = attachmentPreviewSyntaxLanguageByFileName(fileName),
         annotatedString = AnnotatedString(text),
     )
-    val onCopy = {
+    val copyConcealed: (String) -> Unit = { value ->
         copyText.copy(
-            text = text,
+            text = value,
             hidden = true,
-            type = CopyText.Type.VALUE,
         )
     }
+    val onCopy = { copyConcealed(text) }
     val kind = attachmentPreviewKindByFileName(fileName)
     val table = if (kind == AttachmentPreviewKind.Table) {
         val delimiter = attachmentPreviewTableDelimiter(fileName, text)
@@ -415,11 +415,14 @@ internal fun decodeTextPreview(
         null
     }
     return when {
-        isJson -> AttachmentPreviewContent.Json(
-            code = code,
-            preview = parseAttachmentPreviewJsonBytes(text, bytes, offset, checkCancellation),
-            onCopy = onCopy,
-        )
+        isJson -> parseAttachmentPreviewJsonBytes(text, bytes, offset, checkCancellation).let { preview ->
+            AttachmentPreviewContent.Json(
+                code = code,
+                preview = preview,
+                onCopy = onCopy,
+                onCopyNode = { id -> preview.tree?.copyText(id)?.let(copyConcealed) },
+            )
+        }
 
         kind == AttachmentPreviewKind.Markdown -> AttachmentPreviewContent.Markdown(
             code = code,

@@ -534,7 +534,6 @@
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
     <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
-    <string name="attachment_preview_action_copy_all">Copy all</string>
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
     <string name="attachment_preview_action_source">Source</string>
     <string name="attachment_preview_action_rendered_preview">Preview</string>
@@ -748,6 +747,8 @@
 
     <string name="copy">Copy</string>
     <string name="copy_value">Copy value</string>
+    <string name="copy_all">Copy all</string>
+    <string name="copy_json">Copy JSON</string>
     <string name="copy_url">Copy URL</string>
     <string name="copy_uri">Copy URI</string>
     <string name="copy_send">Copy send</string>

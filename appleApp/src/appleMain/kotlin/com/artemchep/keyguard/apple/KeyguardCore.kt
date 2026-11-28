@@ -787,6 +787,9 @@ class KeyguardCore(runtime: KeyguardRuntime, initialScenePhase: KeyguardScenePha
      */
     fun invokeAttachmentPreviewCopy() = dialogController.invokeAttachmentPreviewCopy()
 
+    /** Copies the full value of a JSON tree node, by its id, the same way as [invokeAttachmentPreviewCopy]. */
+    fun invokeAttachmentPreviewJsonCopy(id: String) = dialogController.invokeAttachmentPreviewJsonCopy(id)
+
     fun attachmentPreviewBack() = dialogController.attachmentPreviewBack()
     fun attachmentPreviewOpenBreadcrumb(index: Int) = dialogController.attachmentPreviewOpenBreadcrumb(index)
     fun attachmentPreviewSave() = dialogController.attachmentPreviewSave()

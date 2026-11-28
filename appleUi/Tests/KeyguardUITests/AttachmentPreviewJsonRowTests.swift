@@ -9,12 +9,12 @@ final class AttachmentPreviewJsonRowTests: XCTestCase {
     func testLongRowsStayWithinNarrowWidthAndGrowForAccessibleText() {
         let row = AttachmentPreviewJsonRowsFixtures.longRow
         let regular = NSHostingView(
-            rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: {})
+            rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: {}, copy: {})
                 .dynamicTypeSize(.large)
                 .frame(width: 220)
         )
         let accessible = NSHostingView(
-            rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: {})
+            rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: {}, copy: {})
                 .dynamicTypeSize(.accessibility3)
                 .frame(width: 220)
         )
@@ -26,13 +26,10 @@ final class AttachmentPreviewJsonRowTests: XCTestCase {
     func testContainerIsAnAccessibleButtonWithExpansionState() async throws {
         let row = AttachmentPreviewJsonRowsFixtures.row("container", key: "account", type: .object, count: 2)
         var presses = 0
-        let host = NSHostingView(rootView: AttachmentPreviewJsonRow(row: row, expanded: false) { presses += 1 })
-        let window = NSWindow(
-            contentRect: CGRect(x: 0, y: 0, width: 320, height: 160),
-            styleMask: [.titled], backing: .buffered, defer: false
+        let host = NSHostingView(
+            rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: { presses += 1 }, copy: {})
         )
-        window.isReleasedWhenClosed = false
-        window.contentView = host
+        let window = showInWindow(host)
         defer { window.close() }
         await settle(host)
 
@@ -44,10 +41,37 @@ final class AttachmentPreviewJsonRowTests: XCTestCase {
         await settle(host)
         XCTAssertEqual(presses, 1)
 
-        host.rootView = AttachmentPreviewJsonRow(row: row, expanded: true) { presses += 1 }
+        host.rootView = AttachmentPreviewJsonRow(row: row, expanded: true, toggle: { presses += 1 }, copy: {})
         await settle(host)
         let expanded = try XCTUnwrap(accessibleElements(host).first { $0.accessibilityRole() == .button })
         XCTAssertEqual(expanded.accessibilityValue() as? String, L10n.attachmentPreviewJsonExpanded)
+    }
+
+    func testRowsExposeACopyActionNamedByValueKind() async throws {
+        let fixtures = AttachmentPreviewJsonRowsFixtures.self
+        let cases = [
+            (fixtures.row("string", key: "token", type: .string, value: "\"a\""), L10n.copyValue),
+            (fixtures.row("object", key: "account", type: .object, count: 2), L10n.copyJson),
+            (fixtures.row("empty", key: "metadata", type: .array), L10n.copyJson),
+        ]
+        for (row, title) in cases {
+            var copies = 0
+            let host = NSHostingView(
+                rootView: AttachmentPreviewJsonRow(row: row, expanded: false, toggle: {}, copy: { copies += 1 })
+            )
+            let window = showInWindow(host)
+            await settle(host)
+
+            let action = try XCTUnwrap(
+                accessibleElements(host)
+                    .compactMap { $0.accessibilityCustomActions()?.first { $0.name == title } }
+                    .first,
+                row.key
+            )
+            XCTAssertTrue(action.handler?() == true, row.key)
+            XCTAssertEqual(copies, 1, row.key)
+            window.close()
+        }
     }
 
     func testRowsRenderAtNarrowWidths() async throws {
@@ -58,12 +82,7 @@ final class AttachmentPreviewJsonRowTests: XCTestCase {
                     .dynamicTypeSize(accessible ? .accessibility3 : .large)
                     .frame(width: size.width, height: size.height)
             )
-            let window = NSWindow(
-                contentRect: CGRect(origin: .zero, size: size),
-                styleMask: [.titled], backing: .buffered, defer: false
-            )
-            window.isReleasedWhenClosed = false
-            window.contentView = host
+            let window = showInWindow(host, size: size)
             await settle(host)
             let bitmap = try XCTUnwrap(host.bitmapImageRepForCachingDisplay(in: host.bounds))
             host.cacheDisplay(in: host.bounds, to: bitmap)
@@ -81,6 +100,16 @@ final class AttachmentPreviewJsonRowTests: XCTestCase {
             }
             window.close()
         }
+    }
+
+    private func showInWindow(_ host: NSView, size: CGSize = CGSize(width: 320, height: 160)) -> NSWindow {
+        let window = NSWindow(
+            contentRect: CGRect(origin: .zero, size: size),
+            styleMask: [.titled], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        window.contentView = host
+        return window
     }
 
     private func settle(_ view: NSView) async {

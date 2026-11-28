@@ -54,6 +54,8 @@ Markdown and table previews have **Copy all** and **Wrap lines** buttons.
 JSON (`.json`, `.jsonld`) opens as a collapsible **Tree**. Select an object or
 array to expand it, or switch to **Source** to read the complete file. On Wear
 OS, use the **Tree view** switch. **Copy all** copies the original source.
+To copy one value, select it, or long-press or right-click its row. Objects and
+arrays copy as JSON.
 Invalid JSON, duplicate property names, or files exceeding the tree limits
 (1 MiB, 64 nested levels, or 10,000 values) open as source.
 

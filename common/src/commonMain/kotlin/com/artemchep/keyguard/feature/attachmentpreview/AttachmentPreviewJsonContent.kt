@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,9 +27,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.stateDescription
@@ -36,10 +39,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.getShapeState
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.tabs.TabItem
@@ -130,6 +137,7 @@ internal fun AttachmentPreviewJsonContent(
                 modifier = viewerModifier,
                 tree = tree,
                 state = state,
+                onCopyNode = content.onCopyNode,
             )
         } else {
             AttachmentPreviewJsonSource(
@@ -146,6 +154,7 @@ internal fun AttachmentPreviewJsonContent(
 private fun AttachmentPreviewJsonTreeContent(
     tree: AttachmentPreviewJsonTree,
     state: AttachmentPreviewJsonViewState,
+    onCopyNode: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val expandedIds = state.expandedIds
@@ -165,54 +174,116 @@ private fun AttachmentPreviewJsonTreeContent(
                 expanded = node.id in expandedIds,
                 shapeState = getShapeState(rows, index) { _, _ -> true },
                 onToggle = { state.toggle(node.id) },
+                onCopy = { onCopyNode(node.id) },
             )
         }
     }
 }
 
+/**
+ * Clicking an expandable row toggles it. Clicking any other row, or
+ * long-pressing or right-clicking any row, opens its copy menu.
+ */
 @Composable
 private fun AttachmentPreviewJsonRow(
     node: AttachmentPreviewJsonNode,
     expanded: Boolean,
     shapeState: Int,
     onToggle: () -> Unit,
+    onCopy: () -> Unit,
 ) {
     val summary = node.summary()
     val expansion = stringResource(
         if (expanded) Res.string.attachment_preview_json_expanded else Res.string.attachment_preview_json_collapsed,
     )
+    val copyTitle = node.copyTitle()
     val parentPath = node.parentPath.takeIf { node.depth > JSON_MAX_INDENT_DEPTH }
-    FlatItemSimpleExpressive(
+    var menuExpanded by remember { mutableStateOf(false) }
+    val onShowMenu = { menuExpanded = true }
+    val onClickRow = if (node.expandable) onToggle else onShowMenu
+    FlatItemLayoutExpressive(
         modifier = Modifier.clearAndSetSemantics {
             contentDescription = listOfNotNull(parentPath, node.key, summary).joinToString(". ")
+            customActions = listOf(
+                CustomAccessibilityAction(copyTitle) {
+                    onCopy()
+                    true
+                },
+            )
             if (node.expandable) {
                 role = Role.Button
                 stateDescription = expansion
-                onClick {
-                    onToggle()
-                    true
-                }
+            }
+            onClick {
+                onClickRow()
+                true
             }
         },
         shapeState = shapeState,
-        title = {
-            AttachmentPreviewJsonTitle(node.key, parentPath)
-        },
-        text = {
-            Text(
-                text = summary,
-                fontFamily = FontFamily.Monospace,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    AttachmentPreviewJsonTitle(node.key, parentPath)
+                },
+                text = {
+                    Text(
+                        text = summary,
+                        fontFamily = FontFamily.Monospace,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
+            )
+            AttachmentPreviewJsonCopyMenu(
+                expanded = menuExpanded,
+                title = copyTitle,
+                onDismissRequest = { menuExpanded = false },
+                onCopy = onCopy,
             )
         },
         leading = {
             AttachmentPreviewJsonLeading(node, expanded)
         },
-        onClick = onToggle.takeIf { node.expandable },
+        onClick = onClickRow,
+        onLongClick = onShowMenu,
         enabled = true,
     )
 }
+
+@Composable
+private fun AttachmentPreviewJsonCopyMenu(
+    expanded: Boolean,
+    title: String,
+    onDismissRequest: () -> Unit,
+    onCopy: () -> Unit,
+) {
+    KeyguardDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+    ) {
+        DropdownMenuItemFlat(
+            action = FlatItemAction(
+                icon = Icons.Outlined.ContentCopy,
+                title = TextHolder.Value(title),
+                type = FlatItemAction.Type.COPY,
+                onClick = onCopy,
+            ),
+        )
+    }
+}
+
+/** Objects and arrays copy as JSON, other values as plain text. */
+@Composable
+private fun AttachmentPreviewJsonNode.copyTitle(): String = stringResource(
+    when (type) {
+        AttachmentPreviewJsonType.Object,
+        AttachmentPreviewJsonType.Array -> Res.string.copy_json
+        AttachmentPreviewJsonType.String,
+        AttachmentPreviewJsonType.Number,
+        AttachmentPreviewJsonType.Boolean,
+        AttachmentPreviewJsonType.Null -> Res.string.copy_value
+    },
+)
 
 @Composable
 private fun AttachmentPreviewJsonTitle(key: String, parentPath: String?) {

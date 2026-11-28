@@ -170,6 +170,11 @@ final class DialogsModel: SnapshotObserving {
         core.invokeAttachmentPreviewCopy()
     }
 
+    /// Copies the full value of a JSON tree node: an object or an array as JSON.
+    func copyAttachmentPreviewJsonNode(_ id: String) {
+        core.invokeAttachmentPreviewJsonCopy(id: id)
+    }
+
     func backInAttachmentArchive() { core.attachmentPreviewBack() }
     func openAttachmentArchiveBreadcrumb(_ index: Int) { core.attachmentPreviewOpenBreadcrumb(index: Int32(index)) }
     func saveAttachmentArchiveEntry() { core.attachmentPreviewSave() }

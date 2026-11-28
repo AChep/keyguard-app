@@ -8,13 +8,18 @@ struct AttachmentPreviewJsonRowsPreview: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach(AttachmentPreviewJsonRowsFixtures.rows, id: \.id) { row in
-                    AttachmentPreviewJsonRow(row: row, expanded: expandedIds.contains(row.id)) {
-                        if expandedIds.contains(row.id) {
-                            expandedIds.remove(row.id)
-                        } else {
-                            expandedIds.insert(row.id)
-                        }
-                    }
+                    AttachmentPreviewJsonRow(
+                        row: row,
+                        expanded: expandedIds.contains(row.id),
+                        toggle: {
+                            if expandedIds.contains(row.id) {
+                                expandedIds.remove(row.id)
+                            } else {
+                                expandedIds.insert(row.id)
+                            }
+                        },
+                        copy: {}
+                    )
                 }
             }
             .padding(24)

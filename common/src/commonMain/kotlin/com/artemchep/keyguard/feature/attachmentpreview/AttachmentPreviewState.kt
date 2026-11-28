@@ -77,6 +77,8 @@ sealed interface AttachmentPreviewContent {
         override val code: AttachmentPreviewCode,
         val preview: AttachmentPreviewJsonPreview,
         override val onCopy: () -> Unit,
+        /** Copies the full value of a tree node, by its id. */
+        val onCopyNode: (id: String) -> Unit,
     ) : TextLike
 
     /**

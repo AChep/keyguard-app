@@ -518,7 +518,6 @@
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
     <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
-    <string name="attachment_preview_action_copy_all">Kopiér alt</string>
     <string name="attachment_preview_action_wrap_lines">Ombryd linjer</string>
     <string name="attachment_preview_action_source">Kildetekst</string>
     <string name="attachment_preview_action_rendered_preview">Forhåndsvisning</string>
@@ -722,6 +721,8 @@
     <string name="selection_actions_title">Handlinger for valgte emner</string>
     <string name="copy">Kopiér</string>
     <string name="copy_value">Kopiér værdi</string>
+    <string name="copy_all">Copy all</string>
+    <string name="copy_json">Copy JSON</string>
     <string name="copy_url">Kopiér URL</string>
     <string name="copy_uri">Kopiér URI</string>
     <string name="copy_send">Kopiér send</string>
@@ -3144,6 +3145,17 @@
     <string name="browser_extension_options_browser_saving_text">Stops the browser from offering to save passwords, so only Keyguard asks.</string>
     <string name="browser_extension_options_browser_saving_other_extension">Another extension manages this setting.</string>
     <string name="browser_extension_options_browser_saving_not_controllable">The browser or a policy manages this setting.</string>
+    <!-- Browser extension: the access to websites that the browser grants the extension; without it the extension doesn't run on a website -->
+    <string name="browser_extension_site_access_title">Website access</string>
+    <string name="browser_extension_site_access_all_text">Keyguard works on every website.</string>
+    <string name="browser_extension_site_access_missing_text">Keyguard works only on websites you allowed. Other websites get no inline menu or save prompts.</string>
+    <string name="browser_extension_site_access_popup_text">No access to this website</string>
+    <!-- Browser extension popup: the hint of "No access to this website", why the access matters -->
+    <string name="browser_extension_site_access_popup_hint">Keyguard needs access to a website to show its inline menu in login fields and to offer to save new logins. Your browser hasn’t granted it access to this website. Filling from this popup still works.</string>
+    <string name="browser_extension_site_access_allow_all_button">Allow on all websites</string>
+    <string name="browser_extension_site_access_allow_site_button">Only this website</string>
+    <!-- Browser extension options: how to allow one website instead of all -->
+    <string name="browser_extension_site_access_guide">To allow a single website, open it and pick Keyguard in the browser’s extensions menu.</string>
     <string name="browser_extension_error_no_form">Keyguard found no login form on this page.</string>
     <string name="browser_extension_error_nothing_to_fill">This login has nothing to fill into this form.</string>
     <string name="browser_extension_error_no_otp_field">Keyguard found no one-time code field on this page.</string>

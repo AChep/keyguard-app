@@ -51,6 +51,34 @@ class MsixBrowserHostAliasTest(unittest.TestCase):
             with self.assertRaisesRegex(verify.InspectionError, "expected one"):
                 verify.inspect_msix_browser_host_alias(root)
 
+
+class MsixCliAliasTest(unittest.TestCase):
+    def test_requires_a_hidden_full_trust_console_alias_of_the_bundled_cli(self):
+        template = (verify.REPOSITORY / "desktopApp/msix/AppxManifest.xml").read_text(encoding="utf-8")
+        changes = (
+            ('Alias="keyguard.exe"', 'Alias="other.exe"'),
+            (r'Executable="app\resources\keyguard.exe"', 'Executable="Keyguard.exe"'),
+            ('AppListEntry="none"', 'AppListEntry="default"'),
+            ('desktop4:Subsystem="console"', 'desktop4:Subsystem="windows"'),
+            ('desktop4:SupportsMultipleInstances="true"', 'desktop4:SupportsMultipleInstances="false"'),
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            manifest = root / "AppxManifest.xml"
+            manifest.write_text(template, encoding="utf-8")
+            with self.assertRaisesRegex(verify.InspectionError, "must start the bundled CLI"):
+                verify.inspect_msix_cli_alias(root)
+            cli = root / "app/resources/keyguard.exe"
+            cli.parent.mkdir(parents=True)
+            cli.touch()
+            verify.inspect_msix_cli_alias(root)
+            for before, after in changes:
+                with self.subTest(change=after):
+                    manifest.write_text(template.replace(before, after), encoding="utf-8")
+                    with self.assertRaisesRegex(verify.InspectionError, "invalid MSIX CLI alias"):
+                        verify.inspect_msix_cli_alias(root)
+
+
 class StartupMetadataTest(unittest.TestCase):
     def test_msix_requires_opt_in_and_login_intent(self):
         template = (verify.REPOSITORY / "desktopApp/msix/AppxManifest.xml").read_text(encoding="utf-8")

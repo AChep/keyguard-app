@@ -127,7 +127,11 @@ BRIDGE_EXPORTS = frozenset((
 ))
 PLATFORM_BRIDGE_EXPORTS = {
     "linux": {"disableLinuxProcessDumps"},
-    "windows": {"excludeWindowsHeapFromErrorReports", "windowsErrorReportsExcludeHeap"},
+    "windows": {
+        "excludeWindowsHeapFromErrorReports",
+        "windowsErrorReportsExcludeHeap",
+        "Java_com_artemchep_desktop_WindowsPackageIdentityJni_familyName",
+    },
 }
 
 
@@ -197,6 +201,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         if (root / "AppxManifest.xml").is_file():
             inspect_msix_passkey_provider(root)
             inspect_msix_browser_host_alias(root)
+            inspect_msix_cli_alias(root)
             inspect_msix_startup(root)
     resources = find_resources(root, target_platform)
     suffix = LIBRARY_SUFFIX[target_platform]
@@ -302,6 +307,44 @@ def inspect_msix_browser_host_alias(root: Path) -> None:
     except (OSError, ValueError, ET.ParseError) as error:
         raise InspectionError(f"{root}: invalid MSIX browser connector alias: {error}") from error
     print(f"OK {root} (browser connector execution alias)")
+
+
+def inspect_msix_cli_alias(root: Path) -> None:
+    """The CLI alias must activate the bundled console binary from its own application entry."""
+    try:
+        manifest = ET.parse(root / "AppxManifest.xml")
+        ns = {
+            "appx": "http://schemas.microsoft.com/appx/manifest/foundation/windows10",
+            "uap": "http://schemas.microsoft.com/appx/manifest/uap/windows10",
+            "uap5": "http://schemas.microsoft.com/appx/manifest/uap/windows10/5",
+        }
+        desktop4 = "http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+        subsystem = f"{{{desktop4}}}Subsystem"
+        executable = r"app\resources\keyguard.exe"
+        apps = manifest.findall("appx:Applications/appx:Application", ns)
+        aliases = [
+            (app, extension, alias)
+            for app in apps
+            for extension in app.findall("appx:Extensions/uap5:Extension[@Category='windows.appExecutionAlias']", ns)
+            for alias in extension.findall("uap5:AppExecutionAlias", ns)
+            for _ in alias.findall("uap5:ExecutionAlias[@Alias='keyguard.exe']", ns)
+        ]
+        if len(aliases) != 1:
+            raise ValueError("expected one keyguard.exe alias")
+        app, extension, alias = aliases[0]
+        if (app.get("Executable") != executable or app.get("EntryPoint") != "Windows.FullTrustApplication"
+                or extension.get("Executable", executable) != executable
+                or extension.get("EntryPoint", "Windows.FullTrustApplication") != "Windows.FullTrustApplication"
+                or not (root / "app/resources/keyguard.exe").is_file()):
+            raise ValueError("the alias must start the bundled CLI")
+        if app.find("uap:VisualElements[@AppListEntry='none']", ns) is None:
+            raise ValueError("the CLI application must be hidden")
+        if (app.get(subsystem) != "console" or alias.get(subsystem) != "console"
+                or app.get(f"{{{desktop4}}}SupportsMultipleInstances") != "true"):
+            raise ValueError("the CLI application and alias must support concurrent console invocations")
+    except (OSError, ValueError, ET.ParseError) as error:
+        raise InspectionError(f"{root}: invalid MSIX CLI alias: {error}") from error
+    print(f"OK {root} (CLI execution alias)")
 
 
 def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False,

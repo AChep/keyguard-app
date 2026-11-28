@@ -156,6 +156,8 @@
 -keepclassmembers class * implements com.artemchep.desktop.MacFilePromiseReader { <methods>; }
 -keepclassmembers class * implements com.artemchep.desktop.WindowsVirtualFileReader { <methods>; }
 -keepclassmembers class com.artemchep.desktop.WindowsVirtualFileEntry { <methods>; }
+# The Windows package identity bridge is looked up by its JNI export name.
+-keepclasseswithmembernames class com.artemchep.desktop.WindowsPackageIdentityJni { native <methods>; }
 # The native library of device-to-device sync binds to NativeWebrtcJni by
 # name, and WebRTC calls block, poll and close across threads. Keep its method
 # bodies as written, as for agent IPC above.

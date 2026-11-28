@@ -12,9 +12,10 @@
   xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
   xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
   xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap uap3 uap5 uap10 com desktop desktop6 rescap">
+  IgnorableNamespaces="uap uap3 uap5 uap10 com desktop desktop4 desktop6 rescap">
 
   <Identity
     Name="@IDENTITY_NAME@"
@@ -78,6 +79,20 @@
             <desktop:ExecutionAlias Alias="keyguard-browser-host.exe" />
           </uap3:AppExecutionAlias>
         </uap3:Extension>
+      </Extensions>
+    </Application>
+    <!-- Each application can declare one alias extension, so the CLI has its own entry. -->
+    <Application Id="KeyguardCli" Executable="app\resources\keyguard.exe" EntryPoint="Windows.FullTrustApplication"
+      desktop4:Subsystem="console" desktop4:SupportsMultipleInstances="true">
+      <uap:VisualElements AppListEntry="none" DisplayName="Keyguard CLI"
+        Description="Keyguard command-line tool" BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <uap5:Extension Category="windows.appExecutionAlias">
+          <uap5:AppExecutionAlias desktop4:Subsystem="console">
+            <uap5:ExecutionAlias Alias="keyguard.exe" />
+          </uap5:AppExecutionAlias>
+        </uap5:Extension>
       </Extensions>
     </Application>
   </Applications>

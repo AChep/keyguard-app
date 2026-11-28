@@ -62,6 +62,20 @@ Add-AppxPackage desktopApp\build\compose\binaries\main\msix\Keyguard-*.msix
 
 Remove with `Get-AppxPackage ArtemChepurnyi.Keyguard | Remove-AppxPackage`.
 
+## Command-line tool
+
+The hidden `KeyguardCli` entry registers `keyguard.exe` as a console alias.
+Keyguard's CLI settings and generated MCP config use the alias under
+`%LOCALAPPDATA%\Microsoft\WindowsApps\<package family name>`. That path
+selects the same package even when another install owns the bare command.
+
+On x64 and ARM64, install the package in a test account and check
+`keyguard.exe --version` in Command Prompt and PowerShell. With a test vault,
+approve a `keyguard run` request and check the child command's output and exit
+code. Initialize an MCP session over stdio with the generated config. Upgrade
+the package and repeat with the same config. With an old Scoop shim on
+`PATH`, check that the full path from Keyguard still launches the MSIX CLI.
+
 ## Passkey provider
 
 The package registers `Keyguard.exe --windows-passkey-provider` as a COM server.

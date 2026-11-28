@@ -2,6 +2,7 @@ package com.artemchep.keyguard.desktop.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import com.artemchep.desktop.currentWindowsPackageFamilyName
 import com.artemchep.keyguard.common.service.cli.CliPlatformCapability
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentManager
@@ -27,7 +28,15 @@ internal fun CliAgentIntegration() {
     val manager: CliAgentManager = koinInject()
     val showMessage: ShowMessage = koinInject()
     LaunchedEffect(manager) {
-        val command = manager.cliBinaryPath?.toAbsolutePath()?.toString() ?: "keyguard"
+        val cliPath = manager.cliBinaryPath?.let { bundledCli ->
+            externalCliPath(
+                bundledCli = bundledCli,
+                packageFamilyName = currentWindowsPackageFamilyName(),
+                localAppData = System.getenv("LOCALAPPDATA"),
+                userHome = System.getProperty("user.home"),
+            ).toString()
+        }
+        val command = cliPath ?: "keyguard"
         val flatpak = (CurrentPlatform as? Platform.Desktop.Linux)?.isFlatpak == true
         host.mcp.configure(
             command = if (flatpak) "flatpak" else command,
@@ -37,7 +46,7 @@ internal fun CliAgentIntegration() {
             supported = CurrentPlatform is Platform.Desktop.Linux || CurrentPlatform is Platform.Desktop.MacOS,
         )
         host.cli.configureRuntime(
-            path = manager.cliBinaryPath?.toAbsolutePath()?.toString(),
+            path = cliPath,
             capabilities = cliCapabilities(flatpak),
             socketPath = manager.defaultAgentSocketPath?.toAbsolutePath()?.toString(),
         )
@@ -59,6 +68,20 @@ internal fun CliAgentIntegration() {
             )
         }
     }
+}
+
+internal fun externalCliPath(
+    bundledCli: Path,
+    packageFamilyName: String?,
+    localAppData: String?,
+    userHome: String,
+): Path {
+    if (packageFamilyName == null) return bundledCli.toAbsolutePath()
+
+    val local = localAppData?.takeIf(String::isNotBlank)?.let(Path::of)?.takeIf(Path::isAbsolute)
+        ?: Path.of(userHome, "AppData", "Local")
+    // The per-package alias survives upgrades and selects this package even when another build owns the global alias.
+    return local.resolve("Microsoft").resolve("WindowsApps").resolve(packageFamilyName).resolve("keyguard.exe")
 }
 
 /** The Flatpak sandbox holds the CLI, and every command that the CLI starts. */

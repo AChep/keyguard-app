@@ -13,6 +13,11 @@ lists its commands, flags, exit codes and errors, and the tools of its MCP
 server. To set it up, see
 [Run a command with an environment](/docs/environments/#run-a-command-with-an-environment).
 
+The Microsoft Store and MSIX builds register a `keyguard.exe` app execution
+alias. If the command is missing, enable `keyguard.exe` for Keyguard in Windows
+**App execution aliases**. To select a specific install, use the full path
+under **Location of the command-line tool** in Keyguard's settings.
+
 ## Commands
 
 | Command | What it does |

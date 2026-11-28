@@ -15,6 +15,8 @@ mod hotkey;
 mod keyboard;
 mod keychain;
 mod notification;
+#[cfg(windows)]
+mod package_identity;
 mod power;
 mod virtual_file;
 #[cfg(target_os = "linux")]

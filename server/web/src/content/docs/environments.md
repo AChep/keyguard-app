@@ -96,20 +96,25 @@ shows the command for the path you enter.
 
 1. In **Settings > Developer > Command line**, turn on
    **Enable command-line access**.
-2. Link the file under **Location of the command-line tool** into a folder on
-   your `PATH`:
+2. Copy the full path under **Location of the command-line tool**. On macOS and
+   Linux, link the file.
 
    ```sh
    ln -s "<CLI_PATH>" ~/.local/bin/keyguard
    ```
 
-   On Windows, add the folder that holds `keyguard.exe` to `PATH`. On
-   AppImage, copy the file instead, and copy it again after each update.
+   On AppImage, copy the file to a folder on `PATH` after each update.
 3. In the environment's menu, select **Copy ID**.
-4. Run your command after `--`:
+4. Run your command after `--`. On Windows, use the copied path in PowerShell.
+
+   ```powershell
+   & "<CLI_PATH>" run --environment "<ENVIRONMENT_ID>" -- npm start
+   ```
+
+   On macOS and Linux, use `keyguard`.
 
    ```sh
-   keyguard run --environment <ENVIRONMENT_ID> -- npm start
+   keyguard run --environment "<ENVIRONMENT_ID>" -- npm start
    ```
 
 5. In Keyguard, select **Approve**.
@@ -136,7 +141,7 @@ keyguard run --environment <ENVIRONMENT_ID> -- printenv <NAME>
 On Windows, in PowerShell:
 
 ```powershell
-keyguard run --environment <ENVIRONMENT_ID> -- powershell -c '$env:<NAME>'
+& "<CLI_PATH>" run --environment "<ENVIRONMENT_ID>" -- powershell -c '$env:<NAME>'
 ```
 
 ## Variables

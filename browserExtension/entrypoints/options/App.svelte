@@ -22,6 +22,7 @@
     type BrowserSavingState,
     type PrivacyBrowser,
   } from "../../src/lib/options/browserSaving";
+  import { observeSiteAccess, requestAllSites } from "../../src/lib/options/siteAccess";
   import {
     DEFAULT_OPTIONS,
     OptionsStore,
@@ -44,6 +45,10 @@
   const browserSavingUnavailable = $derived(
     browserSaving === "loading" || browserSaving === "error" || browserSavingNoteKey !== undefined,
   );
+
+  // Access to every website. Undefined until the first check answers, so that
+  // the row doesn't show a wrong text.
+  let allSites = $state<boolean | undefined>();
 
   type Toggle = { key: keyof ExtensionOptions; icon: IconName; title: I18nKey; text: I18nKey };
 
@@ -88,6 +93,8 @@
   ];
 
   $effect(() => watchOptions(storage, (next) => (options = next)));
+  // A grant from the button comes back through `permissions.onAdded`.
+  $effect(() => observeSiteAccess(browser, undefined, (granted) => (allSites = granted)));
   onMount(() => void loadBrowserSaving());
 
   async function loadBrowserSaving() {
@@ -149,6 +156,34 @@
 
   <div class="groups">
     <div class="group">
+      <!-- Without it the content script doesn't run, so the inline menu and save prompts depend on it. -->
+      <div class="row setting" aria-busy={allSites === undefined}>
+        <span class="leading"><Icon name="public" /></span>
+        <span class="row-content">
+          <span class="body-large">{t("browser_extension_site_access_title")}</span>
+          <!-- Announced as a grant changes it: the focused button goes away. -->
+          <span class="body-medium medium" role="status">
+            {#if allSites}
+              {t("browser_extension_site_access_all_text")}
+            {:else if allSites === false}
+              {t("browser_extension_site_access_missing_text")}
+            {/if}
+          </span>
+          {#if allSites === false}
+            <span class="note body-small">{t("browser_extension_site_access_guide")}</span>
+            <span class="row-actions">
+              <!-- The request starts in the click itself: it needs the user's gesture. -->
+              <button
+                class="btn btn-filled btn-xs"
+                type="button"
+                onclick={() => void requestAllSites(browser).catch(() => {})}
+              >
+                {t("browser_extension_site_access_allow_all_button")}
+              </button>
+            </span>
+          {/if}
+        </span>
+      </div>
       {#each generalToggles as toggle (toggle.key)}
         {@render toggleRow(toggle)}
       {/each}
@@ -283,6 +318,11 @@
   .note {
     margin-top: var(--space-4);
     color: var(--on-surface-variant);
+  }
+
+  .row-actions {
+    display: flex;
+    margin-top: var(--space-8);
   }
 
   /* A note under the group, 16px in like its rows. */

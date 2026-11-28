@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import type { Plugin } from "vite";
 import { defineConfig } from "wxt";
 import { NOTICES_FILE, thirdPartyNotices } from "./scripts/third-party-notices";
+import { WEB_PAGES } from "./src/lib/options/siteAccess";
 
 // The add-on ID on Firefox, which is also the origin the app sees.
 const GECKO_ID = "browser@keyguard.dev";
@@ -18,9 +19,6 @@ const DEV_KEY =
   "DS7bPAkNemVhpF9eircSKidlr+r6qgRAJ96SiH2CNqMhWJCP52F4ATbVKSDgBLfWnMkMo4nllgPGnpQXfDAJklqUzIbEXFfQLawfE0aKxSEz" +
   "rdQruC6jhk7G+MU2g68iL6GpBIS/g8dNz0yO/7bT/nG1ri9WxZ+QZNzvSqBUPPhGLnM7npvjnaGPAxVCFoet2Naaz5Ccx/c43s3tKawylZiH" +
   "xYOVOTUFtwrrvWS782lzKJBUpey2ioVYcUbe6D9V1d2+05Khk993y2Dgz6t4fQIDAQAB";
-
-// The pages the extension works on.
-const WEB_PAGES = ["http://*/*", "https://*/*"];
 
 // The Wasm binary of util/crypto, copied next to the background script. The
 // loader asks for it by this name, see src/lib/crypto/wasm.ts.
@@ -201,6 +199,10 @@ export default defineConfig({
       // Chromium's favicons of the pages, for the site icons of logins. Firefox
       // has the tabs' `favIconUrl`. See src/lib/background/siteIcon.ts.
       ...(browser === "firefox" ? [] : ["favicon"]),
+      // Chromium: tabs' URLs on sites without access, for the toolbar's request
+      // for access, see src/lib/background/hostAccess.ts. No install warning
+      // next to the host access. Firefox has no such request.
+      ...(browser === "firefox" ? [] : ["tabs"]),
       // Firefox: the background reads the theme's colors for the popup, the
       // inline menu and the save bar, see src/lib/background/theme.ts. No
       // install warning.
@@ -210,7 +212,7 @@ export default defineConfig({
     // saving, see src/lib/options/browserSaving.ts.
     optional_permissions: ["privacy"],
     // Web pages only, as the content scripts: not file: or other schemes.
-    host_permissions: WEB_PAGES,
+    host_permissions: [...WEB_PAGES],
     commands: {
       "fill-login": {
         suggested_key: { default: "Ctrl+Shift+L", mac: "Command+Shift+L" },
@@ -223,7 +225,7 @@ export default defineConfig({
     web_accessible_resources: [
       {
         resources: ["inline-menu.html", "menu-details.html", "save-bar.html"],
-        matches: WEB_PAGES,
+        matches: [...WEB_PAGES],
         ...(browser === "firefox" ? {} : { use_dynamic_url: true }),
       },
     ],

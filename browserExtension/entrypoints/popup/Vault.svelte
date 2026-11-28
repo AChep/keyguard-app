@@ -454,11 +454,13 @@
     flex: 1;
     flex-direction: column;
     min-height: 0;
+    /* The snackbar over the popup's footer, see App.svelte. */
+    --snackbar-bottom: calc(16px + var(--popup-footer, 0px));
   }
 
-  /* The snackbar over the action strip. */
+  /* And over the action strip. */
   .raised {
-    --snackbar-bottom: 60px;
+    --snackbar-bottom: calc(60px + var(--popup-footer, 0px));
   }
 
   /* Quick search's field: no box; the icon turns primary while it has focus. */

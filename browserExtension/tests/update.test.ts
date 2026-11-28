@@ -11,6 +11,7 @@ import {
   type UpdateCheck,
   type UpdaterDeps,
 } from "../src/lib/background/update";
+import { WEB_PAGES } from "../src/lib/options/siteAccess";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -187,9 +188,10 @@ describe("an app that needs a newer extension", () => {
   });
 });
 
-describe("open tabs after an update", () => {
-  const WEB = ["http://*/*", "https://*/*"];
+// The manifest's matches, a copy: the fake `tabs.query` tells them by identity.
+const WEB = [...WEB_PAGES];
 
+describe("open tabs after an update", () => {
   it("get the manifest's isolated content scripts where they match, past tabs that fail", async () => {
     const queries: unknown[] = [];
     const injected: [number, string[], boolean][] = [];
@@ -219,5 +221,72 @@ describe("open tabs after an update", () => {
       [6, ["content-scripts/content.js"], true],
       [7, ["content-scripts/top.js"], false],
     ]);
+  });
+});
+
+describe("open tabs after a grant of site access", () => {
+  const GRANT = ["https://a.example/*"];
+  const SCRIPTS = [
+    { matches: WEB, js: ["content-scripts/content.js"], all_frames: true },
+    { matches: WEB, js: ["content-scripts/webauthn.js"], all_frames: true, world: "MAIN" },
+    { matches: ["https://only.example/*"], js: ["content-scripts/top.js"] },
+  ];
+
+  it("get the isolated content scripts only in the granted tabs they match", async () => {
+    const queries: unknown[] = [];
+    const injected: [number, string[], boolean][] = [];
+    await reinjectContentScripts({
+      contentScripts: SCRIPTS,
+      origins: GRANT,
+      tabs: async (query) => {
+        queries.push(query);
+        if (query.url === WEB) return [{ id: 1 }, { id: 2 }, { id: 3 }];
+        // Tab 4 is of the grant, but no script matches it.
+        if (query.url[0] === GRANT[0]) return [{ id: 1 }, {}, { id: 3 }, { id: 4 }];
+        return [{ id: 7 }];
+      },
+      inject: async (tabId, files, allFrames) => {
+        if (tabId === 3) throw new Error("The tab was closed.");
+        injected.push([tabId, files, allFrames]);
+      },
+    });
+    expect(queries).toEqual([
+      { url: GRANT, discarded: false },
+      { url: WEB, discarded: false },
+      { url: ["https://only.example/*"], discarded: false },
+    ]);
+    expect(injected).toEqual([[1, ["content-scripts/content.js"], true]]);
+  });
+
+  it("keep the content scripts of the tabs of the access held before", async () => {
+    const HELD = ["https://held.example/*"];
+    const queries: unknown[] = [];
+    const injected: number[] = [];
+    await reinjectContentScripts({
+      contentScripts: SCRIPTS,
+      origins: WEB,
+      exclude: HELD,
+      tabs: async (query) => {
+        queries.push(query);
+        // Tab 2 is of a site allowed before "Allow on all websites".
+        return query.url[0] === HELD[0] ? [{ id: 2 }] : [{ id: 1 }, { id: 2 }, { id: 3 }];
+      },
+      inject: async (tabId) => void injected.push(tabId),
+    });
+    expect(queries).toEqual([
+      { url: WEB, discarded: false },
+      { url: HELD, discarded: false },
+      { url: WEB, discarded: false },
+      { url: ["https://only.example/*"], discarded: false },
+    ]);
+    expect(injected.sort()).toEqual([1, 1, 3, 3]);
+  });
+
+  it("start nothing for an empty grant", async () => {
+    const tabs = vi.fn(async () => [{ id: 1 }]);
+    const inject = vi.fn(async () => undefined);
+    await reinjectContentScripts({ contentScripts: SCRIPTS, origins: [], tabs, inject });
+    expect(tabs).not.toHaveBeenCalled();
+    expect(inject).not.toHaveBeenCalled();
   });
 });

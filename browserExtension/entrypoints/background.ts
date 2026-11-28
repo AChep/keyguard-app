@@ -20,6 +20,7 @@ import {
 } from "../src/lib/background/clipboard";
 import { BackgroundController, callErrorOf } from "../src/lib/background/controller";
 import { isOwnPage, TabWatch } from "../src/lib/background/frames";
+import { HostAccessRequests } from "../src/lib/background/hostAccess";
 import { PageController, type PagePort } from "../src/lib/background/pages";
 import { PasskeyController } from "../src/lib/background/passkeys";
 import { siteIconSource, siteIconUrl, type SiteIconEnv } from "../src/lib/background/siteIcon";
@@ -27,6 +28,7 @@ import { ThemeSync, type FirefoxThemeApi } from "../src/lib/background/theme";
 import { ExtensionUpdater, reinjectContentScripts } from "../src/lib/background/update";
 import { extensionWasmOptions, loadNoise } from "../src/lib/crypto/wasm";
 import type { NativePort } from "../src/lib/native/connection";
+import { hasSiteAccess, WEB_PAGES } from "../src/lib/options/siteAccess";
 import { OPTIONS_KEY, OptionsStore, parseOptions } from "../src/lib/options/store";
 import type { ContentCommand } from "../src/lib/page/messages";
 import { isCancelled } from "../src/lib/protocol/session";
@@ -172,9 +174,35 @@ export default defineBackground(() => {
       for (const port of popups) post(port, { kind: "status", status });
       passkeys.statusChanged();
       pages.statusChanged();
+      hostAccess?.statusChanged();
       updater.statusChanged(status);
     },
   });
+
+  // Chromium 133+: the toolbar asks for access to a site with logins, see
+  // src/lib/background/hostAccess.ts. Firefox has no such request.
+  const onNavigated = (tabId: number, change: Browser.tabs.OnUpdatedInfo, tab: Browser.tabs.Tab) => {
+    if (change.url !== undefined) void hostAccess?.navigated(tabId, change.url, tab.incognito);
+  };
+  const hostAccess =
+    !import.meta.env.FIREFOX && typeof browser.permissions.addHostAccessRequest === "function"
+      ? new HostAccessRequests({
+          api: {
+            add: (tabId) => browser.permissions.addHostAccessRequest({ tabId }),
+            remove: (tabId) => browser.permissions.removeHostAccessRequest({ tabId }),
+          },
+          hasAccess: (url) => hasSiteAccess(browser, url),
+          allSites: () => hasSiteAccess(browser),
+          app: controller,
+          tabs: () => browser.tabs.query({ url: [...WEB_PAGES], discarded: false }),
+          tab: getTab,
+          watch: (active) => {
+            if (active) browser.tabs.onUpdated.addListener(onNavigated);
+            else browser.tabs.onUpdated.removeListener(onNavigated);
+          },
+        })
+      : null;
+  void hostAccess?.accessChanged();
 
   const passkeys = new PasskeyController({
     extensionId,
@@ -214,6 +242,20 @@ export default defineBackground(() => {
     // Firefox has none.
     requestUpdateCheck: import.meta.env.FIREFOX ? undefined : () => browser.runtime.requestUpdateCheck(),
   });
+
+  /**
+   * Starts the content scripts in open tabs, only those of [origins] when set,
+   * past those of [exclude].
+   */
+  const reinject = (origins?: readonly string[], exclude?: readonly string[]) =>
+    reinjectContentScripts({
+      contentScripts: browser.runtime.getManifest().content_scripts ?? [],
+      origins,
+      exclude,
+      tabs: (query) => browser.tabs.query(query),
+      inject: (tabId, files, allFrames) =>
+        browser.scripting.executeScript({ target: { tabId, allFrames }, files: files as never[] }),
+    });
 
   const calls: CallHandlers = { ...controller.calls, ...pages.calls };
 
@@ -293,14 +335,36 @@ export default defineBackground(() => {
     // Open tabs get this version's content scripts in place of the copies the
     // update orphaned. Firefox starts the manifest's content scripts in open
     // tabs itself as the extension starts.
-    if (reason === "update" && !import.meta.env.FIREFOX) {
-      void reinjectContentScripts({
-        contentScripts: browser.runtime.getManifest().content_scripts ?? [],
-        tabs: (query) => browser.tabs.query(query),
-        inject: (tabId, files, allFrames) =>
-          browser.scripting.executeScript({ target: { tabId, allFrames }, files: files as never[] }),
-      });
-    }
+    if (reason === "update" && !import.meta.env.FIREFOX) void reinject();
+  });
+  // A grant of site access doesn't start the content scripts in tabs already
+  // open, so the inline menu would wait for a reload. Where the browser starts
+  // them too, the older copy tears down as the new one starts. Tabs of the
+  // access held before the grant keep theirs, so "Allow on all websites"
+  // closes no menu open on a site allowed earlier. With access to every
+  // website, the toolbar has no access to ask for; as a site's access goes,
+  // its open tabs may ask again.
+  // The origins held, changed in the order of the events. A worker woken by a
+  // grant reads them after it, so the grant's own origins never count as held
+  // before.
+  let held = browser.permissions.getAll().then(
+    ({ origins = [] }) => new Set(origins),
+    () => new Set<string>(),
+  );
+  browser.permissions.onAdded.addListener(({ origins = [] }) => {
+    held = held.then((before) => {
+      if (origins.length) {
+        // `tabs.query` takes web patterns only.
+        const exclude = [...before].filter((it) => !origins.includes(it) && /^(\*|https?):\/\//.test(it));
+        void reinject(origins, exclude);
+      }
+      return new Set([...before, ...origins]);
+    });
+    void hostAccess?.accessChanged();
+  });
+  browser.permissions.onRemoved.addListener(({ origins = [] }) => {
+    held = held.then((before) => new Set([...before].filter((it) => !origins.includes(it))));
+    void hostAccess?.accessChanged({ recheck: true });
   });
   // A startup listener starts the worker with the browser, so the toolbar
   // button shows the status before the popup opens.

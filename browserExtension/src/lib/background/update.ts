@@ -5,7 +5,8 @@
 // only on `runtime.reload()`: both would wait for the browser to restart. So
 // the background reloads itself once a reload cuts nothing the user is doing,
 // or at a deadline. What decides when a version installs is the code of the
-// version before it.
+// version before it. After an update, or a grant of site access, open tabs get
+// the content scripts without a reload.
 import type { ExtensionStatus } from "./api";
 
 /** How often a downloaded update checks whether the extension is idle. */
@@ -135,6 +136,17 @@ export interface ManifestContentScript {
 export interface ReinjectDeps {
   /** The manifest's content scripts. */
   contentScripts: readonly ManifestContentScript[];
+  /**
+   * Match patterns that narrow the tabs to those of a grant, as
+   * `permissions.onAdded` tells; `undefined` for every tab a script matches.
+   */
+  origins?: readonly string[];
+  /**
+   * Match patterns of the access held before the grant. Their tabs already
+   * run the content scripts, and a new copy would tear down what they show,
+   * as an open inline menu.
+   */
+  exclude?: readonly string[];
   /** `tabs.query`: the IDs of the tabs a content script matches. */
   tabs(query: { url: string[]; discarded: false }): Promise<{ id?: number }[]>;
   /** `scripting.executeScript` of [files] into tab [tabId], in its frames the extension can access when [allFrames]. */
@@ -142,25 +154,42 @@ export interface ReinjectDeps {
 }
 
 /**
- * After an update, starts the manifest's isolated content scripts of this
- * version in the open tabs they match: the update orphaned their copies
- * there, which then tear down as the new copy in their frame starts (WXT's
- * ContentScriptContext). Pages work again without a reload. Not the scripts of
- * the main world: they have no extension APIs to lose, and a second copy would
- * wrap WebAuthn twice. A discarded tab loads its page again with the
- * manifest's scripts; a tab the extension can't access, or that closed, is
- * skipped.
+ * Starts the manifest's isolated content scripts in the open tabs they match,
+ * only those of [ReinjectDeps.origins] when set. After an update, the update
+ * orphaned their copies there. After a grant of site access, the browser
+ * starts no content scripts in tabs already open, and the tabs of
+ * [ReinjectDeps.exclude] keep theirs. An older copy in a frame tears down as
+ * the new one starts (WXT's ContentScriptContext), so pages work again without
+ * a reload. Not the scripts of the main world: they have no extension APIs to
+ * lose, and a second copy would wrap WebAuthn twice. A discarded tab loads its
+ * page again with the manifest's scripts; a tab the extension can't access, or
+ * that closed, is skipped.
  */
 export async function reinjectContentScripts(deps: ReinjectDeps): Promise<void> {
   const scripts = deps.contentScripts.filter(
     ({ world, js, matches }) => world !== "MAIN" && js?.length && matches?.length,
   );
+  // The tabs of the grant that a script also matches: a grant never widens
+  // where a script runs.
+  let scope: Set<number | undefined> | undefined;
+  if (deps.origins !== undefined) {
+    if (scripts.length === 0 || deps.origins.length === 0) return;
+    const tabs = await deps.tabs({ url: [...deps.origins], discarded: false });
+    scope = new Set(tabs.map(({ id }) => id));
+  }
+  // Their frames of a newly granted site go without until a reload: rarer
+  // than a menu open in the top frame.
+  let skipped: Set<number | undefined> | undefined;
+  if (deps.exclude?.length) {
+    const tabs = await deps.tabs({ url: [...deps.exclude], discarded: false });
+    skipped = new Set(tabs.map(({ id }) => id));
+  }
   await Promise.all(
     scripts.map(async ({ matches = [], js = [], all_frames }) => {
       const tabs = await deps.tabs({ url: matches, discarded: false });
       await Promise.all(
         tabs.map(async ({ id }) => {
-          if (id === undefined) return;
+          if (id === undefined || (scope !== undefined && !scope.has(id)) || skipped?.has(id)) return;
           try {
             await deps.inject(id, js, all_frames === true);
           } catch {

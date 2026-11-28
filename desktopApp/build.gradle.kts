@@ -369,6 +369,66 @@ if (!hostPlatform.isWindows) {
     }
 }
 
+// The jpackage launcher of the JetBrains Runtime 21 crashes at startup once
+// the user exceeds fs.pipe-user-pages-soft, see JDK-8380085. Build the fixed
+// launcher from linux-launcher/ and swap it into the app image.
+//
+// Remove this block and linux-launcher/ once the bundled JBR has the fix:
+// - backports: https://bugs.openjdk.org/browse/JDK-8380085 lists a Backport
+//   issue for our JBR line (21.0.x or 25.0.x);
+// - JBR: src/jdk.jpackage/linux/native/applauncher/LinuxLauncher.c at the
+//   bundled jbr-release-* tag of JetBrains/JetBrainsRuntime has `readFully`;
+// - or JBR is based on JDK 27 or later, which has the fix.
+// Confirm by starting the stock launcher with fs.pipe-user-pages-soft=1 as a
+// non-root user: it must not exit with 139.
+//
+// Until then, a JBR rebased onto JDK-8384468 (21u, likely 21.0.12) changes the
+// launcher interface to libapplauncher.so: re-vendor the sources from that tag.
+if (hostPlatform.isLinux) {
+    val launcherDir = layout.projectDirectory.dir("linux-launcher")
+    val jdkIncludeDir = jbrLauncher.get().metadata.installationPath.dir("include")
+    val launcherFile = layout.buildDirectory.file("linux-launcher/Keyguard")
+    val compileLinuxLauncher = tasks.register<Exec>("compileLinuxLauncher") {
+        description = "Compiles the jpackage app launcher with the JDK-8380085 fix."
+        inputs.files(launcherDir.asFileTree.matching { include("build.sh", "src/**") })
+            .withPropertyName("sources")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.files(jdkIncludeDir.file("jni.h"), jdkIncludeDir.file("linux/jni_md.h"))
+            .withPropertyName("jniHeaders")
+            .withPathSensitivity(PathSensitivity.NONE)
+        outputs.file(launcherFile)
+        // The compile command lives next to the GPL sources it builds.
+        executable = "sh"
+        args(
+            launcherDir.file("build.sh").asFile,
+            jdkIncludeDir.asFile,
+            launcherFile.get().asFile,
+        )
+    }
+
+    tasks.withType<AbstractJPackageTask>().configureEach {
+        if (targetFormat != TargetFormat.AppImage) {
+            return@configureEach
+        }
+
+        inputs.files(compileLinuxLauncher)
+            .withPropertyName("linuxLauncher")
+            .withPathSensitivity(PathSensitivity.NONE)
+        val appLauncher = destinationDir.zip(packageName) { dir, name -> dir.file("$name/bin/$name") }
+        // Before the release AppCDS training run, which starts this launcher.
+        doLast {
+            val target = appLauncher.get().asFile
+            check(target.isFile) {
+                "App launcher is missing: $target"
+            }
+            launcherFile.get().asFile.copyTo(target, overwrite = true)
+            check(target.setExecutable(true, false) && target.canExecute()) {
+                "Could not mark the app launcher as executable: $target"
+            }
+        }
+    }
+}
+
 fun Tar.installPackageDistributable(
     dependency: String,
 ) {
